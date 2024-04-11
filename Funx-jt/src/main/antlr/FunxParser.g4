@@ -8,32 +8,37 @@ functions: function (NEWLINE function?)*;
 
 function: FUNID lambdaElems? Equals expression (NEWLINE with)?;
 
-with: WITH localFunctions END;
+with: WITH localFunctions OUT;
 
 localFunctions: NEWLINE functions NEWLINE;
 
 expression
-    : literalEx # literal
-    | applicationEx # application
+    : literalEx # lit
+    | applicationEx # app
     | lambdaEx # lambda
     | letEx # let
-    | OpenParen expression CloseParen # parenthesized
+    | parenthesizedEx # paren
     ;
+
+parenthesizedEx: OpenParen expression CloseParen;
 
 literalEx
     : BOOLEAN # bool
-    | DECIMAL # integer
+    | INTEGER # integer
     | FLOAT # floating
     ;
 
 applicationEx
-    : FUNID # singleApplication
-    | applicationEx applicationTerm # multiApplication
+    : FUNID # singleApp
+    | applicationEx applicationTerm # multiApp
+    | parenthesizedEx applicationTerm # leftParenApp
+    | applicationEx parenthesizedEx # rightParenApp
+    | parenthesizedEx parenthesizedEx # multiParenApp
     ;
 
 applicationTerm
     : FUNID # funTerm
-    | literalEx # literalTerm
+    | literalEx # litTerm
     ;
 
 lambdaEx: Backslash lambdaElems? DotArrow expression;
