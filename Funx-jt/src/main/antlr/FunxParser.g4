@@ -31,14 +31,13 @@ literalEx
 applicationEx
     : FUNID # singleApp
     | applicationEx applicationTerm # multiApp
-    | parenthesizedEx applicationTerm # leftParenApp
-    | applicationEx parenthesizedEx # rightParenApp
-    | parenthesizedEx parenthesizedEx # multiParenApp
+    | parenthesizedEx # parenApp
     ;
 
 applicationTerm
     : FUNID # funTerm
     | literalEx # litTerm
+    | parenthesizedEx # parenTerm
     ;
 
 lambdaEx: Backslash lambdaElems? DotArrow expression;
