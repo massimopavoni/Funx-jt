@@ -17,6 +17,7 @@ expression
     | applicationEx # app
     | lambdaEx # lambda
     | letEx # let
+    | ifEx # if
     | parenthesizedEx # paren
     ;
 
@@ -24,8 +25,8 @@ parenthesizedEx: OpenParen expression CloseParen;
 
 literalEx
     : BOOLEAN # bool
-    | INTEGER # integer
-    | FLOAT # floating
+    | INTEGER # int
+    | FLOAT # float
     ;
 
 applicationEx
@@ -48,3 +49,5 @@ lambdaElems
     ;
 
 letEx: LET (function | localFunctions) IN expression;
+
+ifEx: IF expression THEN expression ELSE expression FI;

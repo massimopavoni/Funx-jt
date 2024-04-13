@@ -67,17 +67,6 @@ Slash: '/';
 Star: '*';
 UnderScore: '_';
 
-And: '&&';
-Or: '||';
-Not: '!!';
-
-EqualsEquals: '==';
-GreaterThan: '>';
-GreaterThanEquals: '>=';
-LessThan: '<';
-LessThanEquals: '<=';
-NotEquals: '/=';
-
 DotArrow: '.>';
 
 OpenParen: '(';
