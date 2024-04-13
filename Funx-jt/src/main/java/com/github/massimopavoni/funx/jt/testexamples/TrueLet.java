@@ -24,6 +24,7 @@ public class TrueLet {
             }
 
             private Function<Integer, Boolean> odd() {
+                // return x -> x != 0 && even().apply(x - 1); LAMBDA? or EXPLICIT?
                 return new Function<Integer, Boolean>() {
                     @Override
                     public Boolean apply(Integer x) {
@@ -41,11 +42,28 @@ public class TrueLet {
 
     // f x = let g y = x + y in g
     static public Function<Integer, Function<Integer, Integer>> f() {
+//        return x -> new Let<Function<Integer, Integer>>() {
+//            private Function<Integer, Integer> g() {
+//                // return y -> x + y; LAMBDA? or EXPLICIT?
+//                return new Function<Integer, Integer>() {
+//                    @Override
+//                    public Integer apply(Integer y) {
+//                        return x + y;
+//                    }
+//                };
+//            }
+//
+//            @Override
+//            public Function<Integer, Integer> _eval() {
+//                return g();
+//            }
+//        }._eval(); LAMBDA? or EXPLICIT?
         return new Function<Integer, Function<Integer, Integer>>() {
             @Override
             public Function<Integer, Integer> apply(Integer x) {
                 return new Let<Function<Integer, Integer>>() {
                     private Function<Integer, Integer> g() {
+                        // return y -> x + y; LAMBDA? or EXPLICIT?
                         return new Function<Integer, Integer>() {
                             @Override
                             public Integer apply(Integer y) {
