@@ -29,6 +29,40 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFunction(FunxParser.FunctionContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link FunxParser#funType}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFunType(FunxParser.FunTypeContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code singleType}
+	 * labeled alternative in {@link FunxParser#typeElems}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSingleType(FunxParser.SingleTypeContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code multiType}
+	 * labeled alternative in {@link FunxParser#typeElems}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMultiType(FunxParser.MultiTypeContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code type}
+	 * labeled alternative in {@link FunxParser#typeTerm}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitType(FunxParser.TypeContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code parenType}
+	 * labeled alternative in {@link FunxParser#typeTerm}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitParenType(FunxParser.ParenTypeContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link FunxParser#with}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

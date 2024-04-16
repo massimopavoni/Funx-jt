@@ -12,7 +12,7 @@ funType: FUNID Colon typeElems;
 
 typeElems
     : typeTerm # singleType
-    | typeElems typeTerm # multiType
+    | typeElems Arrow typeTerm # multiType
     ;
 
 typeTerm
@@ -31,7 +31,6 @@ expression
     | letEx # let
     | ifEx # if
     | parenthesizedEx # paren
-    | JAVA # java
     ;
 
 parenthesizedEx: OpenParen expression CloseParen;

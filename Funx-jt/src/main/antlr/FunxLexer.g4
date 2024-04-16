@@ -11,8 +11,6 @@ fragment DECIMAL: DIGIT+;
 fragment EXPONENT: [eE] [+-]? DECIMAL;
 fragment FLOATING: DECIMAL ('.' DECIMAL) EXPONENT?;
 
-fragment ANYTHING: .*?;
-
 // Whitespace
 NEWLINE
     : '\r'? '\n'
@@ -25,7 +23,7 @@ WS: [\u0020\u00a0\u1680\u2000\u200a\u202f\u205f\u3000]+ -> skip;
 
 // Comments
 COMMENT: SingleComment ~[\r\n]* -> skip;
-MULTICOMMENT: OpenMultiComment ANYTHING CloseMultiComment -> skip;
+MULTICOMMENT: OpenMultiComment .*? CloseMultiComment -> skip;
 
 // Keywords
 ELSE: 'else';
@@ -71,6 +69,7 @@ Slash: '/';
 Star: '*';
 UnderScore: '_';
 
+Arrow: '->';
 DotArrow: '.>';
 
 OpenParen: '(';
@@ -82,12 +81,6 @@ CloseBracket: ']';
 OpenBrace: '{';
 CloseBrace: '}';
 
-OpenJavaBrace: '{{#';
-CloseJavaBrace: '#}}';
-
 CloseMultiComment: './';
 OpenMultiComment: '/.';
 SingleComment: '//';
-
-// Java
-JAVA: OpenJavaBrace ANYTHING CloseJavaBrace;
