@@ -6,7 +6,19 @@ program: functions EOF;
 
 functions: function (NEWLINE function?)*;
 
-function: FUNID lambdaElems? Equals expression (NEWLINE with)?;
+function: funType NEWLINE FUNID lambdaElems? Equals expression (NEWLINE with)?;
+
+funType: FUNID Colon typeElems;
+
+typeElems
+    : typeTerm # singleType
+    | typeElems typeTerm # multiType
+    ;
+
+typeTerm
+    : TYPEID # type
+    | OpenParen typeElems CloseParen # parenType
+    ;
 
 with: WITH localFunctions OUT;
 
@@ -19,6 +31,7 @@ expression
     | letEx # let
     | ifEx # if
     | parenthesizedEx # paren
+    | JAVA # java
     ;
 
 parenthesizedEx: OpenParen expression CloseParen;

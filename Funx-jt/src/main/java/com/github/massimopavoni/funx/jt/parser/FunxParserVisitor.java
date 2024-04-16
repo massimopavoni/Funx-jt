@@ -29,31 +29,31 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFunction(FunxParser.FunctionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link FunxParser#funend}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitFunend(FunxParser.FunendContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link FunxParser#with}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitWith(FunxParser.WithContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code constant}
-	 * labeled alternative in {@link FunxParser#expression}.
+	 * Visit a parse tree produced by {@link FunxParser#localFunctions}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitConstant(FunxParser.ConstantContext ctx);
+	T visitLocalFunctions(FunxParser.LocalFunctionsContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code application}
+	 * Visit a parse tree produced by the {@code lit}
 	 * labeled alternative in {@link FunxParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitApplication(FunxParser.ApplicationContext ctx);
+	T visitLit(FunxParser.LitContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code app}
+	 * labeled alternative in {@link FunxParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitApp(FunxParser.AppContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code lambda}
 	 * labeled alternative in {@link FunxParser#expression}.
@@ -69,47 +69,74 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitLet(FunxParser.LetContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code parenthesized}
+	 * Visit a parse tree produced by the {@code if}
 	 * labeled alternative in {@link FunxParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitParenthesized(FunxParser.ParenthesizedContext ctx);
+	T visitIf(FunxParser.IfContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code paren}
+	 * labeled alternative in {@link FunxParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitParen(FunxParser.ParenContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code java}
+	 * labeled alternative in {@link FunxParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitJava(FunxParser.JavaContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link FunxParser#parenthesizedEx}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitParenthesizedEx(FunxParser.ParenthesizedExContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code bool}
-	 * labeled alternative in {@link FunxParser#literal}.
+	 * labeled alternative in {@link FunxParser#literalEx}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitBool(FunxParser.BoolContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code integer}
-	 * labeled alternative in {@link FunxParser#literal}.
+	 * Visit a parse tree produced by the {@code int}
+	 * labeled alternative in {@link FunxParser#literalEx}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitInteger(FunxParser.IntegerContext ctx);
+	T visitInt(FunxParser.IntContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code floating}
-	 * labeled alternative in {@link FunxParser#literal}.
+	 * Visit a parse tree produced by the {@code float}
+	 * labeled alternative in {@link FunxParser#literalEx}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitFloating(FunxParser.FloatingContext ctx);
+	T visitFloat(FunxParser.FloatContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code singleApplication}
+	 * Visit a parse tree produced by the {@code singleApp}
 	 * labeled alternative in {@link FunxParser#applicationEx}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitSingleApplication(FunxParser.SingleApplicationContext ctx);
+	T visitSingleApp(FunxParser.SingleAppContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code multiApplication}
+	 * Visit a parse tree produced by the {@code parenApp}
 	 * labeled alternative in {@link FunxParser#applicationEx}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitMultiApplication(FunxParser.MultiApplicationContext ctx);
+	T visitParenApp(FunxParser.ParenAppContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code multiApp}
+	 * labeled alternative in {@link FunxParser#applicationEx}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMultiApp(FunxParser.MultiAppContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code funTerm}
 	 * labeled alternative in {@link FunxParser#applicationTerm}.
@@ -118,12 +145,19 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFunTerm(FunxParser.FunTermContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code literalTerm}
+	 * Visit a parse tree produced by the {@code litTerm}
 	 * labeled alternative in {@link FunxParser#applicationTerm}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitLiteralTerm(FunxParser.LiteralTermContext ctx);
+	T visitLitTerm(FunxParser.LitTermContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code parenTerm}
+	 * labeled alternative in {@link FunxParser#applicationTerm}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitParenTerm(FunxParser.ParenTermContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link FunxParser#lambdaEx}.
 	 * @param ctx the parse tree
@@ -151,9 +185,9 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitLetEx(FunxParser.LetExContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link FunxParser#end}.
+	 * Visit a parse tree produced by {@link FunxParser#ifEx}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitEnd(FunxParser.EndContext ctx);
+	T visitIfEx(FunxParser.IfExContext ctx);
 }

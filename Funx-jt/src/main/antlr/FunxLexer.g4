@@ -11,6 +11,8 @@ fragment DECIMAL: DIGIT+;
 fragment EXPONENT: [eE] [+-]? DECIMAL;
 fragment FLOATING: DECIMAL ('.' DECIMAL) EXPONENT?;
 
+fragment ANYTHING: .*?;
+
 // Whitespace
 NEWLINE
     : '\r'? '\n'
@@ -23,7 +25,7 @@ WS: [\u0020\u00a0\u1680\u2000\u200a\u202f\u205f\u3000]+ -> skip;
 
 // Comments
 COMMENT: SingleComment ~[\r\n]* -> skip;
-MULTICOMMENT: OpenMultiComment .*? CloseMultiComment -> skip;
+MULTICOMMENT: OpenMultiComment ANYTHING CloseMultiComment -> skip;
 
 // Keywords
 ELSE: 'else';
@@ -37,6 +39,8 @@ THEN: 'then';
 WITH: 'with';
 
 // Literals
+TYPEID: UALPHA (ALPHA_ | DIGIT)*;
+
 FUNID: LALPHA (ALPHA_ | DIGIT)*;
 
 BOOLEAN
@@ -84,3 +88,6 @@ CloseJavaBrace: '#}}';
 CloseMultiComment: './';
 OpenMultiComment: '/.';
 SingleComment: '//';
+
+// Java
+JAVA: OpenJavaBrace ANYTHING CloseJavaBrace;
