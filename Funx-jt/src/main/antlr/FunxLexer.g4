@@ -22,6 +22,10 @@ TAB: [\t]+ -> skip;
 WS: [\u0020\u00a0\u1680\u2000\u200a\u202f\u205f\u3000]+ -> skip;
 
 // Comments
+CloseMultiComment: './';
+OpenMultiComment: '/.';
+SingleComment: '//';
+
 COMMENT: SingleComment ~[\r\n]* -> skip;
 MULTICOMMENT: OpenMultiComment .*? CloseMultiComment -> skip;
 
@@ -36,42 +40,58 @@ OUT: 'out';
 THEN: 'then';
 WITH: 'with';
 
-// Literals
-TYPEID: UALPHA (ALPHA_ | DIGIT)*;
+// Functions
+TYPE
+    : 'Bool'
+    | 'Float'
+    | 'Int'
+    ;
 
 FUNID: LALPHA (ALPHA_ | DIGIT)*;
 
-BOOLEAN
+// Literals
+BOOL
     : 'False'
     | 'True'
     ;
 FLOAT
     : FLOATING
-    | OpenParen Minus FLOATING CloseParen
+    | OpenParen '-' FLOATING CloseParen
     ;
-INTEGER
+INT
     : DECIMAL
-    | OpenParen Minus DECIMAL CloseParen
+    | OpenParen '-' DECIMAL CloseParen
     ;
 
-// Symbols
-Ampersand: '&';
+// Bool
+And: '&&';
+Or: '||';
+Not: '!!';
+
+// Comparison
+EqualsEquals: '==';
+GreaterThan: '>';
+GreaterThanEquals: '>=';
+LessThan: '<';
+LessThanEquals: '<=';
+NotEquals: '!=';
+
+// Arithmetic
+Add: '+';
+Divide: '/';
+Modulo: '%';
+Multiply: '*';
+Subtract: '-';
+
+// Other symbols
 Backslash: '\\';
-Bang: '!';
 Colon: ':';
-Dot: '.';
 Equals: '=';
-Minus: '-';
-Pipe: '|';
-Plus: '+';
-SemiColon: ';';
-Slash: '/';
-Star: '*';
 UnderScore: '_';
 
 Arrow: '->';
-DotArrow: '.>';
 
+// Delimiters
 OpenParen: '(';
 CloseParen: ')';
 
@@ -81,6 +101,3 @@ CloseBracket: ']';
 OpenBrace: '{';
 CloseBrace: '}';
 
-CloseMultiComment: './';
-OpenMultiComment: '/.';
-SingleComment: '//';

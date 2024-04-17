@@ -6,9 +6,13 @@ program: functions EOF;
 
 functions: function (NEWLINE function?)*;
 
-function: funType NEWLINE FUNID lambdaElems? Equals expression (NEWLINE with)?;
+function
+    : functionType NEWLINE
+        FUNID lambdaElems? Equals expression
+        (NEWLINE WITH localFunctions OUT)?
+    ;
 
-funType: FUNID Colon typeElems;
+functionType: FUNID Colon typeElems;
 
 typeElems
     : typeTerm # singleType
@@ -16,44 +20,37 @@ typeElems
     ;
 
 typeTerm
-    : TYPEID # type
-    | OpenParen typeElems CloseParen # parenType
+    : OpenParen typeElems CloseParen # parenType
+    | TYPE # type
     ;
-
-with: WITH localFunctions OUT;
 
 localFunctions: NEWLINE functions NEWLINE;
 
 expression
-    : literalEx # lit
+    : parenthesizedEx # paren
     | applicationEx # app
     | lambdaEx # lambda
     | letEx # let
     | ifEx # if
-    | parenthesizedEx # paren
+    | boolEx # bool
+    | arithmeticEx # arith
     ;
 
 parenthesizedEx: OpenParen expression CloseParen;
 
-literalEx
-    : BOOLEAN # bool
-    | INTEGER # int
-    | FLOAT # float
-    ;
-
 applicationEx
-    : FUNID # singleApp
-    | applicationEx applicationTerm # multiApp
-    | parenthesizedEx # parenApp
+    : parenthesizedEx # parenApp
+    | FUNID # singleApp
+    | applicationEx (parenthesizedEx | FUNID | literalEx) # multiApp
     ;
 
-applicationTerm
-    : FUNID # funTerm
-    | literalEx # litTerm
-    | parenthesizedEx # parenTerm
+literalEx
+    : BOOL
+    | FLOAT
+    | INT
     ;
 
-lambdaEx: Backslash lambdaElems? DotArrow expression;
+lambdaEx: Backslash lambdaElems? Arrow expression;
 
 lambdaElems
     : FUNID # singleLambda
@@ -63,3 +60,30 @@ lambdaElems
 letEx: LET (function | localFunctions) IN expression;
 
 ifEx: IF expression THEN expression ELSE expression FI;
+
+boolEx
+    : parenthesizedEx # parenBool
+    | FUNID # funBool
+    | BOOL # litBool
+    | comparison # compBool
+    | Not boolEx # notBool
+    | boolEx And boolEx # andBool
+    | boolEx Or boolEx # orBool
+    ;
+
+comparison
+    : (applicationEx | literalEx)
+        (EqualsEquals | GreaterThan | GreaterThanEquals | LessThan | LessThanEquals | NotEquals)
+        (applicationEx | literalEx)
+    ;
+
+arithmeticEx
+    : parenthesizedEx # parenArith
+    | FUNID # funArith
+    | FLOAT # floatArith
+    | INT # intArith
+    | arithmeticEx (Divide | Modulo | Multiply) arithmeticEx # divModMultArith
+    | arithmeticEx (Add | Subtract) arithmeticEx # addSubArith
+    ;
+
+

@@ -1,0 +1,15 @@
+x : Int -> Int -> (Int -> Int) -> Int -> Int -> Int -> (Int -> Int -> Bool) -> (Int -> Int -> Bool) 
+x a b c d e m n f g = let
+fun : Int -> Int -> Int -> Bool
+fun = if eq a b then f else g fi
+cond : Int -> Int -> Bool
+cond = neq m n
+h : Int
+h = 10
+in (if cond then fun (c d) else fun (c h) fi) e
+
+add3 : Int -> Int-> Int-> Int
+add3 a b c = add (add a b) c
+
+y : Int -> Int -> Bool
+y a b = (a * (b + 4) - 5 + 3 % 2 - 3 / 9) == 4
