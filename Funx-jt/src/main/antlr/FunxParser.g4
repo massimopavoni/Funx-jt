@@ -10,7 +10,7 @@ functions: function (NEWLINE function?)*;
 // Function
 function
     : functionType NEWLINE
-        FUNID lambdaElems? Equals expression
+        FUNID lambdaElems? Equals statement
         (NEWLINE WITH localFunctions OUT)?
     ;
 
@@ -20,37 +20,60 @@ localFunctions: NEWLINE functions NEWLINE;
 
 // ----------------------------------------------------------------
 // Type
-typeElems: typeTerm (Arrow typeElems)?;
-
-typeTerm
+typeElems
     : OpenParen typeElems CloseParen # parenType
     | TYPE # type
+    | <assoc = right> typeElems Arrow typeElems # arrowType
     ;
 
 // ----------------------------------------------------------------
-// Expressions
+// Statement
+statement
+    : expression # ex
+    | lambda # lambdaSt
+    | let # letSt
+    | if # ifSt
+    ;
+
+// ----------------------------------------------------------------
+// Expression
 expression
-    : ifEx # if
-    | letEx # let
-    | lambdaEx # lambda
-    | applicationEx # app
-    | boolEx # bool
-    | arithmeticEx # arith
+    : primary # prim
+    | expression expression # app
+    | Not expression # not
+    | expression (Divide | Modulo | Multiply) expression # divModMult
+    | expression (Add | Subtract) expression # addSub
+    | expression (GreaterThan | GreaterThanEquals | LessThan | LessThanEquals) expression # comp
+    | expression (EqualsEquals | NotEquals) expression # eq
+    | expression And expression # and
+    | expression Or expression # or
     ;
 
-parenOrFun
-    : OpenParen expression CloseParen
-    | FUNID
+primary
+    : OpenParen statement CloseParen # paren
+    | literal # lit
+    | FUNID # fun
     ;
 
 // ----------------------------------------------------------------
-// Application
-applicationEx: parenOrFun multiApplication?;
+// Lambda
+lambda: Backslash lambdaElems? Arrow statement;
 
-multiApplication: (parenOrFun | literal) multiApplication?;
+lambdaElems
+    : FUNID
+    | <assoc = right> lambdaElems lambdaElems
+    ;
 
 // ----------------------------------------------------------------
-// Literals
+// Let
+let: LET (function | localFunctions) IN statement;
+
+// ----------------------------------------------------------------
+// If
+if: IF statement THEN statement ELSE statement FI;
+
+// ----------------------------------------------------------------
+// Literal
 literal
     : BOOL
     | numLiteral
@@ -59,62 +82,4 @@ literal
 numLiteral
     : FLOAT
     | INT
-    ;
-
-// ----------------------------------------------------------------
-// Lambda
-lambdaEx: Backslash lambdaElems? Arrow expression;
-
-lambdaElems: FUNID+;
-
-// ----------------------------------------------------------------
-// Let
-letEx: LET (function | localFunctions) IN expression;
-
-// ----------------------------------------------------------------
-// If
-ifEx: IF expression THEN expression ELSE expression FI;
-
-// ----------------------------------------------------------------
-// Boolean
-boolEx: boolTerm boolOr?;
-
-boolOr: Or boolTerm boolOr?;
-
-boolTerm: boolFactor boolAnd?;
-
-boolAnd: And boolFactor boolAnd?;
-
-boolFactor
-    : boolPrimary # simpleBool
-    | Not boolPrimary # notBool
-    ;
-
-boolPrimary
-    : BOOL # litBool
-    | comparison # compBool
-    | parenOrFun # appParenBool
-    ;
-
-// ----------------------------------------------------------------
-// Comparison
-comparison
-    : (applicationEx | literal)
-        (EqualsEquals | GreaterThan | GreaterThanEquals | LessThan | LessThanEquals | NotEquals)
-        (applicationEx | literal)
-    ;
-
-// ----------------------------------------------------------------
-// Arithmetic
-arithmeticEx: arithmeticTerm addSub?;
-
-addSub: (Add | Subtract) arithmeticTerm addSub?;
-
-arithmeticTerm: arithmeticFactor divModMult?;
-
-divModMult: (Divide | Modulo | Multiply) arithmeticFactor divModMult?;
-
-arithmeticFactor
-    : numLiteral # litArith
-    | parenOrFun # appParenArith
     ;

@@ -1,6 +1,5 @@
 package com.github.massimopavoni.funx.jt.testexamples;
 
-import java.util.List;
 import java.util.function.Function;
 
 public class TrueLet {

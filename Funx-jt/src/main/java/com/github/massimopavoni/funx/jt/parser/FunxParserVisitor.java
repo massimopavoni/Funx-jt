@@ -41,46 +41,54 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitLocalFunctions(FunxParser.LocalFunctionsContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link FunxParser#typeElems}.
+	 * Visit a parse tree produced by the {@code arrowType}
+	 * labeled alternative in {@link FunxParser#typeElems}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitTypeElems(FunxParser.TypeElemsContext ctx);
+	T visitArrowType(FunxParser.ArrowTypeContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code parenType}
-	 * labeled alternative in {@link FunxParser#typeTerm}.
+	 * labeled alternative in {@link FunxParser#typeElems}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitParenType(FunxParser.ParenTypeContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code type}
-	 * labeled alternative in {@link FunxParser#typeTerm}.
+	 * labeled alternative in {@link FunxParser#typeElems}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitType(FunxParser.TypeContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code if}
-	 * labeled alternative in {@link FunxParser#expression}.
+	 * Visit a parse tree produced by the {@code ex}
+	 * labeled alternative in {@link FunxParser#statement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitIf(FunxParser.IfContext ctx);
+	T visitEx(FunxParser.ExContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code let}
-	 * labeled alternative in {@link FunxParser#expression}.
+	 * Visit a parse tree produced by the {@code lambdaSt}
+	 * labeled alternative in {@link FunxParser#statement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitLet(FunxParser.LetContext ctx);
+	T visitLambdaSt(FunxParser.LambdaStContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code lambda}
-	 * labeled alternative in {@link FunxParser#expression}.
+	 * Visit a parse tree produced by the {@code letSt}
+	 * labeled alternative in {@link FunxParser#statement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitLambda(FunxParser.LambdaContext ctx);
+	T visitLetSt(FunxParser.LetStContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code ifSt}
+	 * labeled alternative in {@link FunxParser#statement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIfSt(FunxParser.IfStContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code app}
 	 * labeled alternative in {@link FunxParser#expression}.
@@ -89,37 +97,106 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitApp(FunxParser.AppContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code bool}
+	 * Visit a parse tree produced by the {@code comp}
 	 * labeled alternative in {@link FunxParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitBool(FunxParser.BoolContext ctx);
+	T visitComp(FunxParser.CompContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code arith}
+	 * Visit a parse tree produced by the {@code prim}
 	 * labeled alternative in {@link FunxParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitArith(FunxParser.ArithContext ctx);
+	T visitPrim(FunxParser.PrimContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link FunxParser#parenOrFun}.
+	 * Visit a parse tree produced by the {@code not}
+	 * labeled alternative in {@link FunxParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitParenOrFun(FunxParser.ParenOrFunContext ctx);
+	T visitNot(FunxParser.NotContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link FunxParser#applicationEx}.
+	 * Visit a parse tree produced by the {@code or}
+	 * labeled alternative in {@link FunxParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitApplicationEx(FunxParser.ApplicationExContext ctx);
+	T visitOr(FunxParser.OrContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link FunxParser#multiApplication}.
+	 * Visit a parse tree produced by the {@code and}
+	 * labeled alternative in {@link FunxParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitMultiApplication(FunxParser.MultiApplicationContext ctx);
+	T visitAnd(FunxParser.AndContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code addSub}
+	 * labeled alternative in {@link FunxParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAddSub(FunxParser.AddSubContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code eq}
+	 * labeled alternative in {@link FunxParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitEq(FunxParser.EqContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code divModMult}
+	 * labeled alternative in {@link FunxParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDivModMult(FunxParser.DivModMultContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code paren}
+	 * labeled alternative in {@link FunxParser#primary}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitParen(FunxParser.ParenContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code lit}
+	 * labeled alternative in {@link FunxParser#primary}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLit(FunxParser.LitContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code fun}
+	 * labeled alternative in {@link FunxParser#primary}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFun(FunxParser.FunContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link FunxParser#lambda}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLambda(FunxParser.LambdaContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link FunxParser#lambdaElems}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLambdaElems(FunxParser.LambdaElemsContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link FunxParser#let}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLet(FunxParser.LetContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link FunxParser#if}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIf(FunxParser.IfContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link FunxParser#literal}.
 	 * @param ctx the parse tree
@@ -132,131 +209,4 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitNumLiteral(FunxParser.NumLiteralContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link FunxParser#lambdaEx}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitLambdaEx(FunxParser.LambdaExContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link FunxParser#lambdaElems}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitLambdaElems(FunxParser.LambdaElemsContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link FunxParser#letEx}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitLetEx(FunxParser.LetExContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link FunxParser#ifEx}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitIfEx(FunxParser.IfExContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link FunxParser#boolEx}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBoolEx(FunxParser.BoolExContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link FunxParser#boolOr}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBoolOr(FunxParser.BoolOrContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link FunxParser#boolTerm}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBoolTerm(FunxParser.BoolTermContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link FunxParser#boolAnd}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBoolAnd(FunxParser.BoolAndContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code simpleBool}
-	 * labeled alternative in {@link FunxParser#boolFactor}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitSimpleBool(FunxParser.SimpleBoolContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code notBool}
-	 * labeled alternative in {@link FunxParser#boolFactor}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitNotBool(FunxParser.NotBoolContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code litBool}
-	 * labeled alternative in {@link FunxParser#boolPrimary}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitLitBool(FunxParser.LitBoolContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code compBool}
-	 * labeled alternative in {@link FunxParser#boolPrimary}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitCompBool(FunxParser.CompBoolContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code appParenBool}
-	 * labeled alternative in {@link FunxParser#boolPrimary}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitAppParenBool(FunxParser.AppParenBoolContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link FunxParser#comparison}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitComparison(FunxParser.ComparisonContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link FunxParser#arithmeticEx}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitArithmeticEx(FunxParser.ArithmeticExContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link FunxParser#addSub}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitAddSub(FunxParser.AddSubContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link FunxParser#arithmeticTerm}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitArithmeticTerm(FunxParser.ArithmeticTermContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link FunxParser#divModMult}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitDivModMult(FunxParser.DivModMultContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code litArith}
-	 * labeled alternative in {@link FunxParser#arithmeticFactor}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitLitArith(FunxParser.LitArithContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code appParenArith}
-	 * labeled alternative in {@link FunxParser#arithmeticFactor}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitAppParenArith(FunxParser.AppParenArithContext ctx);
 }
