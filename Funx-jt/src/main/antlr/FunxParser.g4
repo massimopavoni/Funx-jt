@@ -66,7 +66,7 @@ lambdaElems
 
 // ----------------------------------------------------------------
 // Let
-let: LET (function | localFunctions) IN statement;
+let: LET localFunctions IN statement;
 
 // ----------------------------------------------------------------
 // If
