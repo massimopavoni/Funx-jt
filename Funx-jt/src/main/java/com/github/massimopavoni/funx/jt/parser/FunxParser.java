@@ -28,12 +28,12 @@ public class FunxParser extends Parser {
 	public static final int
 		RULE_program = 0, RULE_functions = 1, RULE_function = 2, RULE_functionType = 3, 
 		RULE_localFunctions = 4, RULE_typeElems = 5, RULE_statement = 6, RULE_expression = 7, 
-		RULE_primary = 8, RULE_lambda = 9, RULE_lambdaElems = 10, RULE_let = 11, 
+		RULE_primary = 8, RULE_lambda = 9, RULE_lambdaParams = 10, RULE_let = 11, 
 		RULE_if = 12, RULE_literal = 13, RULE_numLiteral = 14;
 	private static String[] makeRuleNames() {
 		return new String[] {
 			"program", "functions", "function", "functionType", "localFunctions", 
-			"typeElems", "statement", "expression", "primary", "lambda", "lambdaElems", 
+			"typeElems", "statement", "expression", "primary", "lambda", "lambdaParams", 
 			"let", "if", "literal", "numLiteral"
 		};
 	}
@@ -226,6 +226,7 @@ public class FunxParser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class FunctionContext extends ParserRuleContext {
+		public Token id;
 		public FunctionTypeContext functionType() {
 			return getRuleContext(FunctionTypeContext.class,0);
 		}
@@ -233,13 +234,13 @@ public class FunxParser extends Parser {
 		public TerminalNode NEWLINE(int i) {
 			return getToken(FunxParser.NEWLINE, i);
 		}
-		public TerminalNode FUNID() { return getToken(FunxParser.FUNID, 0); }
 		public TerminalNode Equals() { return getToken(FunxParser.Equals, 0); }
 		public StatementContext statement() {
 			return getRuleContext(StatementContext.class,0);
 		}
-		public LambdaElemsContext lambdaElems() {
-			return getRuleContext(LambdaElemsContext.class,0);
+		public TerminalNode FUNID() { return getToken(FunxParser.FUNID, 0); }
+		public LambdaParamsContext lambdaParams() {
+			return getRuleContext(LambdaParamsContext.class,0);
 		}
 		public TerminalNode WITH() { return getToken(FunxParser.WITH, 0); }
 		public LocalFunctionsContext localFunctions() {
@@ -269,14 +270,14 @@ public class FunxParser extends Parser {
 			setState(44);
 			match(NEWLINE);
 			setState(45);
-			match(FUNID);
+			((FunctionContext)_localctx).id = match(FUNID);
 			setState(47);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if (_la==FUNID) {
 				{
 				setState(46);
-				lambdaElems(0);
+				lambdaParams(0);
 				}
 			}
 
@@ -315,11 +316,12 @@ public class FunxParser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class FunctionTypeContext extends ParserRuleContext {
-		public TerminalNode FUNID() { return getToken(FunxParser.FUNID, 0); }
+		public Token id;
 		public TerminalNode Colon() { return getToken(FunxParser.Colon, 0); }
 		public TypeElemsContext typeElems() {
 			return getRuleContext(TypeElemsContext.class,0);
 		}
+		public TerminalNode FUNID() { return getToken(FunxParser.FUNID, 0); }
 		public FunctionTypeContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -338,7 +340,7 @@ public class FunxParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(58);
-			match(FUNID);
+			((FunctionTypeContext)_localctx).id = match(FUNID);
 			setState(59);
 			match(Colon);
 			setState(60);
@@ -549,50 +551,50 @@ public class FunxParser extends Parser {
 		}
 	}
 	@SuppressWarnings("CheckReturnValue")
-	public static class ExContext extends StatementContext {
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
-		}
-		public ExContext(StatementContext ctx) { copyFrom(ctx); }
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitEx(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-	@SuppressWarnings("CheckReturnValue")
-	public static class LambdaStContext extends StatementContext {
+	public static class LambdaStatementContext extends StatementContext {
 		public LambdaContext lambda() {
 			return getRuleContext(LambdaContext.class,0);
 		}
-		public LambdaStContext(StatementContext ctx) { copyFrom(ctx); }
+		public LambdaStatementContext(StatementContext ctx) { copyFrom(ctx); }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitLambdaSt(this);
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitLambdaStatement(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 	@SuppressWarnings("CheckReturnValue")
-	public static class LetStContext extends StatementContext {
+	public static class LetStatementContext extends StatementContext {
 		public LetContext let() {
 			return getRuleContext(LetContext.class,0);
 		}
-		public LetStContext(StatementContext ctx) { copyFrom(ctx); }
+		public LetStatementContext(StatementContext ctx) { copyFrom(ctx); }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitLetSt(this);
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitLetStatement(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 	@SuppressWarnings("CheckReturnValue")
-	public static class IfStContext extends StatementContext {
+	public static class ExpressionStatementContext extends StatementContext {
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
+		public ExpressionStatementContext(StatementContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitExpressionStatement(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class IfStatementContext extends StatementContext {
 		public IfContext if_() {
 			return getRuleContext(IfContext.class,0);
 		}
-		public IfStContext(StatementContext ctx) { copyFrom(ctx); }
+		public IfStatementContext(StatementContext ctx) { copyFrom(ctx); }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitIfSt(this);
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitIfStatement(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -610,7 +612,7 @@ public class FunxParser extends Parser {
 			case INT:
 			case Not:
 			case OpenParen:
-				_localctx = new ExContext(_localctx);
+				_localctx = new ExpressionStatementContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(82);
@@ -618,7 +620,7 @@ public class FunxParser extends Parser {
 				}
 				break;
 			case Backslash:
-				_localctx = new LambdaStContext(_localctx);
+				_localctx = new LambdaStatementContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(83);
@@ -626,7 +628,7 @@ public class FunxParser extends Parser {
 				}
 				break;
 			case LET:
-				_localctx = new LetStContext(_localctx);
+				_localctx = new LetStatementContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
 				setState(84);
@@ -634,7 +636,7 @@ public class FunxParser extends Parser {
 				}
 				break;
 			case IF:
-				_localctx = new IfStContext(_localctx);
+				_localctx = new IfStatementContext(_localctx);
 				enterOuterAlt(_localctx, 4);
 				{
 				setState(85);
@@ -669,22 +671,75 @@ public class FunxParser extends Parser {
 		}
 	}
 	@SuppressWarnings("CheckReturnValue")
-	public static class AppContext extends ExpressionContext {
+	public static class AppExpressionContext extends ExpressionContext {
 		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
 		public ExpressionContext expression(int i) {
 			return getRuleContext(ExpressionContext.class,i);
 		}
-		public AppContext(ExpressionContext ctx) { copyFrom(ctx); }
+		public AppExpressionContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitApp(this);
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitAppExpression(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 	@SuppressWarnings("CheckReturnValue")
-	public static class CompContext extends ExpressionContext {
+	public static class OrExpressionContext extends ExpressionContext {
+		public Token bop;
+		public List<ExpressionContext> expression() {
+			return getRuleContexts(ExpressionContext.class);
+		}
+		public ExpressionContext expression(int i) {
+			return getRuleContext(ExpressionContext.class,i);
+		}
+		public TerminalNode Or() { return getToken(FunxParser.Or, 0); }
+		public OrExpressionContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitOrExpression(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class EqExpressionContext extends ExpressionContext {
+		public Token bop;
+		public List<ExpressionContext> expression() {
+			return getRuleContexts(ExpressionContext.class);
+		}
+		public ExpressionContext expression(int i) {
+			return getRuleContext(ExpressionContext.class,i);
+		}
+		public TerminalNode EqualsEquals() { return getToken(FunxParser.EqualsEquals, 0); }
+		public TerminalNode NotEquals() { return getToken(FunxParser.NotEquals, 0); }
+		public EqExpressionContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitEqExpression(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class AndExpressionContext extends ExpressionContext {
+		public Token bop;
+		public List<ExpressionContext> expression() {
+			return getRuleContexts(ExpressionContext.class);
+		}
+		public ExpressionContext expression(int i) {
+			return getRuleContext(ExpressionContext.class,i);
+		}
+		public TerminalNode And() { return getToken(FunxParser.And, 0); }
+		public AndExpressionContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitAndExpression(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class CompExpressionContext extends ExpressionContext {
+		public Token bop;
 		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
@@ -695,106 +750,28 @@ public class FunxParser extends Parser {
 		public TerminalNode GreaterThanEquals() { return getToken(FunxParser.GreaterThanEquals, 0); }
 		public TerminalNode LessThan() { return getToken(FunxParser.LessThan, 0); }
 		public TerminalNode LessThanEquals() { return getToken(FunxParser.LessThanEquals, 0); }
-		public CompContext(ExpressionContext ctx) { copyFrom(ctx); }
+		public CompExpressionContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitComp(this);
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitCompExpression(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 	@SuppressWarnings("CheckReturnValue")
-	public static class PrimContext extends ExpressionContext {
+	public static class PrimExpressionContext extends ExpressionContext {
 		public PrimaryContext primary() {
 			return getRuleContext(PrimaryContext.class,0);
 		}
-		public PrimContext(ExpressionContext ctx) { copyFrom(ctx); }
+		public PrimExpressionContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitPrim(this);
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitPrimExpression(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 	@SuppressWarnings("CheckReturnValue")
-	public static class NotContext extends ExpressionContext {
-		public TerminalNode Not() { return getToken(FunxParser.Not, 0); }
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
-		}
-		public NotContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitNot(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-	@SuppressWarnings("CheckReturnValue")
-	public static class OrContext extends ExpressionContext {
-		public List<ExpressionContext> expression() {
-			return getRuleContexts(ExpressionContext.class);
-		}
-		public ExpressionContext expression(int i) {
-			return getRuleContext(ExpressionContext.class,i);
-		}
-		public TerminalNode Or() { return getToken(FunxParser.Or, 0); }
-		public OrContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitOr(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-	@SuppressWarnings("CheckReturnValue")
-	public static class AndContext extends ExpressionContext {
-		public List<ExpressionContext> expression() {
-			return getRuleContexts(ExpressionContext.class);
-		}
-		public ExpressionContext expression(int i) {
-			return getRuleContext(ExpressionContext.class,i);
-		}
-		public TerminalNode And() { return getToken(FunxParser.And, 0); }
-		public AndContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitAnd(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-	@SuppressWarnings("CheckReturnValue")
-	public static class AddSubContext extends ExpressionContext {
-		public List<ExpressionContext> expression() {
-			return getRuleContexts(ExpressionContext.class);
-		}
-		public ExpressionContext expression(int i) {
-			return getRuleContext(ExpressionContext.class,i);
-		}
-		public TerminalNode Add() { return getToken(FunxParser.Add, 0); }
-		public TerminalNode Subtract() { return getToken(FunxParser.Subtract, 0); }
-		public AddSubContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitAddSub(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-	@SuppressWarnings("CheckReturnValue")
-	public static class EqContext extends ExpressionContext {
-		public List<ExpressionContext> expression() {
-			return getRuleContexts(ExpressionContext.class);
-		}
-		public ExpressionContext expression(int i) {
-			return getRuleContext(ExpressionContext.class,i);
-		}
-		public TerminalNode EqualsEquals() { return getToken(FunxParser.EqualsEquals, 0); }
-		public TerminalNode NotEquals() { return getToken(FunxParser.NotEquals, 0); }
-		public EqContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitEq(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-	@SuppressWarnings("CheckReturnValue")
-	public static class DivModMultContext extends ExpressionContext {
+	public static class DivModMultExpressionContext extends ExpressionContext {
+		public Token bop;
 		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
@@ -804,10 +781,42 @@ public class FunxParser extends Parser {
 		public TerminalNode Divide() { return getToken(FunxParser.Divide, 0); }
 		public TerminalNode Modulo() { return getToken(FunxParser.Modulo, 0); }
 		public TerminalNode Multiply() { return getToken(FunxParser.Multiply, 0); }
-		public DivModMultContext(ExpressionContext ctx) { copyFrom(ctx); }
+		public DivModMultExpressionContext(ExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitDivModMult(this);
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitDivModMultExpression(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class AddSubExpressionContext extends ExpressionContext {
+		public Token bop;
+		public List<ExpressionContext> expression() {
+			return getRuleContexts(ExpressionContext.class);
+		}
+		public ExpressionContext expression(int i) {
+			return getRuleContext(ExpressionContext.class,i);
+		}
+		public TerminalNode Add() { return getToken(FunxParser.Add, 0); }
+		public TerminalNode Subtract() { return getToken(FunxParser.Subtract, 0); }
+		public AddSubExpressionContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitAddSubExpression(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class NotExpressionContext extends ExpressionContext {
+		public Token uop;
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
+		public TerminalNode Not() { return getToken(FunxParser.Not, 0); }
+		public NotExpressionContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitNotExpression(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -837,7 +846,7 @@ public class FunxParser extends Parser {
 			case INT:
 			case OpenParen:
 				{
-				_localctx = new PrimContext(_localctx);
+				_localctx = new PrimExpressionContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
 
@@ -847,11 +856,11 @@ public class FunxParser extends Parser {
 				break;
 			case Not:
 				{
-				_localctx = new NotContext(_localctx);
+				_localctx = new NotExpressionContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
 				setState(90);
-				match(Not);
+				((NotExpressionContext)_localctx).uop = match(Not);
 				setState(91);
 				expression(7);
 				}
@@ -873,7 +882,7 @@ public class FunxParser extends Parser {
 					switch ( getInterpreter().adaptivePredict(_input,8,_ctx) ) {
 					case 1:
 						{
-						_localctx = new AppContext(new ExpressionContext(_parentctx, _parentState));
+						_localctx = new AppExpressionContext(new ExpressionContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
 						setState(94);
 						if (!(precpred(_ctx, 8))) throw new FailedPredicateException(this, "precpred(_ctx, 8)");
@@ -883,14 +892,15 @@ public class FunxParser extends Parser {
 						break;
 					case 2:
 						{
-						_localctx = new DivModMultContext(new ExpressionContext(_parentctx, _parentState));
+						_localctx = new DivModMultExpressionContext(new ExpressionContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
 						setState(96);
 						if (!(precpred(_ctx, 6))) throw new FailedPredicateException(this, "precpred(_ctx, 6)");
 						setState(97);
+						((DivModMultExpressionContext)_localctx).bop = _input.LT(1);
 						_la = _input.LA(1);
 						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 60129542144L) != 0)) ) {
-						_errHandler.recoverInline(this);
+							((DivModMultExpressionContext)_localctx).bop = (Token)_errHandler.recoverInline(this);
 						}
 						else {
 							if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
@@ -903,14 +913,15 @@ public class FunxParser extends Parser {
 						break;
 					case 3:
 						{
-						_localctx = new AddSubContext(new ExpressionContext(_parentctx, _parentState));
+						_localctx = new AddSubExpressionContext(new ExpressionContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
 						setState(99);
 						if (!(precpred(_ctx, 5))) throw new FailedPredicateException(this, "precpred(_ctx, 5)");
 						setState(100);
+						((AddSubExpressionContext)_localctx).bop = _input.LT(1);
 						_la = _input.LA(1);
 						if ( !(_la==Add || _la==Subtract) ) {
-						_errHandler.recoverInline(this);
+							((AddSubExpressionContext)_localctx).bop = (Token)_errHandler.recoverInline(this);
 						}
 						else {
 							if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
@@ -923,14 +934,15 @@ public class FunxParser extends Parser {
 						break;
 					case 4:
 						{
-						_localctx = new CompContext(new ExpressionContext(_parentctx, _parentState));
+						_localctx = new CompExpressionContext(new ExpressionContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
 						setState(102);
 						if (!(precpred(_ctx, 4))) throw new FailedPredicateException(this, "precpred(_ctx, 4)");
 						setState(103);
+						((CompExpressionContext)_localctx).bop = _input.LT(1);
 						_la = _input.LA(1);
 						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 2013265920L) != 0)) ) {
-						_errHandler.recoverInline(this);
+							((CompExpressionContext)_localctx).bop = (Token)_errHandler.recoverInline(this);
 						}
 						else {
 							if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
@@ -943,14 +955,15 @@ public class FunxParser extends Parser {
 						break;
 					case 5:
 						{
-						_localctx = new EqContext(new ExpressionContext(_parentctx, _parentState));
+						_localctx = new EqExpressionContext(new ExpressionContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
 						setState(105);
 						if (!(precpred(_ctx, 3))) throw new FailedPredicateException(this, "precpred(_ctx, 3)");
 						setState(106);
+						((EqExpressionContext)_localctx).bop = _input.LT(1);
 						_la = _input.LA(1);
 						if ( !(_la==EqualsEquals || _la==NotEquals) ) {
-						_errHandler.recoverInline(this);
+							((EqExpressionContext)_localctx).bop = (Token)_errHandler.recoverInline(this);
 						}
 						else {
 							if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
@@ -963,24 +976,24 @@ public class FunxParser extends Parser {
 						break;
 					case 6:
 						{
-						_localctx = new AndContext(new ExpressionContext(_parentctx, _parentState));
+						_localctx = new AndExpressionContext(new ExpressionContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
 						setState(108);
 						if (!(precpred(_ctx, 2))) throw new FailedPredicateException(this, "precpred(_ctx, 2)");
 						setState(109);
-						match(And);
+						((AndExpressionContext)_localctx).bop = match(And);
 						setState(110);
 						expression(3);
 						}
 						break;
 					case 7:
 						{
-						_localctx = new OrContext(new ExpressionContext(_parentctx, _parentState));
+						_localctx = new OrExpressionContext(new ExpressionContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
 						setState(111);
 						if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
 						setState(112);
-						match(Or);
+						((OrExpressionContext)_localctx).bop = match(Or);
 						setState(113);
 						expression(2);
 						}
@@ -1018,38 +1031,39 @@ public class FunxParser extends Parser {
 		}
 	}
 	@SuppressWarnings("CheckReturnValue")
-	public static class ParenContext extends PrimaryContext {
+	public static class LitPrimaryContext extends PrimaryContext {
+		public LiteralContext literal() {
+			return getRuleContext(LiteralContext.class,0);
+		}
+		public LitPrimaryContext(PrimaryContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitLitPrimary(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class ParenPrimaryContext extends PrimaryContext {
 		public TerminalNode OpenParen() { return getToken(FunxParser.OpenParen, 0); }
 		public StatementContext statement() {
 			return getRuleContext(StatementContext.class,0);
 		}
 		public TerminalNode CloseParen() { return getToken(FunxParser.CloseParen, 0); }
-		public ParenContext(PrimaryContext ctx) { copyFrom(ctx); }
+		public ParenPrimaryContext(PrimaryContext ctx) { copyFrom(ctx); }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitParen(this);
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitParenPrimary(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 	@SuppressWarnings("CheckReturnValue")
-	public static class LitContext extends PrimaryContext {
-		public LiteralContext literal() {
-			return getRuleContext(LiteralContext.class,0);
-		}
-		public LitContext(PrimaryContext ctx) { copyFrom(ctx); }
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitLit(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-	@SuppressWarnings("CheckReturnValue")
-	public static class FunContext extends PrimaryContext {
+	public static class FunPrimaryContext extends PrimaryContext {
+		public Token funId;
 		public TerminalNode FUNID() { return getToken(FunxParser.FUNID, 0); }
-		public FunContext(PrimaryContext ctx) { copyFrom(ctx); }
+		public FunPrimaryContext(PrimaryContext ctx) { copyFrom(ctx); }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitFun(this);
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitFunPrimary(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -1062,7 +1076,7 @@ public class FunxParser extends Parser {
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case OpenParen:
-				_localctx = new ParenContext(_localctx);
+				_localctx = new ParenPrimaryContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(119);
@@ -1076,7 +1090,7 @@ public class FunxParser extends Parser {
 			case BOOL:
 			case FLOAT:
 			case INT:
-				_localctx = new LitContext(_localctx);
+				_localctx = new LitPrimaryContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(123);
@@ -1084,11 +1098,11 @@ public class FunxParser extends Parser {
 				}
 				break;
 			case FUNID:
-				_localctx = new FunContext(_localctx);
+				_localctx = new FunPrimaryContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
 				setState(124);
-				match(FUNID);
+				((FunPrimaryContext)_localctx).funId = match(FUNID);
 				}
 				break;
 			default:
@@ -1113,8 +1127,8 @@ public class FunxParser extends Parser {
 		public StatementContext statement() {
 			return getRuleContext(StatementContext.class,0);
 		}
-		public LambdaElemsContext lambdaElems() {
-			return getRuleContext(LambdaElemsContext.class,0);
+		public LambdaParamsContext lambdaParams() {
+			return getRuleContext(LambdaParamsContext.class,0);
 		}
 		public LambdaContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1142,7 +1156,7 @@ public class FunxParser extends Parser {
 			if (_la==FUNID) {
 				{
 				setState(128);
-				lambdaElems(0);
+				lambdaParams(0);
 				}
 			}
 
@@ -1164,41 +1178,63 @@ public class FunxParser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class LambdaElemsContext extends ParserRuleContext {
-		public TerminalNode FUNID() { return getToken(FunxParser.FUNID, 0); }
-		public List<LambdaElemsContext> lambdaElems() {
-			return getRuleContexts(LambdaElemsContext.class);
-		}
-		public LambdaElemsContext lambdaElems(int i) {
-			return getRuleContext(LambdaElemsContext.class,i);
-		}
-		public LambdaElemsContext(ParserRuleContext parent, int invokingState) {
+	public static class LambdaParamsContext extends ParserRuleContext {
+		public LambdaParamsContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_lambdaElems; }
+		@Override public int getRuleIndex() { return RULE_lambdaParams; }
+	 
+		public LambdaParamsContext() { }
+		public void copyFrom(LambdaParamsContext ctx) {
+			super.copyFrom(ctx);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class MultiParamLambdaContext extends LambdaParamsContext {
+		public List<LambdaParamsContext> lambdaParams() {
+			return getRuleContexts(LambdaParamsContext.class);
+		}
+		public LambdaParamsContext lambdaParams(int i) {
+			return getRuleContext(LambdaParamsContext.class,i);
+		}
+		public MultiParamLambdaContext(LambdaParamsContext ctx) { copyFrom(ctx); }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitLambdaElems(this);
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitMultiParamLambda(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class ParamLambdaContext extends LambdaParamsContext {
+		public TerminalNode FUNID() { return getToken(FunxParser.FUNID, 0); }
+		public ParamLambdaContext(LambdaParamsContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitParamLambda(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	public final LambdaElemsContext lambdaElems() throws RecognitionException {
-		return lambdaElems(0);
+	public final LambdaParamsContext lambdaParams() throws RecognitionException {
+		return lambdaParams(0);
 	}
 
-	private LambdaElemsContext lambdaElems(int _p) throws RecognitionException {
+	private LambdaParamsContext lambdaParams(int _p) throws RecognitionException {
 		ParserRuleContext _parentctx = _ctx;
 		int _parentState = getState();
-		LambdaElemsContext _localctx = new LambdaElemsContext(_ctx, _parentState);
-		LambdaElemsContext _prevctx = _localctx;
+		LambdaParamsContext _localctx = new LambdaParamsContext(_ctx, _parentState);
+		LambdaParamsContext _prevctx = _localctx;
 		int _startState = 20;
-		enterRecursionRule(_localctx, 20, RULE_lambdaElems, _p);
+		enterRecursionRule(_localctx, 20, RULE_lambdaParams, _p);
 		try {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
 			{
+			_localctx = new ParamLambdaContext(_localctx);
+			_ctx = _localctx;
+			_prevctx = _localctx;
+
 			setState(135);
 			match(FUNID);
 			}
@@ -1212,12 +1248,12 @@ public class FunxParser extends Parser {
 					_prevctx = _localctx;
 					{
 					{
-					_localctx = new LambdaElemsContext(_parentctx, _parentState);
-					pushNewRecursionContext(_localctx, _startState, RULE_lambdaElems);
+					_localctx = new MultiParamLambdaContext(new LambdaParamsContext(_parentctx, _parentState));
+					pushNewRecursionContext(_localctx, _startState, RULE_lambdaParams);
 					setState(137);
 					if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
 					setState(138);
-					lambdaElems(1);
+					lambdaParams(1);
 					}
 					} 
 				}
@@ -1448,7 +1484,7 @@ public class FunxParser extends Parser {
 		case 7:
 			return expression_sempred((ExpressionContext)_localctx, predIndex);
 		case 10:
-			return lambdaElems_sempred((LambdaElemsContext)_localctx, predIndex);
+			return lambdaParams_sempred((LambdaParamsContext)_localctx, predIndex);
 		}
 		return true;
 	}
@@ -1478,7 +1514,7 @@ public class FunxParser extends Parser {
 		}
 		return true;
 	}
-	private boolean lambdaElems_sempred(LambdaElemsContext _localctx, int predIndex) {
+	private boolean lambdaParams_sempred(LambdaParamsContext _localctx, int predIndex) {
 		switch (predIndex) {
 		case 8:
 			return precpred(_ctx, 1);

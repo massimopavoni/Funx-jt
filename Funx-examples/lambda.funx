@@ -1,0 +1,5 @@
+f : Int -> (Int -> Int) -> Bool
+f = \a -> \g -> g a == 4 
+
+h : Bool -> Bool -> Bool -> Bool
+h = \x y z -> !! x || y && z

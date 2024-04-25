@@ -1,0 +1,9 @@
+x : Int -> Int -> (Int -> Int) -> Int
+x a b c d e m n f g = let
+fun : Int -> Int -> Int -> Int
+fun = if eq a b then f else g fi
+cond : Int -> Int -> Bool
+cond = neq m n
+h : Float
+h = 10
+in (if cond then fun (c d) else fun c d fi) e

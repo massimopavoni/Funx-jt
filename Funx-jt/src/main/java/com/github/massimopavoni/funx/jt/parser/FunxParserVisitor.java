@@ -62,117 +62,117 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitType(FunxParser.TypeContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code ex}
+	 * Visit a parse tree produced by the {@code expressionStatement}
 	 * labeled alternative in {@link FunxParser#statement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitEx(FunxParser.ExContext ctx);
+	T visitExpressionStatement(FunxParser.ExpressionStatementContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code lambdaSt}
+	 * Visit a parse tree produced by the {@code lambdaStatement}
 	 * labeled alternative in {@link FunxParser#statement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitLambdaSt(FunxParser.LambdaStContext ctx);
+	T visitLambdaStatement(FunxParser.LambdaStatementContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code letSt}
+	 * Visit a parse tree produced by the {@code letStatement}
 	 * labeled alternative in {@link FunxParser#statement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitLetSt(FunxParser.LetStContext ctx);
+	T visitLetStatement(FunxParser.LetStatementContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code ifSt}
+	 * Visit a parse tree produced by the {@code ifStatement}
 	 * labeled alternative in {@link FunxParser#statement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitIfSt(FunxParser.IfStContext ctx);
+	T visitIfStatement(FunxParser.IfStatementContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code app}
+	 * Visit a parse tree produced by the {@code appExpression}
 	 * labeled alternative in {@link FunxParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitApp(FunxParser.AppContext ctx);
+	T visitAppExpression(FunxParser.AppExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code comp}
+	 * Visit a parse tree produced by the {@code orExpression}
 	 * labeled alternative in {@link FunxParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitComp(FunxParser.CompContext ctx);
+	T visitOrExpression(FunxParser.OrExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code prim}
+	 * Visit a parse tree produced by the {@code eqExpression}
 	 * labeled alternative in {@link FunxParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitPrim(FunxParser.PrimContext ctx);
+	T visitEqExpression(FunxParser.EqExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code not}
+	 * Visit a parse tree produced by the {@code andExpression}
 	 * labeled alternative in {@link FunxParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitNot(FunxParser.NotContext ctx);
+	T visitAndExpression(FunxParser.AndExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code or}
+	 * Visit a parse tree produced by the {@code compExpression}
 	 * labeled alternative in {@link FunxParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitOr(FunxParser.OrContext ctx);
+	T visitCompExpression(FunxParser.CompExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code and}
+	 * Visit a parse tree produced by the {@code primExpression}
 	 * labeled alternative in {@link FunxParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitAnd(FunxParser.AndContext ctx);
+	T visitPrimExpression(FunxParser.PrimExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code addSub}
+	 * Visit a parse tree produced by the {@code divModMultExpression}
 	 * labeled alternative in {@link FunxParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitAddSub(FunxParser.AddSubContext ctx);
+	T visitDivModMultExpression(FunxParser.DivModMultExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code eq}
+	 * Visit a parse tree produced by the {@code addSubExpression}
 	 * labeled alternative in {@link FunxParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitEq(FunxParser.EqContext ctx);
+	T visitAddSubExpression(FunxParser.AddSubExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code divModMult}
+	 * Visit a parse tree produced by the {@code notExpression}
 	 * labeled alternative in {@link FunxParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitDivModMult(FunxParser.DivModMultContext ctx);
+	T visitNotExpression(FunxParser.NotExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code paren}
+	 * Visit a parse tree produced by the {@code parenPrimary}
 	 * labeled alternative in {@link FunxParser#primary}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitParen(FunxParser.ParenContext ctx);
+	T visitParenPrimary(FunxParser.ParenPrimaryContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code lit}
+	 * Visit a parse tree produced by the {@code litPrimary}
 	 * labeled alternative in {@link FunxParser#primary}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitLit(FunxParser.LitContext ctx);
+	T visitLitPrimary(FunxParser.LitPrimaryContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code fun}
+	 * Visit a parse tree produced by the {@code funPrimary}
 	 * labeled alternative in {@link FunxParser#primary}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitFun(FunxParser.FunContext ctx);
+	T visitFunPrimary(FunxParser.FunPrimaryContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link FunxParser#lambda}.
 	 * @param ctx the parse tree
@@ -180,11 +180,19 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitLambda(FunxParser.LambdaContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link FunxParser#lambdaElems}.
+	 * Visit a parse tree produced by the {@code multiParamLambda}
+	 * labeled alternative in {@link FunxParser#lambdaParams}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitLambdaElems(FunxParser.LambdaElemsContext ctx);
+	T visitMultiParamLambda(FunxParser.MultiParamLambdaContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code paramLambda}
+	 * labeled alternative in {@link FunxParser#lambdaParams}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitParamLambda(FunxParser.ParamLambdaContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link FunxParser#let}.
 	 * @param ctx the parse tree

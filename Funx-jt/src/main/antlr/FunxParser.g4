@@ -10,11 +10,11 @@ functions: function (NEWLINE function?)*;
 // Function
 function
     : functionType NEWLINE
-        FUNID lambdaElems? Equals statement
+        id = FUNID lambdaParams? Equals statement
         (NEWLINE WITH localFunctions OUT)?
     ;
 
-functionType: FUNID Colon typeElems;
+functionType: id = FUNID Colon typeElems;
 
 localFunctions: NEWLINE functions NEWLINE;
 
@@ -29,39 +29,39 @@ typeElems
 // ----------------------------------------------------------------
 // Statement
 statement
-    : expression # ex
-    | lambda # lambdaSt
-    | let # letSt
-    | if # ifSt
+    : expression # expressionStatement
+    | lambda # lambdaStatement
+    | let # letStatement
+    | if # ifStatement
     ;
 
 // ----------------------------------------------------------------
 // Expression
 expression
-    : primary # prim
-    | expression expression # app
-    | Not expression # not
-    | expression (Divide | Modulo | Multiply) expression # divModMult
-    | expression (Add | Subtract) expression # addSub
-    | expression (GreaterThan | GreaterThanEquals | LessThan | LessThanEquals) expression # comp
-    | expression (EqualsEquals | NotEquals) expression # eq
-    | expression And expression # and
-    | expression Or expression # or
+    : primary # primExpression
+    | expression expression # appExpression
+    | uop = Not expression # notExpression
+    | expression bop = (Divide | Modulo | Multiply) expression # divModMultExpression
+    | expression bop = (Add | Subtract) expression # addSubExpression
+    | expression bop = (GreaterThan | GreaterThanEquals | LessThan | LessThanEquals) expression # compExpression
+    | expression bop = (EqualsEquals | NotEquals) expression # eqExpression
+    | expression bop = And expression # andExpression
+    | expression bop = Or expression # orExpression
     ;
 
 primary
-    : OpenParen statement CloseParen # paren
-    | literal # lit
-    | FUNID # fun
+    : OpenParen statement CloseParen # parenPrimary
+    | literal # litPrimary
+    | funId = FUNID # funPrimary
     ;
 
 // ----------------------------------------------------------------
 // Lambda
-lambda: Backslash lambdaElems? Arrow statement;
+lambda: Backslash lambdaParams? Arrow statement;
 
-lambdaElems
-    : FUNID
-    | <assoc = right> lambdaElems lambdaElems
+lambdaParams
+    : FUNID # paramLambda
+    | <assoc = right> lambdaParams lambdaParams # multiParamLambda
     ;
 
 // ----------------------------------------------------------------

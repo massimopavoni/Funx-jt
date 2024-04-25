@@ -1,0 +1,14 @@
+x : Integer -> Integer -> (Integer -> Integer) -> Integer -> Integer -> Integer -> (Integer -> Integer -> String) -> (Integer -> Integer -> String) 
+x a b c d e m n f g = let
+fun : Integer -> Integer -> Integer -> String
+fun = if eq a b then f else g fi
+cond : Integer -> Integer -> Bool
+cond = neq m n
+h : Integer
+h = 10
+in (if cond then fun (c d) else fun (c h) fi) e
+
+add : Integer -> Integer -> Integer
+add a b = {{# a + b #}}
+add3: Integer -> Integer-> Integer-> Integer
+add3 a b c = add (add a b) c

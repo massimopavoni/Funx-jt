@@ -74,112 +74,112 @@ public class FunxParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitEx(FunxParser.ExContext ctx) { return visitChildren(ctx); }
+	@Override public T visitExpressionStatement(FunxParser.ExpressionStatementContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitLambdaSt(FunxParser.LambdaStContext ctx) { return visitChildren(ctx); }
+	@Override public T visitLambdaStatement(FunxParser.LambdaStatementContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitLetSt(FunxParser.LetStContext ctx) { return visitChildren(ctx); }
+	@Override public T visitLetStatement(FunxParser.LetStatementContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitIfSt(FunxParser.IfStContext ctx) { return visitChildren(ctx); }
+	@Override public T visitIfStatement(FunxParser.IfStatementContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitApp(FunxParser.AppContext ctx) { return visitChildren(ctx); }
+	@Override public T visitAppExpression(FunxParser.AppExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitComp(FunxParser.CompContext ctx) { return visitChildren(ctx); }
+	@Override public T visitOrExpression(FunxParser.OrExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitPrim(FunxParser.PrimContext ctx) { return visitChildren(ctx); }
+	@Override public T visitEqExpression(FunxParser.EqExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitNot(FunxParser.NotContext ctx) { return visitChildren(ctx); }
+	@Override public T visitAndExpression(FunxParser.AndExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitOr(FunxParser.OrContext ctx) { return visitChildren(ctx); }
+	@Override public T visitCompExpression(FunxParser.CompExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitAnd(FunxParser.AndContext ctx) { return visitChildren(ctx); }
+	@Override public T visitPrimExpression(FunxParser.PrimExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitAddSub(FunxParser.AddSubContext ctx) { return visitChildren(ctx); }
+	@Override public T visitDivModMultExpression(FunxParser.DivModMultExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitEq(FunxParser.EqContext ctx) { return visitChildren(ctx); }
+	@Override public T visitAddSubExpression(FunxParser.AddSubExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitDivModMult(FunxParser.DivModMultContext ctx) { return visitChildren(ctx); }
+	@Override public T visitNotExpression(FunxParser.NotExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitParen(FunxParser.ParenContext ctx) { return visitChildren(ctx); }
+	@Override public T visitParenPrimary(FunxParser.ParenPrimaryContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitLit(FunxParser.LitContext ctx) { return visitChildren(ctx); }
+	@Override public T visitLitPrimary(FunxParser.LitPrimaryContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitFun(FunxParser.FunContext ctx) { return visitChildren(ctx); }
+	@Override public T visitFunPrimary(FunxParser.FunPrimaryContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -193,7 +193,14 @@ public class FunxParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitLambdaElems(FunxParser.LambdaElemsContext ctx) { return visitChildren(ctx); }
+	@Override public T visitMultiParamLambda(FunxParser.MultiParamLambdaContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitParamLambda(FunxParser.ParamLambdaContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
