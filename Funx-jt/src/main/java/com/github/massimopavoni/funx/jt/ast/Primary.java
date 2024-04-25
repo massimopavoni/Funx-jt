@@ -2,12 +2,19 @@ package com.github.massimopavoni.funx.jt.ast;
 
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
+import java.util.Collections;
+
 public abstract class Primary extends Expression {
     public final static class Parenthesized extends Primary {
         public final ASTNode statement;
 
         public Parenthesized(ASTNode statement) {
             this.statement = statement;
+        }
+
+        @Override
+        public String toGraphviz(StringBuilder builder) {
+            return statement.toGraphviz(builder);
         }
 
         @Override
@@ -27,6 +34,11 @@ public abstract class Primary extends Expression {
         }
 
         @Override
+        public String toGraphviz(StringBuilder builder) {
+            return toGraphvizDefault(builder, value.toString(), Collections.emptyList());
+        }
+
+        @Override
         public String toString() {
             return value.toString();
         }
@@ -37,6 +49,11 @@ public abstract class Primary extends Expression {
 
         public Fun(String funId) {
             this.funId = funId;
+        }
+
+        @Override
+        public String toGraphviz(StringBuilder builder) {
+            return toGraphvizDefault(builder, funId, Collections.emptyList());
         }
 
         @Override

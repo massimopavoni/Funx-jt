@@ -2,6 +2,8 @@ package com.github.massimopavoni.funx.jt.ast;
 
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
+import java.util.Collections;
+
 public abstract class UnaryOperator extends Expression.Operator {
     public final ASTNode operand;
 
@@ -11,6 +13,11 @@ public abstract class UnaryOperator extends Expression.Operator {
 
     private static String fromLexerUop(int uop) {
         return ASTNode.fromLexerToken(uop);
+    }
+
+    @Override
+    public String toGraphviz(StringBuilder builder) {
+        return toGraphvizDefault(builder, operatorString(), Collections.singletonList(operand));
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.github.massimopavoni.funx.jt.ast;
 
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
+import java.util.Collections;
 import java.util.List;
 
 public abstract class Statement extends ASTNode {
@@ -12,6 +13,13 @@ public abstract class Statement extends ASTNode {
         public Lambda(ASTNode params, ASTNode body) {
             this.params = params;
             this.body = body;
+        }
+
+        @Override
+        public String toGraphviz(StringBuilder builder) {
+            return toGraphvizDefault(builder,
+                    String.format("\\\\%s", params.toString()),
+                    Collections.singletonList(body));
         }
 
         @Override
@@ -31,6 +39,12 @@ public abstract class Statement extends ASTNode {
             }
 
             @Override
+            public String toGraphviz(StringBuilder builder) {
+                // currently unused
+                return "";
+            }
+
+            @Override
             public String toString() {
                 return funId;
             }
@@ -43,6 +57,12 @@ public abstract class Statement extends ASTNode {
             public MultiParam(ASTNode first, ASTNode second) {
                 this.first = first;
                 this.second = second;
+            }
+
+            @Override
+            public String toGraphviz(StringBuilder builder) {
+                // currently unused
+                return "";
             }
 
             @Override
@@ -59,6 +79,25 @@ public abstract class Statement extends ASTNode {
         public Let(List<ASTNode> localFunctions, ASTNode body) {
             this.localFunctions = localFunctions;
             this.body = body;
+        }
+
+        @Override
+        public String toGraphviz(StringBuilder builder) {
+            String nodeId = getNodeId();
+            builder.append(String.format("""
+                            %1$s [label="%2$s"];
+                            subgraph cluster_%1$s {
+                            """,
+                    nodeId, ASTNode.fromLexerToken(FunxLexer.LET)));
+            List<String> childrenIds = localFunctions.stream()
+                    .map(f -> f.toGraphviz(builder)).toList();
+            builder.append("}\n");
+            builder.append(String.format("""
+                            %1$s -> %2$s [lhead="cluster_%1$s"];
+                            %1$s -> %3$s;
+                            """,
+                    nodeId, childrenIds.get(childrenIds.size() / 2), body.toGraphviz(builder)));
+            return nodeId;
         }
 
         @Override
@@ -82,6 +121,13 @@ public abstract class Statement extends ASTNode {
             this.condition = condition;
             this.thenBranch = thenBranch;
             this.elseBranch = elseBranch;
+        }
+
+        @Override
+        public String toGraphviz(StringBuilder builder) {
+            return toGraphvizDefault(builder,
+                    ASTNode.fromLexerToken(FunxLexer.IF),
+                    List.of(condition, thenBranch, elseBranch));
         }
 
         @Override

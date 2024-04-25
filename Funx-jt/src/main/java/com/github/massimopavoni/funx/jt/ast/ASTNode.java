@@ -9,6 +9,23 @@ public abstract class ASTNode {
         return FunxLexer.VOCABULARY.getLiteralName(token).replaceAll("'", "");
     }
 
+    public String getNodeId() {
+        return String.valueOf(hashCode());
+    }
+
+    public String toGraphvizDefault(StringBuilder builder, String label, List<ASTNode> children) {
+        String nodeId = getNodeId();
+        builder.append(String.format("%s [label=\"%s\"];\n",
+                nodeId, label));
+        children.forEach(c -> builder.append(
+                String.format("%s -> %s;\n",
+                        nodeId,
+                        c.toGraphviz(builder))));
+        return nodeId;
+    }
+
+    public abstract String toGraphviz(StringBuilder builder);
+
     @Override
     public abstract String toString();
 
@@ -17,6 +34,17 @@ public abstract class ASTNode {
 
         public Program(List<ASTNode> functions) {
             this.functions = functions;
+        }
+
+        @Override
+        public String toGraphviz(StringBuilder builder) {
+            builder.append("""
+                    digraph AST {
+                    compound=true;
+                    """);
+            String nodeId = toGraphvizDefault(builder, getClass().getSimpleName(), functions);
+            builder.append("}\n");
+            return nodeId;
         }
 
         @Override

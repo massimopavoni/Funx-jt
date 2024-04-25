@@ -85,7 +85,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitParenType(FunxParser.ParenTypeContext ctx) {
-        return visit(ctx.typeElems());
+        return new Function.ParenType(visit(ctx.typeElems()));
     }
 
     /**

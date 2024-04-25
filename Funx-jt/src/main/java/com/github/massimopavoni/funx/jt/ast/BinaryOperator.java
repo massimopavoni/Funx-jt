@@ -2,6 +2,8 @@ package com.github.massimopavoni.funx.jt.ast;
 
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
+import java.util.List;
+
 public abstract class BinaryOperator extends Expression.Operator {
     public final ASTNode left;
     public final ASTNode right;
@@ -16,6 +18,11 @@ public abstract class BinaryOperator extends Expression.Operator {
     }
 
     @Override
+    public String toGraphviz(StringBuilder builder) {
+        return toGraphvizDefault(builder, operatorString(), List.of(left, right));
+    }
+
+    @Override
     public String toString() {
         return String.format("%s%s%s", left.toString(), operatorString(), right.toString());
     }
@@ -23,6 +30,11 @@ public abstract class BinaryOperator extends Expression.Operator {
     public final static class Application extends BinaryOperator {
         public Application(ASTNode left, ASTNode right) {
             super(left, right);
+        }
+
+        @Override
+        public String toGraphviz(StringBuilder builder) {
+            return toGraphvizDefault(builder, " $ ", List.of(left, right));
         }
 
         @Override

@@ -13,6 +13,8 @@ import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import javax.swing.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.util.Arrays;
 
 public class Main {
@@ -33,14 +35,19 @@ public class Main {
             }
 
             ASTBuilder astBuilder = new ASTBuilder();
-            ASTNode ast = astBuilder.visit(tree);
+            ASTNode astRoot = astBuilder.visit(tree);
 
-            System.out.println(tree.toStringTree(parser));
+            StringBuilder builder = new StringBuilder();
+            astRoot.toGraphviz(builder);
+            try (BufferedWriter writer = new BufferedWriter(
+                    new FileWriter("../graph.dot"))) {
+                writer.write(builder.toString());
+            }
 
             JFrame frame = new JFrame("ANTLR CST");
             JPanel panel = new JPanel();
             TreeViewer viewer = new TreeViewer(Arrays.asList(parser.getRuleNames()), tree);
-            viewer.setScale(1.5); // Scale a little
+            viewer.setScale(1.5);
             panel.add(viewer);
             frame.add(panel);
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

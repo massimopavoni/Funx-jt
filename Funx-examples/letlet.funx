@@ -1,0 +1,12 @@
+f : Bool
+f = let
+h : Int
+h = 10 + 20
+g : Int -> Int
+g x = h * x
+in 1 + (let
+test : Bool
+test = False
+nonTest : Bool
+nonTest = True
+in if test && nonTest then 2 else 3 fi) == 4

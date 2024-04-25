@@ -2,6 +2,8 @@ package com.github.massimopavoni.funx.jt.ast;
 
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
+import java.util.Collections;
+
 public final class Function extends ASTNode {
     public final ASTNode type;
     public final String id;
@@ -11,6 +13,13 @@ public final class Function extends ASTNode {
         this.type = type;
         this.id = id;
         this.lambda = lambda;
+    }
+
+    @Override
+    public String toGraphviz(StringBuilder builder) {
+        return toGraphvizDefault(builder,
+                String.format("%s : %s", id, type.toString()),
+                Collections.singletonList(lambda));
     }
 
     @Override
@@ -30,6 +39,12 @@ public final class Function extends ASTNode {
         }
 
         @Override
+        public String toGraphviz(StringBuilder builder) {
+            // currently unused
+            return "";
+        }
+
+        @Override
         public String toString() {
             return String.format("%s%s%s",
                     ASTNode.fromLexerToken(FunxLexer.OpenParen),
@@ -46,6 +61,12 @@ public final class Function extends ASTNode {
         }
 
         @Override
+        public String toGraphviz(StringBuilder builder) {
+            // currently unused
+            return "";
+        }
+
+        @Override
         public String toString() {
             return type.getTypeName();
         }
@@ -58,6 +79,12 @@ public final class Function extends ASTNode {
         public ArrowType(ASTNode input, ASTNode output) {
             this.input = input;
             this.output = output;
+        }
+
+        @Override
+        public String toGraphviz(StringBuilder builder) {
+            // currently unused
+            return "";
         }
 
         @Override
