@@ -29,12 +29,12 @@ public class FunxParser extends Parser {
 		RULE_program = 0, RULE_functions = 1, RULE_function = 2, RULE_functionType = 3, 
 		RULE_localFunctions = 4, RULE_typeElems = 5, RULE_statement = 6, RULE_expression = 7, 
 		RULE_primary = 8, RULE_lambda = 9, RULE_lambdaParams = 10, RULE_let = 11, 
-		RULE_if = 12, RULE_literal = 13, RULE_numLiteral = 14;
+		RULE_ifS = 12, RULE_literal = 13, RULE_numLiteral = 14;
 	private static String[] makeRuleNames() {
 		return new String[] {
 			"program", "functions", "function", "functionType", "localFunctions", 
 			"typeElems", "statement", "expression", "primary", "lambda", "lambdaParams", 
-			"let", "if", "literal", "numLiteral"
+			"let", "ifS", "literal", "numLiteral"
 		};
 	}
 	public static final String[] ruleNames = makeRuleNames();
@@ -588,8 +588,8 @@ public class FunxParser extends Parser {
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class IfStatementContext extends StatementContext {
-		public IfContext if_() {
-			return getRuleContext(IfContext.class,0);
+		public IfSContext ifS() {
+			return getRuleContext(IfSContext.class,0);
 		}
 		public IfStatementContext(StatementContext ctx) { copyFrom(ctx); }
 		@Override
@@ -640,7 +640,7 @@ public class FunxParser extends Parser {
 				enterOuterAlt(_localctx, 4);
 				{
 				setState(85);
-				if_();
+				ifS();
 				}
 				break;
 			default:
@@ -1323,7 +1323,7 @@ public class FunxParser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class IfContext extends ParserRuleContext {
+	public static class IfSContext extends ParserRuleContext {
 		public TerminalNode IF() { return getToken(FunxParser.IF, 0); }
 		public List<StatementContext> statement() {
 			return getRuleContexts(StatementContext.class);
@@ -1334,20 +1334,20 @@ public class FunxParser extends Parser {
 		public TerminalNode THEN() { return getToken(FunxParser.THEN, 0); }
 		public TerminalNode ELSE() { return getToken(FunxParser.ELSE, 0); }
 		public TerminalNode FI() { return getToken(FunxParser.FI, 0); }
-		public IfContext(ParserRuleContext parent, int invokingState) {
+		public IfSContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_if; }
+		@Override public int getRuleIndex() { return RULE_ifS; }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitIf(this);
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitIfS(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	public final IfContext if_() throws RecognitionException {
-		IfContext _localctx = new IfContext(_ctx, getState());
-		enterRule(_localctx, 24, RULE_if);
+	public final IfSContext ifS() throws RecognitionException {
+		IfSContext _localctx = new IfSContext(_ctx, getState());
+		enterRule(_localctx, 24, RULE_ifS);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{

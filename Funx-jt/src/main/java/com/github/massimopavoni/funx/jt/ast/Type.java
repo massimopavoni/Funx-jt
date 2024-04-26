@@ -2,35 +2,33 @@ package com.github.massimopavoni.funx.jt.ast;
 
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
-import java.util.Collections;
-
 /**
- * Base class for primary nodes.
+ * Base class for type nodes.
  */
-public abstract class Primary extends Expression {
+public abstract class Type extends ASTNode {
     /**
      * Package private default constructor,
      * preventing instantiation of generalization class.
      */
-    Primary() {
+    Type() {
     }
 
     /**
-     * Parenthesized primary class.
+     * Parenthesized type class.
      */
-    public final static class Parenthesized extends Primary {
+    public final static class ParenType extends Type {
         /**
-         * Parenthesized statement node.
+         * Type node.
          */
-        public final ASTNode statement;
+        public final ASTNode type;
 
         /**
-         * Constructor for the parenthesized primary node.
+         * Constructor for the parenthesized type node.
          *
-         * @param statement statement node
+         * @param type type node
          */
-        public Parenthesized(ASTNode statement) {
-            this.statement = statement;
+        public ParenType(ASTNode type) {
+            this.type = type;
         }
 
         /**
@@ -41,7 +39,8 @@ public abstract class Primary extends Expression {
          */
         @Override
         public String toGraphviz(StringBuilder builder) {
-            return statement.toGraphviz(builder);
+            // currently unused
+            return "";
         }
 
         /**
@@ -54,27 +53,27 @@ public abstract class Primary extends Expression {
         public String toString() {
             return String.format("%s%s%s",
                     ASTNode.fromLexerToken(FunxLexer.OpenParen),
-                    statement.toString(),
+                    type.toString(),
                     ASTNode.fromLexerToken(FunxLexer.CloseParen));
         }
     }
 
     /**
-     * Literal primary class.
+     * Simple type class.
      */
-    public final static class Literal extends Primary {
+    public final static class SimpleType extends Type {
         /**
-         * Literal value.
+         * Type enum.
          */
-        public final Object value;
+        public final TypeEnum type;
 
         /**
-         * Constructor for the literal primary node.
+         * Constructor for the simple type node.
          *
-         * @param value literal value
+         * @param type type enum
          */
-        public Literal(Object value) {
-            this.value = value;
+        public SimpleType(TypeEnum type) {
+            this.type = type;
         }
 
         /**
@@ -85,7 +84,8 @@ public abstract class Primary extends Expression {
          */
         @Override
         public String toGraphviz(StringBuilder builder) {
-            return toGraphvizDefault(builder, value.toString(), Collections.emptyList());
+            // currently unused
+            return "";
         }
 
         /**
@@ -96,26 +96,32 @@ public abstract class Primary extends Expression {
          */
         @Override
         public String toString() {
-            return value.toString();
+            return type.getTypeName();
         }
     }
 
     /**
-     * Function primary class.
+     * Arrow type class.
      */
-    public final static class Fun extends Primary {
+    public final static class ArrowType extends Type {
         /**
-         * Function identifier.
+         * Input type node.
          */
-        public final String funId;
+        public final ASTNode input;
+        /**
+         * Output type node.
+         */
+        public final ASTNode output;
 
         /**
-         * Constructor for the function primary node.
+         * Constructor for the arrow type node.
          *
-         * @param funId function identifier
+         * @param input  input type node
+         * @param output output type node
          */
-        public Fun(String funId) {
-            this.funId = funId;
+        public ArrowType(ASTNode input, ASTNode output) {
+            this.input = input;
+            this.output = output;
         }
 
         /**
@@ -126,7 +132,8 @@ public abstract class Primary extends Expression {
          */
         @Override
         public String toGraphviz(StringBuilder builder) {
-            return toGraphvizDefault(builder, funId, Collections.emptyList());
+            // currently unused
+            return "";
         }
 
         /**
@@ -137,7 +144,10 @@ public abstract class Primary extends Expression {
          */
         @Override
         public String toString() {
-            return funId;
+            return String.format("%s %s %s",
+                    input.toString(),
+                    ASTNode.fromLexerToken(FunxLexer.Arrow),
+                    output.toString());
         }
     }
 }

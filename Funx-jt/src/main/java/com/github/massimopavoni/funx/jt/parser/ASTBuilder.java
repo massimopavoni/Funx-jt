@@ -2,7 +2,16 @@ package com.github.massimopavoni.funx.jt.parser;
 
 import com.github.massimopavoni.funx.jt.ast.*;
 
+/**
+ * Parse tree visitor used to build the program's AST.
+ */
 public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
+    /**
+     * Default constructor.
+     */
+    public ASTBuilder() {
+    }
+
     /**
      * Visit a parse tree produced by {@link FunxParser#program}.
      *
@@ -72,7 +81,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitArrowType(FunxParser.ArrowTypeContext ctx) {
-        return new Function.ArrowType(visit(ctx.typeElems(0)),
+        return new Type.ArrowType(visit(ctx.typeElems(0)),
                 visit(ctx.typeElems(1)));
     }
 
@@ -85,7 +94,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitParenType(FunxParser.ParenTypeContext ctx) {
-        return new Function.ParenType(visit(ctx.typeElems()));
+        return new Type.ParenType(visit(ctx.typeElems()));
     }
 
     /**
@@ -97,7 +106,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitType(FunxParser.TypeContext ctx) {
-        return new Function.Type(TypeEnum.fromString(ctx.TYPE().getText()));
+        return new Type.SimpleType(TypeEnum.fromString(ctx.TYPE().getText()));
     }
 
     /**
@@ -145,7 +154,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitIfStatement(FunxParser.IfStatementContext ctx) {
-        return visit(ctx.if_());
+        return visit(ctx.ifS());
     }
 
     /**
@@ -376,13 +385,13 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     }
 
     /**
-     * Visit a parse tree produced by {@link FunxParser#if}.
+     * Visit a parse tree produced by {@link FunxParser#ifS}.
      *
      * @param ctx the parse tree
      * @return the visitor result
      */
     @Override
-    public ASTNode visitIf(FunxParser.IfContext ctx) {
+    public ASTNode visitIfS(FunxParser.IfSContext ctx) {
         return new Statement.If(visit(ctx.statement(0)),
                 visit(ctx.statement(1)),
                 visit(ctx.statement(2)));

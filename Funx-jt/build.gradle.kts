@@ -55,6 +55,25 @@ tasks.compileJava {
     dependsOn(tasks.generateGrammarSource)
 }
 
+tasks.javadoc {
+    setDestinationDir(file("$rootDir/docs/javadoc/${project.name}"))
+
+    finalizedBy("zipJavadoc")
+}
+
+tasks.register<Zip>("zipJavadoc") {
+    dependsOn(tasks.javadoc)
+
+    val javadocDest = tasks.javadoc.get().destinationDir
+    from(javadocDest)
+    archiveFileName.set("${project.name}-${project.version}-javadoc.zip")
+    destinationDirectory.set(file("$rootDir/docs/"))
+
+    doLast {
+        delete(javadocDest)
+    }
+}
+
 tasks.test {
     useJUnitPlatform()
 }

@@ -4,17 +4,42 @@ import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
 import java.util.Collections;
 
+/**
+ * Function node class.
+ */
 public final class Function extends ASTNode {
+    /**
+     * Type node.
+     */
     public final ASTNode type;
+    /**
+     * Identifier.
+     */
     public final String id;
+    /**
+     * Lambda function node.
+     */
     public final ASTNode lambda;
 
+    /**
+     * Constructor for the function node.
+     *
+     * @param type   type node
+     * @param id     identifier
+     * @param lambda lambda function node
+     */
     public Function(ASTNode type, String id, ASTNode lambda) {
         this.type = type;
         this.id = id;
         this.lambda = lambda;
     }
 
+    /**
+     * Method for AST tree visualization.
+     *
+     * @param builder Graphviz code string builder
+     * @return node identifier
+     */
     @Override
     public String toGraphviz(StringBuilder builder) {
         return toGraphvizDefault(builder,
@@ -22,6 +47,12 @@ public final class Function extends ASTNode {
                 Collections.singletonList(lambda));
     }
 
+    /**
+     * To string method override,
+     * essentially re-prints the original source code.
+     *
+     * @return string representation of the node
+     */
     @Override
     public String toString() {
         return String.format("%s\n%s %s %s",
@@ -29,70 +60,5 @@ public final class Function extends ASTNode {
                 id,
                 ASTNode.fromLexerToken(FunxLexer.Equals),
                 lambda.toString());
-    }
-
-    public final static class ParenType extends ASTNode {
-        public final ASTNode type;
-
-        public ParenType(ASTNode type) {
-            this.type = type;
-        }
-
-        @Override
-        public String toGraphviz(StringBuilder builder) {
-            // currently unused
-            return "";
-        }
-
-        @Override
-        public String toString() {
-            return String.format("%s%s%s",
-                    ASTNode.fromLexerToken(FunxLexer.OpenParen),
-                    type.toString(),
-                    ASTNode.fromLexerToken(FunxLexer.CloseParen));
-        }
-    }
-
-    public final static class Type extends ASTNode {
-        public final TypeEnum type;
-
-        public Type(TypeEnum type) {
-            this.type = type;
-        }
-
-        @Override
-        public String toGraphviz(StringBuilder builder) {
-            // currently unused
-            return "";
-        }
-
-        @Override
-        public String toString() {
-            return type.getTypeName();
-        }
-    }
-
-    public final static class ArrowType extends ASTNode {
-        public final ASTNode input;
-        public final ASTNode output;
-
-        public ArrowType(ASTNode input, ASTNode output) {
-            this.input = input;
-            this.output = output;
-        }
-
-        @Override
-        public String toGraphviz(StringBuilder builder) {
-            // currently unused
-            return "";
-        }
-
-        @Override
-        public String toString() {
-            return String.format("%s %s %s",
-                    input.toString(),
-                    ASTNode.fromLexerToken(FunxLexer.Arrow),
-                    output.toString());
-        }
     }
 }

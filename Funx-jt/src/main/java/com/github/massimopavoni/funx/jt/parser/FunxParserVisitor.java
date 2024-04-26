@@ -200,11 +200,11 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitLet(FunxParser.LetContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link FunxParser#if}.
+	 * Visit a parse tree produced by {@link FunxParser#ifS}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitIf(FunxParser.IfContext ctx);
+	T visitIfS(FunxParser.IfSContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link FunxParser#literal}.
 	 * @param ctx the parse tree

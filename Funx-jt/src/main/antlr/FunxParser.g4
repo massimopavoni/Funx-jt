@@ -32,7 +32,7 @@ statement
     : expression # expressionStatement
     | lambda # lambdaStatement
     | let # letStatement
-    | if # ifStatement
+    | ifS # ifStatement
     ;
 
 // ----------------------------------------------------------------
@@ -70,7 +70,7 @@ let: LET localFunctions IN statement;
 
 // ----------------------------------------------------------------
 // If
-if: IF statement THEN statement ELSE statement FI;
+ifS: IF statement THEN statement ELSE statement FI;
 
 // ----------------------------------------------------------------
 // Literal
