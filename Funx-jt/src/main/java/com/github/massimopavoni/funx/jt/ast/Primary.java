@@ -10,7 +10,7 @@ import java.util.Collections;
 public abstract class Primary extends Expression {
     /**
      * Package private default constructor,
-     * preventing instantiation of generalization class.
+     * preventing instantiation of generalization class from outside.
      */
     Primary() {
     }

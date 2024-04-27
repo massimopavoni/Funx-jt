@@ -8,7 +8,7 @@ import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 public abstract class Type extends ASTNode {
     /**
      * Package private default constructor,
-     * preventing instantiation of generalization class.
+     * preventing instantiation of generalization class from outside.
      */
     Type() {
     }

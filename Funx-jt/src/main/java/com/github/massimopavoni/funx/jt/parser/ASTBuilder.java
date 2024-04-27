@@ -407,10 +407,10 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     public ASTNode visitLiteral(FunxParser.LiteralContext ctx) {
         if (ctx.numLiteral() != null)
             return visit(ctx.numLiteral());
-        else if (ctx.BOOL() != null)
-            return new Primary.Literal(Boolean.parseBoolean(ctx.BOOL().getText()));
-        else
-            return null; // report error
+        return switch (ctx.start.getType()) {
+            case FunxLexer.BOOL -> new Primary.Literal(Boolean.parseBoolean(ctx.BOOL().getText()));
+            default -> null; // report error
+        };
     }
 
     /**
@@ -421,15 +421,14 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitNumLiteral(FunxParser.NumLiteralContext ctx) {
-        if (ctx.FLOAT() != null)
-            return new Primary.Literal(
+        return switch (ctx.start.getType()) {
+            case FunxLexer.FLOAT -> new Primary.Literal(
                     Double.parseDouble(
                             ctx.FLOAT().getText().replaceAll("[()]", "")));
-        else if (ctx.INT() != null)
-            return new Primary.Literal(
+            case FunxLexer.INT -> new Primary.Literal(
                     Integer.parseInt(
                             ctx.INT().getText().replaceAll("[()]", "")));
-        else
-            return null; // report error
+            default -> null; // report error
+        };
     }
 }

@@ -10,7 +10,7 @@ import java.util.List;
 public abstract class ASTNode {
     /**
      * Package private default constructor,
-     * preventing instantiation of generalization class.
+     * preventing instantiation of generalization class from outside.
      */
     ASTNode() {
     }
@@ -103,6 +103,8 @@ public abstract class ASTNode {
             builder.append("""
                     digraph AST {
                     compound=true;
+                    node [color=gray40, shape=egg];
+                    edge [color=gray40, arrowsize=0.8];
                     """);
             String nodeId = toGraphvizDefault(builder, getClass().getSimpleName(), functions);
             builder.append("}\n");

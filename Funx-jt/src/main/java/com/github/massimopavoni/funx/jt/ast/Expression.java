@@ -6,7 +6,7 @@ package com.github.massimopavoni.funx.jt.ast;
 public abstract class Expression extends Statement {
     /**
      * Package private default constructor,
-     * preventing instantiation of generalization class.
+     * preventing instantiation of generalization class from outside.
      */
     Expression() {
     }
@@ -17,7 +17,7 @@ public abstract class Expression extends Statement {
     public static abstract class Operator extends Statement {
         /**
          * Package private default constructor,
-         * preventing instantiation of generalization class.
+         * preventing instantiation of generalization class from outside.
          */
         Operator() {
         }

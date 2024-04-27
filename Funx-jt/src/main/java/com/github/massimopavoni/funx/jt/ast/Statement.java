@@ -11,7 +11,7 @@ import java.util.List;
 public abstract class Statement extends ASTNode {
     /**
      * Package private default constructor,
-     * preventing instantiation of generalization class.
+     * preventing instantiation of generalization class from outside.
      */
     Statement() {
     }
@@ -196,6 +196,7 @@ public abstract class Statement extends ASTNode {
             builder.append(String.format("""
                             %1$s [label="%2$s"];
                             subgraph cluster_%1$s {
+                            color=gray40;
                             """,
                     nodeId, ASTNode.fromLexerToken(FunxLexer.LET)));
             List<String> childrenIds = localFunctions.stream()

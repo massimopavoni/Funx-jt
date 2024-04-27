@@ -11,15 +11,15 @@ public enum TypeEnum {
     /**
      * Boolean type.
      */
-    BOOLEAN(ASTNode.fromLexerToken(FunxLexer.BOOL), Boolean.class),
+    BOOLEAN(ASTNode.fromLexerToken(FunxLexer.BOOLTYPE), Boolean.class),
     /**
      * Floating type.
      */
-    FLOATING(ASTNode.fromLexerToken(FunxLexer.FLOAT), Double.class),
+    FLOATING(ASTNode.fromLexerToken(FunxLexer.FLOATTYPE), Double.class),
     /**
      * Integer type.
      */
-    INTEGER(ASTNode.fromLexerToken(FunxLexer.INT), Integer.class);
+    INTEGER(ASTNode.fromLexerToken(FunxLexer.INTTYPE), Integer.class);
 
     /**
      * Funx type name.

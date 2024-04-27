@@ -2,6 +2,8 @@ parser grammar FunxParser;
 
 options { tokenVocab = FunxLexer; }
 
+// ----------------------------------------------------------------
+// Root
 program: functions EOF;
 
 functions: function (NEWLINE function?)*;

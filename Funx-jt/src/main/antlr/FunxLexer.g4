@@ -41,13 +41,18 @@ THEN: 'then';
 WITH: 'with';
 
 // Functions
+FUNID: LALPHA (ALPHA_ | DIGIT)*;
+
+// Types
 TYPE
-    : 'Bool'
-    | 'Float'
-    | 'Int'
+    : BOOLTYPE
+    | FLOATTYPE
+    | INTTYPE
     ;
 
-FUNID: LALPHA (ALPHA_ | DIGIT)*;
+BOOLTYPE: 'Bool';
+FLOATTYPE: 'Float';
+INTTYPE: 'Int';
 
 // Literals
 BOOL
