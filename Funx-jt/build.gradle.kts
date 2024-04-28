@@ -65,7 +65,7 @@ tasks.register("cleanGeneratedGrammarSource") {
 // Project properties from gradle configuration
 tasks.register("projectProps") {
     doLast {
-        val className = "CLIProperties"
+        val className = "Properties"
         val packageName = project.group.toString() + ".cli"
         val filePath = "src/main/java/${packageName.replace('.', '/')}/$className.java"
         val file = file(filePath)

@@ -3,7 +3,7 @@ package com.github.massimopavoni.funx.jt.cli;
 /**
  * Class containing all useful properties used by the cli application.
  */
-public final class CLIProperties {
+public final class Properties {
     /**
      * Project name.
      */
@@ -22,7 +22,7 @@ public final class CLIProperties {
      *
      * @throws IllegalStateException if an attempt to instantiate the class is made
      */
-    private CLIProperties() {
+    private Properties() {
         throw new IllegalStateException("Static class cannot be instantiated.");
     }
 }

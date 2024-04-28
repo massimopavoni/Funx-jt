@@ -28,10 +28,10 @@ import java.util.concurrent.Callable;
  * Command Line Interface for the Funx transpiler.
  */
 @CommandLine.Command(
-        name = CLIProperties.NAME,
+        name = Properties.NAME,
         mixinStandardHelpOptions = true,
-        version = CLIProperties.VERSION,
-        description = CLIProperties.DESCRIPTION)
+        version = Properties.VERSION,
+        description = Properties.DESCRIPTION)
 public class CLI implements Callable<Integer> {
     /**
      * Input file parameter.
