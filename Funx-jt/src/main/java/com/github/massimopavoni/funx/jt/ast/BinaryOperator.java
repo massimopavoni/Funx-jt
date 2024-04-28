@@ -2,8 +2,6 @@ package com.github.massimopavoni.funx.jt.ast;
 
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
-import java.util.List;
-
 /**
  * Base class for binary operator nodes.
  */
@@ -29,17 +27,6 @@ public abstract class BinaryOperator extends Expression.Operator {
     }
 
     /**
-     * Method for AST tree visualization.
-     *
-     * @param builder Graphviz code string builder
-     * @return node identifier
-     */
-    @Override
-    public String toGraphviz(StringBuilder builder) {
-        return toGraphvizDefault(builder, operatorString(), List.of(left, right));
-    }
-
-    /**
      * To string method override,
      * essentially re-prints the original source code.
      *
@@ -62,18 +49,6 @@ public abstract class BinaryOperator extends Expression.Operator {
          */
         public Application(ASTNode left, ASTNode right) {
             super(left, right);
-        }
-
-        /**
-         * Custom application node {@link ASTNode#toGraphviz} method,
-         * just for showing an operator instead of an empty node.
-         *
-         * @param builder Graphviz code string builder
-         * @return node identifier
-         */
-        @Override
-        public String toGraphviz(StringBuilder builder) {
-            return toGraphvizDefault(builder, "$", List.of(left, right));
         }
 
         /**

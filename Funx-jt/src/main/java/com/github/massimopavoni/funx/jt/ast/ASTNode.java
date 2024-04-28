@@ -37,34 +37,6 @@ public abstract class ASTNode {
     }
 
     /**
-     * Default behavior for the {@link ASTNode#toGraphviz} method,
-     * using more parameters to set a node label and connect all children to this node.
-     *
-     * @param builder  Graphviz code string builder
-     * @param label    node label
-     * @param children list of children nodes
-     * @return node identifier
-     */
-    public String toGraphvizDefault(StringBuilder builder, String label, List<ASTNode> children) {
-        String nodeId = getNodeId();
-        builder.append(String.format("%s [label=\"%s\"];\n",
-                nodeId, label));
-        children.forEach(c -> builder.append(
-                String.format("%s -> %s;\n",
-                        nodeId,
-                        c.toGraphviz(builder))));
-        return nodeId;
-    }
-
-    /**
-     * Method for AST tree visualization.
-     *
-     * @param builder Graphviz code string builder
-     * @return node identifier
-     */
-    public abstract String toGraphviz(StringBuilder builder);
-
-    /**
      * To string method override,
      * essentially re-prints the original source code.
      *
@@ -89,26 +61,6 @@ public abstract class ASTNode {
          */
         public Program(List<ASTNode> functions) {
             this.functions = functions;
-        }
-
-        /**
-         * Custom program node {@link ASTNode#toGraphviz} method,
-         * creating and closing the directed graph.
-         *
-         * @param builder Graphviz code string builder
-         * @return node identifier
-         */
-        @Override
-        public String toGraphviz(StringBuilder builder) {
-            builder.append("""
-                    digraph AST {
-                    compound=true;
-                    node [color=gray40, shape=egg];
-                    edge [color=gray40, arrowsize=0.8];
-                    """);
-            String nodeId = toGraphvizDefault(builder, getClass().getSimpleName(), functions);
-            builder.append("}\n");
-            return nodeId;
         }
 
         /**

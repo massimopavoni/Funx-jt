@@ -2,8 +2,6 @@ package com.github.massimopavoni.funx.jt.ast;
 
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
-import java.util.Collections;
-
 /**
  * Function node class.
  */
@@ -32,19 +30,6 @@ public final class Function extends ASTNode {
         this.type = type;
         this.id = id;
         this.lambda = lambda;
-    }
-
-    /**
-     * Method for AST tree visualization.
-     *
-     * @param builder Graphviz code string builder
-     * @return node identifier
-     */
-    @Override
-    public String toGraphviz(StringBuilder builder) {
-        return toGraphvizDefault(builder,
-                String.format("%s : %s", id, type.toString()),
-                Collections.singletonList(lambda));
     }
 
     /**

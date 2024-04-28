@@ -14,7 +14,7 @@ public abstract class Expression extends Statement {
     /**
      * Base class for operator nodes.
      */
-    public static abstract class Operator extends Statement {
+    public static abstract class Operator extends Expression {
         /**
          * Package private default constructor,
          * preventing instantiation of generalization class from outside.

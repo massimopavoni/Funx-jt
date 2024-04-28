@@ -2,8 +2,6 @@ package com.github.massimopavoni.funx.jt.ast;
 
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
-import java.util.Collections;
-
 /**
  * Base class for primary nodes.
  */
@@ -31,17 +29,6 @@ public abstract class Primary extends Expression {
          */
         public Parenthesized(ASTNode statement) {
             this.statement = statement;
-        }
-
-        /**
-         * Method for AST tree visualization.
-         *
-         * @param builder Graphviz code string builder
-         * @return node identifier
-         */
-        @Override
-        public String toGraphviz(StringBuilder builder) {
-            return statement.toGraphviz(builder);
         }
 
         /**
@@ -78,17 +65,6 @@ public abstract class Primary extends Expression {
         }
 
         /**
-         * Method for AST tree visualization.
-         *
-         * @param builder Graphviz code string builder
-         * @return node identifier
-         */
-        @Override
-        public String toGraphviz(StringBuilder builder) {
-            return toGraphvizDefault(builder, value.toString(), Collections.emptyList());
-        }
-
-        /**
          * To string method override,
          * essentially re-prints the original source code.
          *
@@ -116,17 +92,6 @@ public abstract class Primary extends Expression {
          */
         public Fun(String funId) {
             this.funId = funId;
-        }
-
-        /**
-         * Method for AST tree visualization.
-         *
-         * @param builder Graphviz code string builder
-         * @return node identifier
-         */
-        @Override
-        public String toGraphviz(StringBuilder builder) {
-            return toGraphvizDefault(builder, funId, Collections.emptyList());
         }
 
         /**

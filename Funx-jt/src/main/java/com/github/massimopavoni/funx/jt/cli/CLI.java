@@ -1,6 +1,7 @@
 package com.github.massimopavoni.funx.jt.cli;
 
 import com.github.massimopavoni.funx.jt.ast.ASTNode;
+import com.github.massimopavoni.funx.jt.ast.visitor.GraphvizBuilder;
 import com.github.massimopavoni.funx.jt.parser.ASTBuilder;
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 import com.github.massimopavoni.funx.jt.parser.FunxParser;
@@ -149,9 +150,9 @@ public class CLI implements Callable<Integer> {
      * @throws InterruptedException if the dot process is interrupted
      */
     private void outputAST(ASTNode astRoot, Path outputPath) throws IOException, InterruptedException {
-        StringBuilder dotBuilder = new StringBuilder();
-        astRoot.toGraphviz(dotBuilder);
-        Files.write(outputPath, dotBuilder.toString().getBytes());
+        GraphvizBuilder graphvizBuilder = new GraphvizBuilder(new StringBuilder());
+        graphvizBuilder.visit(astRoot);
+        Files.write(outputPath, graphvizBuilder.getBuiltGraphviz().getBytes());
         ProcessBuilder pb = new ProcessBuilder("dot", "-Tpng", outputPath.toString(), "-o",
                 outputPath.toString().replace(".dot", ".png"));
         Process process = pb.start();

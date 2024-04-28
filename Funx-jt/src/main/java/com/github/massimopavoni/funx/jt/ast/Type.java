@@ -32,18 +32,6 @@ public abstract class Type extends ASTNode {
         }
 
         /**
-         * Method for AST tree visualization.
-         *
-         * @param builder Graphviz code string builder
-         * @return node identifier
-         */
-        @Override
-        public String toGraphviz(StringBuilder builder) {
-            // currently unused
-            return "";
-        }
-
-        /**
          * To string method override,
          * essentially re-prints the original source code.
          *
@@ -74,18 +62,6 @@ public abstract class Type extends ASTNode {
          */
         public SimpleType(TypeEnum type) {
             this.type = type;
-        }
-
-        /**
-         * Method for AST tree visualization.
-         *
-         * @param builder Graphviz code string builder
-         * @return node identifier
-         */
-        @Override
-        public String toGraphviz(StringBuilder builder) {
-            // currently unused
-            return "";
         }
 
         /**
@@ -122,18 +98,6 @@ public abstract class Type extends ASTNode {
         public ArrowType(ASTNode input, ASTNode output) {
             this.input = input;
             this.output = output;
-        }
-
-        /**
-         * Method for AST tree visualization.
-         *
-         * @param builder Graphviz code string builder
-         * @return node identifier
-         */
-        @Override
-        public String toGraphviz(StringBuilder builder) {
-            // currently unused
-            return "";
         }
 
         /**

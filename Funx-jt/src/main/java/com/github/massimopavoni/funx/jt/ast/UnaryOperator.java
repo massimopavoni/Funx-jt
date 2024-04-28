@@ -2,8 +2,6 @@ package com.github.massimopavoni.funx.jt.ast;
 
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
-import java.util.Collections;
-
 /**
  * Base class for unary operator nodes.
  */
@@ -20,17 +18,6 @@ public abstract class UnaryOperator extends Expression.Operator {
      */
     public UnaryOperator(ASTNode operand) {
         this.operand = operand;
-    }
-
-    /**
-     * Method for AST tree visualization.
-     *
-     * @param builder Graphviz code string builder
-     * @return node identifier
-     */
-    @Override
-    public String toGraphviz(StringBuilder builder) {
-        return toGraphvizDefault(builder, operatorString(), Collections.singletonList(operand));
     }
 
     /**
