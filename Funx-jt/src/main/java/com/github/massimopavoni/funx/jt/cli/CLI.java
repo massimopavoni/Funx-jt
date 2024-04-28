@@ -5,6 +5,7 @@ import com.github.massimopavoni.funx.jt.ast.visitor.GraphvizBuilder;
 import com.github.massimopavoni.funx.jt.parser.ASTBuilder;
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 import com.github.massimopavoni.funx.jt.parser.FunxParser;
+import com.github.massimopavoni.funx.jt.parser.IllegalParserStateException;
 import org.antlr.v4.gui.TreeViewer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -19,6 +20,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -61,12 +64,20 @@ public class CLI implements Callable<Integer> {
     private boolean ast;
 
     /**
+     * Default constructor.
+     */
+    public CLI() {
+    }
+
+    /**
      * Main method for executing the CLI in one line.
      *
      * @param args command line arguments
      */
     public static void main(String[] args) {
-        int exitCode = new CommandLine(new CLI()).execute(args);
+        int exitCode = new CommandLine(new CLI())
+                .setExecutionExceptionHandler(new ExceptionHandler())
+                .execute(args);
         System.exit(exitCode);
     }
 
@@ -84,7 +95,7 @@ public class CLI implements Callable<Integer> {
         String filename = file.getName().split("\\.")[0];
         ParseTree tree = getParseTree(filePath.toString());
         ASTNode astRoot = getAST(tree);
-        // transpile to Java here
+        transpile(astRoot, workingDir.resolve(String.format("%s.java", filename)));
         if (parseTree)
             outputParseTree(tree, workingDir.resolve(String.format("%s_parse_tree.png", filename)));
         if (ast)
@@ -97,18 +108,21 @@ public class CLI implements Callable<Integer> {
      *
      * @param inputPath input file path
      * @return parse tree
-     * @throws IOException if an error occurs while reading the file
+     * @throws CLIException if an error occurs
      */
-    private ParseTree getParseTree(String inputPath) throws IOException {
-        CharStream input = CharStreams.fromFileName(inputPath);
-        FunxParser parser = new FunxParser(new CommonTokenStream(new FunxLexer(input)));
-        parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
-        parser.addErrorListener(new DiagnosticErrorListener());
-        ParseTree tree = parser.program();
-        if (parser.getNumberOfSyntaxErrors() > 0)
-            // Replace with custom exception (not runtime (?))
-            throw new RuntimeException("Syntax errors or ambiguities found");
-        return tree;
+    private ParseTree getParseTree(String inputPath) throws CLIException {
+        try {
+            CharStream input = CharStreams.fromFileName(inputPath);
+            FunxParser parser = new FunxParser(new CommonTokenStream(new FunxLexer(input)));
+            parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
+            parser.addErrorListener(new DiagnosticErrorListener());
+            ParseTree tree = parser.program();
+            if (parser.getNumberOfSyntaxErrors() > 0)
+                throw new IllegalParserStateException("Syntax errors or ambiguities found");
+            return tree;
+        } catch (IOException e) {
+            throw new CLIException("Error reading input file", e);
+        }
     }
 
     /**
@@ -121,24 +135,52 @@ public class CLI implements Callable<Integer> {
         return new ASTBuilder().visit(tree);
     }
 
+    private void transpile(ASTNode astRoot, Path outputPath) throws CLIException {
+//        if (javaBuilder.getNumberOfSemanticErrors() > 0)
+//            throw new IllegalTranspilerStateException("Semantic errors found");
+// some checks for the java builder
+//        if (!ctx.functionType().id.getText()
+//                .equals(ctx.id.getText()))
+//            errorReporter.reportError(ctx.functionType(), "same identifier for type and function");
+//
+//        if (left instanceof Primary.Literal)
+//            errorReporter.reportError(ctx, "non-literal function application");
+    }
+
     /**
      * Output a PNG image for parse tree visualization.
      *
      * @param tree       parse tree
      * @param outputPath output file path
-     * @throws IOException if an error occurs while writing the file
+     * @throws CLIException if an error occurs
      */
-    private void outputParseTree(ParseTree tree, Path outputPath) throws IOException {
-        TreeViewer viewer = new TreeViewer(Arrays.asList(FunxParser.ruleNames), tree);
-        BufferedImage image = new BufferedImage(viewer.getPreferredSize().width,
-                viewer.getPreferredSize().height,
-                BufferedImage.TYPE_INT_RGB);
-        Graphics2D graphics = image.createGraphics();
-        graphics.setPaint(Color.WHITE);
-        graphics.fillRect(0, 0, image.getWidth(), image.getHeight());
-        graphics.setPaint(Color.BLACK);
-        viewer.paint(graphics);
-        ImageIO.write(image, "png", outputPath.toFile());
+    private void outputParseTree(ParseTree tree, Path outputPath) throws CLIException {
+        PrintStream originalErr = System.err;
+        try {
+            TreeViewer viewer = new TreeViewer(Arrays.asList(FunxParser.ruleNames), tree);
+            BufferedImage image = new BufferedImage(viewer.getPreferredSize().width,
+                    viewer.getPreferredSize().height,
+                    BufferedImage.TYPE_INT_RGB);
+            Graphics2D graphics = image.createGraphics();
+            graphics.setPaint(Color.WHITE);
+            graphics.fillRect(0, 0, image.getWidth(), image.getHeight());
+            graphics.setPaint(Color.BLACK);
+            viewer.paint(graphics);
+            // Very bad shenanigans because of ImageIO internal workings
+            // randomly printing the stack trace even if the exception is caught
+            // Redirect the error stream
+            System.setErr(new PrintStream(new OutputStream() {
+                public void write(int b) {
+                    // Do nothing
+                }
+            }));
+            ImageIO.write(image, "png", outputPath.toFile());
+            // Reset the error stream
+            System.setErr(originalErr);
+        } catch (IOException e) {
+            System.setErr(originalErr);
+            throw new CLIException("Error writing parse tree image", e);
+        }
     }
 
     /**
@@ -146,19 +188,23 @@ public class CLI implements Callable<Integer> {
      *
      * @param astRoot    abstract syntax tree root node
      * @param outputPath output file path
-     * @throws IOException          if an error occurs while writing the file
-     * @throws InterruptedException if the dot process is interrupted
+     * @throws CLIException if an error occurs
      */
-    private void outputAST(ASTNode astRoot, Path outputPath) throws IOException, InterruptedException {
-        GraphvizBuilder graphvizBuilder = new GraphvizBuilder(new StringBuilder());
-        graphvizBuilder.visit(astRoot);
-        Files.write(outputPath, graphvizBuilder.getBuiltGraphviz().getBytes());
-        ProcessBuilder pb = new ProcessBuilder("dot", "-Tpng", outputPath.toString(), "-o",
-                outputPath.toString().replace(".dot", ".png"));
-        Process process = pb.start();
-        int dotExitCode = process.waitFor();
-        if (dotExitCode != 0)
-            // Replace with custom exception (not runtime (?))
-            throw new RuntimeException("Graphviz dot command failed");
+    private void outputAST(ASTNode astRoot, Path outputPath) throws CLIException {
+        try {
+            GraphvizBuilder graphvizBuilder = new GraphvizBuilder(new StringBuilder());
+            graphvizBuilder.visit(astRoot);
+            Files.write(outputPath, graphvizBuilder.getBuiltGraphviz().getBytes());
+            ProcessBuilder pb = new ProcessBuilder("dot", "-Tpng", outputPath.toString(), "-o",
+                    outputPath.toString().replace(".dot", ".png"));
+            Process process = pb.start();
+            int dotExitCode = process.waitFor();
+            if (dotExitCode != 0)
+                throw new CLIException(String.format("Graphviz dot command failed with exit code %d", dotExitCode));
+        } catch (IOException e) {
+            throw new CLIException("Error writing AST dot file", e);
+        } catch (InterruptedException e) {
+            throw new CLIException("Error executing Graphviz dot command", e);
+        }
     }
 }

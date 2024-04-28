@@ -43,10 +43,6 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitFunction(FunxParser.FunctionContext ctx) {
-        if (!ctx.functionType().id.getText()
-                .equals(ctx.id.getText())) {
-            // report error (look up how to collect them)
-        }
         ASTNode statement;
         if (ctx.localFunctions() != null)
             statement = new Statement.Let(ctx.localFunctions().functions().function().stream()
@@ -167,9 +163,6 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitAppExpression(FunxParser.AppExpressionContext ctx) {
         ASTNode left = visit(ctx.expression(0));
-        if (left instanceof Primary.Literal) {
-            // report error
-        }
         return new BinaryOperator.Application(left,
                 visit(ctx.expression(1)));
     }
@@ -190,7 +183,8 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
             case FunxLexer.GreaterThanEquals -> new BinaryOperator.GreaterThanEquals(left, right);
             case FunxLexer.LessThan -> new BinaryOperator.LessThan(left, right);
             case FunxLexer.LessThanEquals -> new BinaryOperator.LessThanEquals(left, right);
-            default -> null; // report error
+            // Default case should never be reached
+            default -> throw new IllegalParserStateException(ctx, "comparison operator");
         };
     }
 
@@ -258,7 +252,8 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
         return switch (ctx.bop.getType()) {
             case FunxLexer.Add -> new BinaryOperator.Add(left, right);
             case FunxLexer.Subtract -> new BinaryOperator.Subtract(left, right);
-            default -> null; // report error
+            // Default case should never be reached
+            default -> throw new IllegalParserStateException(ctx, "lower precedence arithmetic operator");
         };
     }
 
@@ -276,7 +271,8 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
         return switch (ctx.bop.getType()) {
             case FunxLexer.EqualsEquals -> new BinaryOperator.EqualsEquals(left, right);
             case FunxLexer.NotEquals -> new BinaryOperator.NotEquals(left, right);
-            default -> null; // report error
+            // Default case should never be reached
+            default -> throw new IllegalParserStateException(ctx, "equality operator");
         };
     }
 
@@ -295,7 +291,8 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
             case FunxLexer.Divide -> new BinaryOperator.Divide(left, right);
             case FunxLexer.Modulo -> new BinaryOperator.Modulo(left, right);
             case FunxLexer.Multiply -> new BinaryOperator.Multiply(left, right);
-            default -> null; // report error
+            // Default case should never be reached
+            default -> throw new IllegalParserStateException(ctx, "higher precedence arithmetic operator");
         };
     }
 
@@ -409,7 +406,8 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
             return visit(ctx.numLiteral());
         return switch (ctx.start.getType()) {
             case FunxLexer.BOOL -> new Primary.Literal(Boolean.parseBoolean(ctx.BOOL().getText()));
-            default -> null; // report error
+            // Default case should never be reached
+            default -> throw new IllegalParserStateException(ctx, "literal");
         };
     }
 
@@ -428,7 +426,8 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
             case FunxLexer.INT -> new Primary.Literal(
                     Integer.parseInt(
                             ctx.INT().getText().replaceAll("[()]", "")));
-            default -> null; // report error
+            // Default case should never be reached
+            default -> throw new IllegalParserStateException(ctx, "numeric literal");
         };
     }
 }

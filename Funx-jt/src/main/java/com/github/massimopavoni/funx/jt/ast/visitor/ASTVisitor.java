@@ -248,7 +248,7 @@ interface ASTVisitor<T> {
             case Statement statement -> visit(statement);
             case Statement.Lambda.Param param -> visit(param);
             case Statement.Lambda.MultiParam multiParam -> visit(multiParam);
-            case ASTNode ignored -> throw new IllegalArgumentException("Bare base AST node found");
+            case ASTNode ignored -> throw new IllegalASTNodeException("Bare base AST node found");
         };
     }
 
@@ -263,7 +263,7 @@ interface ASTVisitor<T> {
             case Type.ParenType parenType -> visit(parenType);
             case Type.SimpleType simpleType -> visit(simpleType);
             case Type.ArrowType arrowType -> visit(arrowType);
-            case Type ignored -> throw new IllegalArgumentException("Bare base Type node found");
+            case Type ignored -> throw new IllegalASTNodeException("Bare base Type node found");
         };
     }
 
@@ -279,7 +279,7 @@ interface ASTVisitor<T> {
             case Statement.Let let -> visit(let);
             case Statement.If ifNode -> visit(ifNode);
             case Expression expression -> visit(expression);
-            case Statement ignored -> throw new IllegalArgumentException("Bare base Statement node found");
+            case Statement ignored -> throw new IllegalASTNodeException("Bare base Statement node found");
         };
     }
 
@@ -294,7 +294,7 @@ interface ASTVisitor<T> {
             case Primary primary -> visit(primary);
             case UnaryOperator unaryOperator -> visit(unaryOperator);
             case BinaryOperator binaryOperator -> visit(binaryOperator);
-            case Expression ignored -> throw new IllegalArgumentException("Bare base Expression node found");
+            case Expression ignored -> throw new IllegalASTNodeException("Bare base Expression node found");
         };
     }
 
@@ -309,7 +309,7 @@ interface ASTVisitor<T> {
             case Primary.Parenthesized parenthesized -> visit(parenthesized);
             case Primary.Literal literal -> visit(literal);
             case Primary.Fun fun -> visit(fun);
-            case Primary ignored -> throw new IllegalArgumentException("Bare base Primary node found");
+            case Primary ignored -> throw new IllegalASTNodeException("Bare base Primary node found");
         };
     }
 
@@ -322,7 +322,7 @@ interface ASTVisitor<T> {
     default T visit(UnaryOperator node) {
         return switch (node) {
             case UnaryOperator.Not not -> visit(not);
-            case UnaryOperator ignored -> throw new IllegalArgumentException("Bare base UnaryOperator node found");
+            case UnaryOperator ignored -> throw new IllegalASTNodeException("Bare base UnaryOperator node found");
         };
     }
 
@@ -348,7 +348,7 @@ interface ASTVisitor<T> {
             case BinaryOperator.NotEquals notEquals -> visit(notEquals);
             case BinaryOperator.And and -> visit(and);
             case BinaryOperator.Or or -> visit(or);
-            case BinaryOperator ignored -> throw new IllegalArgumentException("Bare base BinaryOperator node found");
+            case BinaryOperator ignored -> throw new IllegalASTNodeException("Bare base BinaryOperator node found");
         };
     }
 }
