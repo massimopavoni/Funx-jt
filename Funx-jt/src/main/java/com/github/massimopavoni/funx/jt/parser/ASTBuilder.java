@@ -50,7 +50,10 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
                     visit(ctx.statement()));
         else
             statement = visit(ctx.statement());
-        return new Function(visit(ctx.functionType()),
+        FunxParser.FunctionTypeContext functionType = ctx.functionType();
+        return new Function(
+                functionType.id.getText(),
+                visit(functionType),
                 ctx.id.getText(),
                 ctx.lambdaParams() != null
                         ? new Statement.Lambda(visit(ctx.lambdaParams()), statement)

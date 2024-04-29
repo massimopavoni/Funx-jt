@@ -7,6 +7,10 @@ import com.github.massimopavoni.funx.jt.parser.FunxLexer;
  */
 public final class Function extends ASTNode {
     /**
+     * Type function identifier.
+     */
+    public final String typeFunId;
+    /**
      * Type node.
      */
     public final ASTNode type;
@@ -22,11 +26,13 @@ public final class Function extends ASTNode {
     /**
      * Constructor for the function node.
      *
+     * @param typeFunId type identifier
      * @param type   type node
      * @param id     identifier
      * @param lambda lambda function node
      */
-    public Function(ASTNode type, String id, ASTNode lambda) {
+    public Function(String typeFunId, ASTNode type, String id, ASTNode lambda) {
+        this.typeFunId = typeFunId;
         this.type = type;
         this.id = id;
         this.lambda = lambda;

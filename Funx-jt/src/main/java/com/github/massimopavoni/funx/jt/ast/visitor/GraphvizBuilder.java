@@ -111,7 +111,7 @@ public final class GraphvizBuilder implements ASTVisitor<String> {
      */
     @Override
     public String visit(Function node) {
-        return toGraphvizDefault(String.format("%s : %s", node.id, node.type.toString()), node,
+        return toGraphvizDefault(String.format("%s : %s", node.typeFunId, node.type.toString()), node,
                 Collections.singletonList(node.lambda));
     }
 
