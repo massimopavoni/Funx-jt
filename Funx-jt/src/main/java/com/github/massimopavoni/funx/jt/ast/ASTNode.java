@@ -31,17 +31,36 @@ public abstract class ASTNode {
      */
     public final static class Module extends ASTNode {
         /**
-         * List of declarations in the module.
+         * Declarations in the module.
          */
-        public final List<ASTNode> declarations;
+        public final ASTNode declarations;
 
         /**
          * Constructor for the module node.
          *
-         * @param declarations list of declarations in the module
+         * @param declarations declarations in the module
          */
-        public Module(List<ASTNode> declarations) {
+        public Module(ASTNode declarations) {
             this.declarations = declarations;
+        }
+    }
+
+    /**
+     * Declarations node class.
+     */
+    public final static class Declarations extends ASTNode {
+        /**
+         * List of declarations.
+         */
+        public final List<ASTNode> declarationList;
+
+        /**
+         * Constructor for the Declarations node.
+         *
+         * @param declarationList list of declarations
+         */
+        public Declarations(List<ASTNode> declarationList) {
+            this.declarationList = declarationList;
         }
     }
 }

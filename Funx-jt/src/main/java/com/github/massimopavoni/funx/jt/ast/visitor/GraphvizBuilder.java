@@ -74,13 +74,24 @@ public final class GraphvizBuilder implements ASTVisitor<String> {
     public String visit(ASTNode.Module node) {
         builder.append("""
                 digraph AST {
-                compound=true;
                 node [color=gray40, shape=egg];
                 edge [color=gray40, arrowsize=0.8];
                 """);
-        String nodeId = toGraphvizDefault(ASTNode.Module.class.getSimpleName(), node, node.declarations);
+        String nodeId = toGraphvizDefault(ASTNode.Module.class.getSimpleName(), node,
+                Collections.singletonList(node.declarations));
         builder.append("}\n");
         return nodeId;
+    }
+
+    /**
+     * Visit a {@link ASTNode.Declarations} AST node.
+     *
+     * @param node the AST node
+     * @return the visitor result
+     */
+    @Override
+    public String visit(ASTNode.Declarations node) {
+        return toGraphvizDefault(ASTNode.Declarations.class.getSimpleName(), node, node.declarationList);
     }
 
     /**
@@ -139,22 +150,8 @@ public final class GraphvizBuilder implements ASTVisitor<String> {
      */
     @Override
     public String visit(Statement.Let node) {
-        String nodeId = getNodeId(node);
-        builder.append(String.format("""
-                        %1$s [label="%2$s"];
-                        subgraph cluster_%1$s {
-                        color=gray40;
-                        """,
-                nodeId, ASTNode.fromLexerToken(FunxLexer.LET)));
-        List<String> childrenIds = node.localDeclarations.stream()
-                .map(this::visit).toList();
-        builder.append("}\n");
-        builder.append(String.format("""
-                        %1$s -> %2$s [lhead="cluster_%1$s"];
-                        %1$s -> %3$s;
-                        """,
-                nodeId, childrenIds.get(childrenIds.size() / 2), visit(node.statement)));
-        return nodeId;
+        return toGraphvizDefault(ASTNode.fromLexerToken(FunxLexer.LET), node,
+                List.of(node.localDeclarations, node.statement));
     }
 
     /**

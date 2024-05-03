@@ -43,9 +43,9 @@ public abstract class Statement extends ASTNode {
      */
     public final static class Let extends Statement {
         /**
-         * List of local declaration nodes.
+         * Local declaration node.
          */
-        public final List<ASTNode> localDeclarations;
+        public final ASTNode localDeclarations;
         /**
          * Statement node.
          */
@@ -54,10 +54,10 @@ public abstract class Statement extends ASTNode {
         /**
          * Constructor for the let statement node.
          *
-         * @param localDeclarations list of local declaration nodes
+         * @param localDeclarations local declaration node
          * @param statement         statement node
          */
-        public Let(List<ASTNode> localDeclarations, ASTNode statement) {
+        public Let(ASTNode localDeclarations, ASTNode statement) {
             this.localDeclarations = localDeclarations;
             this.statement = statement;
         }

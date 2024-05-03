@@ -19,6 +19,14 @@ interface ASTVisitor<T> {
     T visit(ASTNode.Module node);
 
     /**
+     * Visit a {@link ASTNode.Declarations} AST node.
+     *
+     * @param node the AST node
+     * @return the visitor result
+     */
+    T visit(ASTNode.Declarations node);
+
+    /**
      * Visit a {@link Declaration} AST node.
      *
      * @param node the AST node
@@ -99,6 +107,7 @@ interface ASTVisitor<T> {
     default T visit(ASTNode node) {
         return switch (node) {
             case ASTNode.Module module -> visit(module);
+            case ASTNode.Declarations declarations -> visit(declarations);
             case Declaration declaration -> visit(declaration);
             case Type type -> visit(type);
             case Statement statement -> visit(statement);

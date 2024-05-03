@@ -57,7 +57,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitModule(FunxParser.ModuleContext ctx) {
         // Potentially do other things (e.g. set a different package)
-        return visit(ctx.declarations());
+        return new ASTNode.Module(visit(ctx.declarations()));
     }
 
     /**
@@ -68,7 +68,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitDeclarations(FunxParser.DeclarationsContext ctx) {
-        return new ASTNode.Module(ctx.declaration().stream()
+        return new ASTNode.Declarations(ctx.declaration().stream()
                 .map(this::visit).toList());
     }
 
@@ -82,8 +82,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     public ASTNode visitDeclaration(FunxParser.DeclarationContext ctx) {
         ASTNode statement;
         if (ctx.localDeclarations() != null)
-            statement = new Statement.Let(ctx.localDeclarations().declarations().declaration().stream()
-                    .map(this::visit).toList(),
+            statement = new Statement.Let(visit(ctx.localDeclarations()),
                     visit(ctx.statement()));
         else
             statement = visit(ctx.statement());
@@ -381,8 +380,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitLet(FunxParser.LetContext ctx) {
-        return new Statement.Let(ctx.localDeclarations().declarations().declaration().stream()
-                .map(this::visit).toList(),
+        return new Statement.Let(visit(ctx.localDeclarations().declarations()),
                 visit(ctx.statement()));
     }
 
