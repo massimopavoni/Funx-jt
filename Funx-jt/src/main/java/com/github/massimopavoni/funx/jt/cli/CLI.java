@@ -193,7 +193,7 @@ public class CLI implements Callable<Integer> {
     private void outputAST(ASTNode astRoot, Path outputPath) throws CLIException {
         try {
             GraphvizBuilder graphvizBuilder = new GraphvizBuilder(new StringBuilder());
-            graphvizBuilder.visit(astRoot);
+            graphvizBuilder.visitNode(astRoot);
             Files.write(outputPath, graphvizBuilder.getBuiltGraphviz().getBytes());
             ProcessBuilder pb = new ProcessBuilder("dot", "-Tpng", outputPath.toString(), "-o",
                     outputPath.toString().replace(".dot", ".png"));

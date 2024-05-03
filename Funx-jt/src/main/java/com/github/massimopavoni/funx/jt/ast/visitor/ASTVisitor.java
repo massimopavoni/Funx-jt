@@ -16,7 +16,7 @@ interface ASTVisitor<T> {
      * @param node the AST node
      * @return the visitor result
      */
-    T visit(ASTNode.Module node);
+    T visitModule(ASTNode.Module node);
 
     /**
      * Visit a {@link ASTNode.Declarations} AST node.
@@ -24,7 +24,7 @@ interface ASTVisitor<T> {
      * @param node the AST node
      * @return the visitor result
      */
-    T visit(ASTNode.Declarations node);
+    T visitDeclarations(ASTNode.Declarations node);
 
     /**
      * Visit a {@link Declaration} AST node.
@@ -32,7 +32,7 @@ interface ASTVisitor<T> {
      * @param node the AST node
      * @return the visitor result
      */
-    T visit(Declaration node);
+    T visitDeclaration(Declaration node);
 
     /**
      * Visit a {@link Type.SimpleType} AST node.
@@ -40,7 +40,7 @@ interface ASTVisitor<T> {
      * @param node the AST node
      * @return the visitor result
      */
-    T visit(Type.SimpleType node);
+    T visitSimpleType(Type.SimpleType node);
 
     /**
      * Visit a {@link Type.ArrowType} AST node.
@@ -48,7 +48,7 @@ interface ASTVisitor<T> {
      * @param node the AST node
      * @return the visitor result
      */
-    T visit(Type.ArrowType node);
+    T visitArrowType(Type.ArrowType node);
 
     /**
      * Visit a {@link Statement.Lambda} AST node.
@@ -56,7 +56,7 @@ interface ASTVisitor<T> {
      * @param node the AST node
      * @return the visitor result
      */
-    T visit(Statement.Lambda node);
+    T visitLambda(Statement.Lambda node);
 
     /**
      * Visit a {@link Statement.Let} AST node.
@@ -64,7 +64,7 @@ interface ASTVisitor<T> {
      * @param node the AST node
      * @return the visitor result
      */
-    T visit(Statement.Let node);
+    T visitLet(Statement.Let node);
 
     /**
      * Visit a {@link Statement.If} AST node.
@@ -72,7 +72,7 @@ interface ASTVisitor<T> {
      * @param node the AST node
      * @return the visitor result
      */
-    T visit(Statement.If node);
+    T visitIf(Statement.If node);
 
     /**
      * Visit a {@link Expression.Application} AST node.
@@ -80,7 +80,7 @@ interface ASTVisitor<T> {
      * @param node the AST node
      * @return the visitor result
      */
-    T visit(Expression.Application node);
+    T visitApplication(Expression.Application node);
 
     /**
      * Visit a {@link Primary.Constant} AST node.
@@ -88,7 +88,7 @@ interface ASTVisitor<T> {
      * @param node the AST node
      * @return the visitor result
      */
-    T visit(Primary.Constant node);
+    T visitConstant(Primary.Constant node);
 
     /**
      * Visit a {@link Primary.Variable} AST node.
@@ -96,7 +96,7 @@ interface ASTVisitor<T> {
      * @param node the AST node
      * @return the visitor result
      */
-    T visit(Primary.Variable node);
+    T visitVariable(Primary.Variable node);
 
     /**
      * Visit an {@link ASTNode}.
@@ -104,13 +104,13 @@ interface ASTVisitor<T> {
      * @param node the AST node
      * @return the visitor result
      */
-    default T visit(ASTNode node) {
+    default T visitNode(ASTNode node) {
         return switch (node) {
-            case ASTNode.Module module -> visit(module);
-            case ASTNode.Declarations declarations -> visit(declarations);
-            case Declaration declaration -> visit(declaration);
-            case Type type -> visit(type);
-            case Statement statement -> visit(statement);
+            case ASTNode.Module module -> visitModule(module);
+            case ASTNode.Declarations declarations -> visitDeclarations(declarations);
+            case Declaration declaration -> visitDeclaration(declaration);
+            case Type type -> visitType(type);
+            case Statement statement -> visitStatement(statement);
             case ASTNode ignored -> throw new IllegalASTNodeException("Bare base AST node found");
         };
     }
@@ -121,10 +121,10 @@ interface ASTVisitor<T> {
      * @param node the AST node
      * @return the visitor result
      */
-    default T visit(Type node) {
+    default T visitType(Type node) {
         return switch (node) {
-            case Type.SimpleType simpleType -> visit(simpleType);
-            case Type.ArrowType arrowType -> visit(arrowType);
+            case Type.SimpleType simpleType -> visitSimpleType(simpleType);
+            case Type.ArrowType arrowType -> visitArrowType(arrowType);
             case Type ignored -> throw new IllegalASTNodeException("Bare base Type node found");
         };
     }
@@ -135,12 +135,12 @@ interface ASTVisitor<T> {
      * @param node the AST node
      * @return the visitor result
      */
-    default T visit(Statement node) {
+    default T visitStatement(Statement node) {
         return switch (node) {
-            case Statement.Lambda lambda -> visit(lambda);
-            case Statement.Let let -> visit(let);
-            case Statement.If ifNode -> visit(ifNode);
-            case Expression expression -> visit(expression);
+            case Statement.Lambda lambda -> visitLambda(lambda);
+            case Statement.Let let -> visitLet(let);
+            case Statement.If ifNode -> visitIf(ifNode);
+            case Expression expression -> visitExpression(expression);
             case Statement ignored -> throw new IllegalASTNodeException("Bare base Statement node found");
         };
     }
@@ -151,10 +151,10 @@ interface ASTVisitor<T> {
      * @param node the AST node
      * @return the visitor result
      */
-    default T visit(Expression node) {
+    default T visitExpression(Expression node) {
         return switch (node) {
-            case Primary primary -> visit(primary);
-            case Expression.Application application -> visit(application);
+            case Primary primary -> visitPrimary(primary);
+            case Expression.Application application -> visitApplication(application);
             case Expression ignored -> throw new IllegalASTNodeException("Bare base Expression node found");
         };
     }
@@ -165,10 +165,10 @@ interface ASTVisitor<T> {
      * @param node the AST node
      * @return the visitor result
      */
-    default T visit(Primary node) {
+    default T visitPrimary(Primary node) {
         return switch (node) {
-            case Primary.Constant constant -> visit(constant);
-            case Primary.Variable variable -> visit(variable);
+            case Primary.Constant constant -> visitConstant(constant);
+            case Primary.Variable variable -> visitVariable(variable);
             case Primary ignored -> throw new IllegalASTNodeException("Bare base Primary node found");
         };
     }
