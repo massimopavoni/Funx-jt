@@ -116,7 +116,7 @@ public class CLI implements Callable<Integer> {
             FunxParser parser = new FunxParser(new CommonTokenStream(new FunxLexer(input)));
             parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
             parser.addErrorListener(new DiagnosticErrorListener());
-            ParseTree tree = parser.program();
+            ParseTree tree = parser.module();
             if (parser.getNumberOfSyntaxErrors() > 0)
                 throw new IllegalParserStateException("Syntax errors or ambiguities found");
             return tree;

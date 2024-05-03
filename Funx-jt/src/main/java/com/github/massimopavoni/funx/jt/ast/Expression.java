@@ -12,21 +12,27 @@ public abstract class Expression extends Statement {
     }
 
     /**
-     * Base class for operator nodes.
+     * Application expression class.
      */
-    public static abstract class Operator extends Expression {
+    public static final class Application extends Expression {
         /**
-         * Package private default constructor,
-         * preventing instantiation of generalization class from outside.
+         * Application left node.
          */
-        Operator() {
-        }
+        public final ASTNode left;
+        /**
+         * Application right node.
+         */
+        public final ASTNode right;
 
         /**
-         * Get the operator string representation.
+         * Constructor for the application expression node.
          *
-         * @return operator string
+         * @param left  left node
+         * @param right right node
          */
-        public abstract String operatorString();
+        public Application(ASTNode left, ASTNode right) {
+            this.left = left;
+            this.right = right;
+        }
     }
 }

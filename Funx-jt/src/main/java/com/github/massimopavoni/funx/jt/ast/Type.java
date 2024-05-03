@@ -1,7 +1,5 @@
 package com.github.massimopavoni.funx.jt.ast;
 
-import com.github.massimopavoni.funx.jt.parser.FunxLexer;
-
 /**
  * Base class for type nodes.
  */
@@ -11,39 +9,6 @@ public abstract class Type extends ASTNode {
      * preventing instantiation of generalization class from outside.
      */
     Type() {
-    }
-
-    /**
-     * Parenthesized type class.
-     */
-    public final static class ParenType extends Type {
-        /**
-         * Type node.
-         */
-        public final ASTNode type;
-
-        /**
-         * Constructor for the parenthesized type node.
-         *
-         * @param type type node
-         */
-        public ParenType(ASTNode type) {
-            this.type = type;
-        }
-
-        /**
-         * To string method override,
-         * essentially re-prints the original source code.
-         *
-         * @return string representation of the node
-         */
-        @Override
-        public String toString() {
-            return String.format("%s%s%s",
-                    ASTNode.fromLexerToken(FunxLexer.OpenParen),
-                    type.toString(),
-                    ASTNode.fromLexerToken(FunxLexer.CloseParen));
-        }
     }
 
     /**
@@ -62,17 +27,6 @@ public abstract class Type extends ASTNode {
          */
         public SimpleType(TypeEnum type) {
             this.type = type;
-        }
-
-        /**
-         * To string method override,
-         * essentially re-prints the original source code.
-         *
-         * @return string representation of the node
-         */
-        @Override
-        public String toString() {
-            return type.getTypeName();
         }
     }
 
@@ -98,20 +52,6 @@ public abstract class Type extends ASTNode {
         public ArrowType(ASTNode input, ASTNode output) {
             this.input = input;
             this.output = output;
-        }
-
-        /**
-         * To string method override,
-         * essentially re-prints the original source code.
-         *
-         * @return string representation of the node
-         */
-        @Override
-        public String toString() {
-            return String.format("%s %s %s",
-                    input.toString(),
-                    ASTNode.fromLexerToken(FunxLexer.Arrow),
-                    output.toString());
         }
     }
 }

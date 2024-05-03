@@ -65,66 +65,34 @@ public final class GraphvizBuilder implements ASTVisitor<String> {
     }
 
     /**
-     * Default behavior for the Graphviz building of a {@link UnaryOperator} node.
-     *
-     * @param node unary operator node
-     * @return node identifier
-     */
-    private String toGraphvizUnaryOperator(UnaryOperator node) {
-        return toGraphvizDefault(node.operatorString(), node, Collections.singletonList(node.operand));
-    }
-
-    /**
-     * Default behavior for the Graphviz building of a {@link BinaryOperator} node.
-     *
-     * @param node binary operator node
-     * @return node identifier
-     */
-    private String toGraphvizBinaryOperator(BinaryOperator node) {
-        return toGraphvizDefault(node.operatorString(), node, List.of(node.left, node.right));
-    }
-
-    /**
-     * Visit a {@link ASTNode.Program} AST node.
+     * Visit a {@link ASTNode.Module} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
     @Override
-    public String visit(ASTNode.Program node) {
+    public String visit(ASTNode.Module node) {
         builder.append("""
                 digraph AST {
                 compound=true;
                 node [color=gray40, shape=egg];
                 edge [color=gray40, arrowsize=0.8];
                 """);
-        String nodeId = toGraphvizDefault(ASTNode.Program.class.getSimpleName(), node, node.functions);
+        String nodeId = toGraphvizDefault(ASTNode.Module.class.getSimpleName(), node, node.declarations);
         builder.append("}\n");
         return nodeId;
     }
 
     /**
-     * Visit a {@link Function} AST node.
+     * Visit a {@link Declaration} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
     @Override
-    public String visit(Function node) {
-        return toGraphvizDefault(String.format("%s : %s", node.typeFunId, node.type.toString()), node,
-                Collections.singletonList(node.lambda));
-    }
-
-    /**
-     * Visit a {@link Type.ParenType} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    @Override
-    public String visit(Type.ParenType node) {
-        // currently unused (function prints type using the latter's toString method)
-        return "";
+    public String visit(Declaration node) {
+        return toGraphvizDefault(node.id, node,
+                List.of(node.type, node.statement));
     }
 
     /**
@@ -135,8 +103,7 @@ public final class GraphvizBuilder implements ASTVisitor<String> {
      */
     @Override
     public String visit(Type.SimpleType node) {
-        // currently unused (function prints type using the latter's toString method)
-        return "";
+        return toGraphvizDefault(node.type.typeName, node, Collections.emptyList());
     }
 
     /**
@@ -147,8 +114,8 @@ public final class GraphvizBuilder implements ASTVisitor<String> {
      */
     @Override
     public String visit(Type.ArrowType node) {
-        // currently unused (function prints type using the latter's toString method)
-        return "";
+        return toGraphvizDefault(ASTNode.fromLexerToken(FunxLexer.Arrow), node,
+                List.of(node.input, node.output));
     }
 
     /**
@@ -159,32 +126,9 @@ public final class GraphvizBuilder implements ASTVisitor<String> {
      */
     @Override
     public String visit(Statement.Lambda node) {
-        return toGraphvizDefault(String.format("\\\\%s", node.params.toString()), node,
+        return toGraphvizDefault(
+                String.format("\\\\%s", node.paramId), node,
                 Collections.singletonList(node.statement));
-    }
-
-    /**
-     * Visit a {@link Statement.Lambda.Param} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    @Override
-    public String visit(Statement.Lambda.Param node) {
-        // currently unused (lambda prints params using the latter's toString method)
-        return "";
-    }
-
-    /**
-     * Visit a {@link Statement.Lambda.MultiParam} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    @Override
-    public String visit(Statement.Lambda.MultiParam node) {
-        // currently unused (lambda prints params using the latter's toString method)
-        return "";
     }
 
     /**
@@ -202,7 +146,7 @@ public final class GraphvizBuilder implements ASTVisitor<String> {
                         color=gray40;
                         """,
                 nodeId, ASTNode.fromLexerToken(FunxLexer.LET)));
-        List<String> childrenIds = node.localFunctions.stream()
+        List<String> childrenIds = node.localDeclarations.stream()
                 .map(this::visit).toList();
         builder.append("}\n");
         builder.append(String.format("""
@@ -226,200 +170,36 @@ public final class GraphvizBuilder implements ASTVisitor<String> {
     }
 
     /**
-     * Visit a {@link Primary.Parenthesized} AST node.
+     * Visit a {@link Expression.Application} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
     @Override
-    public String visit(Primary.Parenthesized node) {
-        return visit(node.statement);
+    public String visit(Expression.Application node) {
+        return toGraphvizDefault("@", node,
+                List.of(node.left, node.right));
     }
 
     /**
-     * Visit a {@link Primary.Literal} AST node.
+     * Visit a {@link Primary.Constant} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
     @Override
-    public String visit(Primary.Literal node) {
+    public String visit(Primary.Constant node) {
         return toGraphvizDefault(node.value.toString(), node, Collections.emptyList());
     }
 
     /**
-     * Visit a {@link Primary.Fun} AST node.
+     * Visit a {@link Primary.Variable} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
     @Override
-    public String visit(Primary.Fun node) {
-        return toGraphvizDefault(node.funId, node, Collections.emptyList());
-    }
-
-    /**
-     * Visit a {@link UnaryOperator.Not} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    @Override
-    public String visit(UnaryOperator.Not node) {
-        return toGraphvizUnaryOperator(node);
-    }
-
-    /**
-     * Visit a {@link BinaryOperator.Application} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    @Override
-    public String visit(BinaryOperator.Application node) {
-        return toGraphvizDefault("$", node, List.of(node.left, node.right));
-    }
-
-    /**
-     * Visit a {@link BinaryOperator.Divide} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    @Override
-    public String visit(BinaryOperator.Divide node) {
-        return toGraphvizBinaryOperator(node);
-    }
-
-    /**
-     * Visit a {@link BinaryOperator.Modulo} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    @Override
-    public String visit(BinaryOperator.Modulo node) {
-        return toGraphvizBinaryOperator(node);
-    }
-
-    /**
-     * Visit a {@link BinaryOperator.Multiply} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    @Override
-    public String visit(BinaryOperator.Multiply node) {
-        return toGraphvizBinaryOperator(node);
-    }
-
-    /**
-     * Visit a {@link BinaryOperator.Add} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    @Override
-    public String visit(BinaryOperator.Add node) {
-        return toGraphvizBinaryOperator(node);
-    }
-
-    /**
-     * Visit a {@link BinaryOperator.Subtract} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    @Override
-    public String visit(BinaryOperator.Subtract node) {
-        return toGraphvizBinaryOperator(node);
-    }
-
-    /**
-     * Visit a {@link BinaryOperator.GreaterThan} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    @Override
-    public String visit(BinaryOperator.GreaterThan node) {
-        return toGraphvizBinaryOperator(node);
-    }
-
-    /**
-     * Visit a {@link BinaryOperator.GreaterThanEquals} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    @Override
-    public String visit(BinaryOperator.GreaterThanEquals node) {
-        return toGraphvizBinaryOperator(node);
-    }
-
-    /**
-     * Visit a {@link BinaryOperator.LessThan} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    @Override
-    public String visit(BinaryOperator.LessThan node) {
-        return toGraphvizBinaryOperator(node);
-    }
-
-    /**
-     * Visit a {@link BinaryOperator.LessThanEquals} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    @Override
-    public String visit(BinaryOperator.LessThanEquals node) {
-        return toGraphvizBinaryOperator(node);
-    }
-
-    /**
-     * Visit an {@link BinaryOperator.EqualsEquals} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    @Override
-    public String visit(BinaryOperator.EqualsEquals node) {
-        return toGraphvizBinaryOperator(node);
-    }
-
-    /**
-     * Visit a {@link BinaryOperator.NotEquals} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    @Override
-    public String visit(BinaryOperator.NotEquals node) {
-        return toGraphvizBinaryOperator(node);
-    }
-
-    /**
-     * Visit an {@link BinaryOperator.And} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    @Override
-    public String visit(BinaryOperator.And node) {
-        return toGraphvizBinaryOperator(node);
-    }
-
-    /**
-     * Visit an {@link BinaryOperator.Or} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    @Override
-    public String visit(BinaryOperator.Or node) {
-        return toGraphvizBinaryOperator(node);
+    public String visit(Primary.Variable node) {
+        return toGraphvizDefault(node.varId, node, Collections.emptyList());
     }
 }

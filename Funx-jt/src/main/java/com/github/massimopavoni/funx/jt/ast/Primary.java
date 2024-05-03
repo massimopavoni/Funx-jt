@@ -1,7 +1,5 @@
 package com.github.massimopavoni.funx.jt.ast;
 
-import com.github.massimopavoni.funx.jt.parser.FunxLexer;
-
 /**
  * Base class for primary nodes.
  */
@@ -14,95 +12,40 @@ public abstract class Primary extends Expression {
     }
 
     /**
-     * Parenthesized primary class.
+     * Constant primary class.
      */
-    public final static class Parenthesized extends Primary {
+    public final static class Constant extends Primary {
         /**
-         * Parenthesized statement node.
-         */
-        public final ASTNode statement;
-
-        /**
-         * Constructor for the parenthesized primary node.
-         *
-         * @param statement statement node
-         */
-        public Parenthesized(ASTNode statement) {
-            this.statement = statement;
-        }
-
-        /**
-         * To string method override,
-         * essentially re-prints the original source code.
-         *
-         * @return string representation of the node
-         */
-        @Override
-        public String toString() {
-            return String.format("%s%s%s",
-                    ASTNode.fromLexerToken(FunxLexer.OpenParen),
-                    statement.toString(),
-                    ASTNode.fromLexerToken(FunxLexer.CloseParen));
-        }
-    }
-
-    /**
-     * Literal primary class.
-     */
-    public final static class Literal extends Primary {
-        /**
-         * Literal value.
+         * Constant value.
          */
         public final Object value;
 
         /**
-         * Constructor for the literal primary node.
+         * Constructor for the constant primary node.
          *
-         * @param value literal value
+         * @param value constant value
          */
-        public Literal(Object value) {
+        public Constant(Object value) {
             this.value = value;
-        }
-
-        /**
-         * To string method override,
-         * essentially re-prints the original source code.
-         *
-         * @return string representation of the node
-         */
-        @Override
-        public String toString() {
-            return value.toString();
         }
     }
 
     /**
-     * Function primary class.
+     * Variable primary class.
      */
-    public final static class Fun extends Primary {
+    public final static class Variable extends Primary {
         /**
-         * Function identifier.
+         * Variable identifier.
          */
-        public final String funId;
+        public final String varId;
 
         /**
-         * Constructor for the function primary node.
+         * Constructor for the variable primary node.
          *
-         * @param funId function identifier
+         * @param varId variable identifier
          */
-        public Fun(String funId) {
-            this.funId = funId;
-        }
-
-        /**
-         * To string method override,
-         * essentially re-prints the original source code.
-         *
-         * @return string representation of the node
-         */
-        @Override
-        public String toString() {
-            return funId;
+        public Variable(String varId) {
+            this.varId = varId;
         }
     }
 }

@@ -27,54 +27,21 @@ public abstract class ASTNode {
     }
 
     /**
-     * Returns a unique identifier for the node.
-     * Used for AST tree visualization.
-     *
-     * @return unique identifier using the hash code of the object
-     */
-    public String getNodeId() {
-        return String.valueOf(hashCode());
-    }
-
-    /**
-     * To string method override,
-     * essentially re-prints the original source code.
-     *
-     * @return string representation of the node
-     */
-    @Override
-    public abstract String toString();
-
-    /**
      * Root node of the AST.
      */
-    public final static class Program extends ASTNode {
+    public final static class Module extends ASTNode {
         /**
-         * List of functions in the program.
+         * List of declarations in the module.
          */
-        public final List<ASTNode> functions;
+        public final List<ASTNode> declarations;
 
         /**
-         * Constructor for the program node.
+         * Constructor for the module node.
          *
-         * @param functions list of functions in the program
+         * @param declarations list of declarations in the module
          */
-        public Program(List<ASTNode> functions) {
-            this.functions = functions;
-        }
-
-        /**
-         * To string method override,
-         * essentially re-prints the original source code.
-         *
-         * @return string representation of the node
-         */
-        @Override
-        public String toString() {
-            return String.join("\n\n",
-                    functions.stream()
-                            .map(ASTNode::toString)
-                            .toArray(String[]::new));
+        public Module(List<ASTNode> declarations) {
+            this.declarations = declarations;
         }
     }
 }

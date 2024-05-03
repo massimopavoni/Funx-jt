@@ -11,35 +11,35 @@ import org.antlr.v4.runtime.tree.ParseTreeVisitor;
  */
 public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	/**
-	 * Visit a parse tree produced by {@link FunxParser#program}.
+	 * Visit a parse tree produced by {@link FunxParser#module}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitProgram(FunxParser.ProgramContext ctx);
+	T visitModule(FunxParser.ModuleContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link FunxParser#functions}.
+	 * Visit a parse tree produced by {@link FunxParser#declarations}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitFunctions(FunxParser.FunctionsContext ctx);
+	T visitDeclarations(FunxParser.DeclarationsContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link FunxParser#function}.
+	 * Visit a parse tree produced by {@link FunxParser#declaration}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitFunction(FunxParser.FunctionContext ctx);
+	T visitDeclaration(FunxParser.DeclarationContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link FunxParser#functionType}.
+	 * Visit a parse tree produced by {@link FunxParser#declarationType}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitFunctionType(FunxParser.FunctionTypeContext ctx);
+	T visitDeclarationType(FunxParser.DeclarationTypeContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link FunxParser#localFunctions}.
+	 * Visit a parse tree produced by {@link FunxParser#localDeclarations}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitLocalFunctions(FunxParser.LocalFunctionsContext ctx);
+	T visitLocalDeclarations(FunxParser.LocalDeclarationsContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code arrowType}
 	 * labeled alternative in {@link FunxParser#typeElems}.
@@ -160,19 +160,19 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitParenPrimary(FunxParser.ParenPrimaryContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code litPrimary}
+	 * Visit a parse tree produced by the {@code constPrimary}
 	 * labeled alternative in {@link FunxParser#primary}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitLitPrimary(FunxParser.LitPrimaryContext ctx);
+	T visitConstPrimary(FunxParser.ConstPrimaryContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code funPrimary}
+	 * Visit a parse tree produced by the {@code varPrimary}
 	 * labeled alternative in {@link FunxParser#primary}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitFunPrimary(FunxParser.FunPrimaryContext ctx);
+	T visitVarPrimary(FunxParser.VarPrimaryContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link FunxParser#lambda}.
 	 * @param ctx the parse tree
@@ -180,19 +180,11 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitLambda(FunxParser.LambdaContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code multiParamLambda}
-	 * labeled alternative in {@link FunxParser#lambdaParams}.
+	 * Visit a parse tree produced by {@link FunxParser#lambdaParams}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitMultiParamLambda(FunxParser.MultiParamLambdaContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code paramLambda}
-	 * labeled alternative in {@link FunxParser#lambdaParams}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitParamLambda(FunxParser.ParamLambdaContext ctx);
+	T visitLambdaParams(FunxParser.LambdaParamsContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link FunxParser#let}.
 	 * @param ctx the parse tree
@@ -206,15 +198,15 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitIfS(FunxParser.IfSContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link FunxParser#literal}.
+	 * Visit a parse tree produced by {@link FunxParser#constant}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitLiteral(FunxParser.LiteralContext ctx);
+	T visitConstant(FunxParser.ConstantContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link FunxParser#numLiteral}.
+	 * Visit a parse tree produced by {@link FunxParser#numConstant}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitNumLiteral(FunxParser.NumLiteralContext ctx);
+	T visitNumConstant(FunxParser.NumConstantContext ctx);
 }

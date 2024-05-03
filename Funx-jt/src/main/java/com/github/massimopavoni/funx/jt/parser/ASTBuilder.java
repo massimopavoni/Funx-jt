@@ -1,6 +1,11 @@
 package com.github.massimopavoni.funx.jt.parser;
 
 import com.github.massimopavoni.funx.jt.ast.*;
+import org.antlr.v4.runtime.tree.ParseTree;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Parse tree visitor used to build the program's AST.
@@ -13,67 +18,101 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     }
 
     /**
-     * Visit a parse tree produced by {@link FunxParser#program}.
+     * Convert a list of parameters and a statement into a lambda chain.
      *
-     * @param ctx the parse tree
-     * @return the visitor result
+     * @param params    list of parameters
+     * @param statement statement
+     * @return first node of the lambda chain
      */
-    @Override
-    public ASTNode visitProgram(FunxParser.ProgramContext ctx) {
-        return visit(ctx.functions());
+    private ASTNode createLambdaChain(List<String> params, ASTNode statement) {
+        if (params.size() == 1)
+            return new Statement.Lambda(params.getFirst(), statement);
+        return new Statement.Lambda(params.removeFirst(),
+                createLambdaChain(params, statement));
     }
 
     /**
-     * Visit a parse tree produced by {@link FunxParser#functions}.
+     * Create a double application from a binary operator,
+     * retrieving the Prelude function name from the used symbol.
+     *
+     * @param symbol operator symbol
+     * @param left   left node
+     * @param right  right node
+     * @return double application node
+     */
+    private ASTNode binarySymbolApplication(String symbol, ASTNode left, ASTNode right) {
+        return new Expression.Application(
+                new Expression.Application(
+                        new Primary.Variable(PreludeFunction.fromFunctionSymbol(symbol).functionName),
+                        left),
+                right);
+    }
+
+    /**
+     * Visit a parse tree produced by {@link FunxParser#module()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
      */
     @Override
-    public ASTNode visitFunctions(FunxParser.FunctionsContext ctx) {
-        return new ASTNode.Program(ctx.function().stream()
+    public ASTNode visitModule(FunxParser.ModuleContext ctx) {
+        // Potentially do other things (e.g. set a different package)
+        return visit(ctx.declarations());
+    }
+
+    /**
+     * Visit a parse tree produced by {@link FunxParser#declarations()}.
+     *
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    @Override
+    public ASTNode visitDeclarations(FunxParser.DeclarationsContext ctx) {
+        return new ASTNode.Module(ctx.declaration().stream()
                 .map(this::visit).toList());
     }
 
     /**
-     * Visit a parse tree produced by {@link FunxParser#function}.
+     * Visit a parse tree produced by {@link FunxParser#declaration()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
      */
     @Override
-    public ASTNode visitFunction(FunxParser.FunctionContext ctx) {
+    public ASTNode visitDeclaration(FunxParser.DeclarationContext ctx) {
         ASTNode statement;
-        if (ctx.localFunctions() != null)
-            statement = new Statement.Let(ctx.localFunctions().functions().function().stream()
+        if (ctx.localDeclarations() != null)
+            statement = new Statement.Let(ctx.localDeclarations().declarations().declaration().stream()
                     .map(this::visit).toList(),
                     visit(ctx.statement()));
         else
             statement = visit(ctx.statement());
-        FunxParser.FunctionTypeContext functionType = ctx.functionType();
-        return new Function(
-                functionType.id.getText(),
-                visit(functionType),
+        FunxParser.DeclarationTypeContext declarationTypeContext = ctx.declarationType();
+        return new Declaration(
+                declarationTypeContext.id.getText(),
+                visit(declarationTypeContext),
                 ctx.id.getText(),
                 ctx.lambdaParams() != null
-                        ? new Statement.Lambda(visit(ctx.lambdaParams()), statement)
+                        ? createLambdaChain(ctx.lambdaParams().VARID().stream()
+                        .map(ParseTree::getText)
+                        .collect(Collectors.toCollection(ArrayList::new)), statement)
                         : statement);
     }
 
     /**
-     * Visit a parse tree produced by {@link FunxParser#functionType}.
+     * Visit a parse tree produced by {@link FunxParser#declarationType()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
      */
     @Override
-    public ASTNode visitFunctionType(FunxParser.FunctionTypeContext ctx) {
+    public ASTNode visitDeclarationType(FunxParser.DeclarationTypeContext ctx) {
         return visit(ctx.typeElems());
     }
 
     /**
      * Visit a parse tree produced by the {@code arrowType}
-     * labeled alternative in {@link FunxParser#typeElems}.
+     * labeled alternative in {@link FunxParser#typeElems()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
@@ -86,19 +125,19 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
 
     /**
      * Visit a parse tree produced by the {@code parenType}
-     * labeled alternative in {@link FunxParser#typeElems}.
+     * labeled alternative in {@link FunxParser#typeElems()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
      */
     @Override
     public ASTNode visitParenType(FunxParser.ParenTypeContext ctx) {
-        return new Type.ParenType(visit(ctx.typeElems()));
+        return visit(ctx.typeElems());
     }
 
     /**
      * Visit a parse tree produced by the {@code type}
-     * labeled alternative in {@link FunxParser#typeElems}.
+     * labeled alternative in {@link FunxParser#typeElems()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
@@ -110,7 +149,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
 
     /**
      * Visit a parse tree produced by the {@code expressionStatement}
-     * labeled alternative in {@link FunxParser#statement}.
+     * labeled alternative in {@link FunxParser#statement()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
@@ -122,7 +161,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
 
     /**
      * Visit a parse tree produced by the {@code lambdaStatement}
-     * labeled alternative in {@link FunxParser#statement}.
+     * labeled alternative in {@link FunxParser#statement()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
@@ -134,7 +173,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
 
     /**
      * Visit a parse tree produced by the {@code letStatement}
-     * labeled alternative in {@link FunxParser#statement}.
+     * labeled alternative in {@link FunxParser#statement()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
@@ -146,7 +185,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
 
     /**
      * Visit a parse tree produced by the {@code ifStatement}
-     * labeled alternative in {@link FunxParser#statement}.
+     * labeled alternative in {@link FunxParser#statement()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
@@ -157,43 +196,8 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     }
 
     /**
-     * Visit a parse tree produced by the {@code appExpression}
-     * labeled alternative in {@link FunxParser#expression}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    @Override
-    public ASTNode visitAppExpression(FunxParser.AppExpressionContext ctx) {
-        ASTNode left = visit(ctx.expression(0));
-        return new BinaryOperator.Application(left,
-                visit(ctx.expression(1)));
-    }
-
-    /**
-     * Visit a parse tree produced by the {@code compExpression}
-     * labeled alternative in {@link FunxParser#expression}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    @Override
-    public ASTNode visitCompExpression(FunxParser.CompExpressionContext ctx) {
-        ASTNode left = visit(ctx.expression(0));
-        ASTNode right = visit(ctx.expression(1));
-        return switch (ctx.bop.getType()) {
-            case FunxLexer.GreaterThan -> new BinaryOperator.GreaterThan(left, right);
-            case FunxLexer.GreaterThanEquals -> new BinaryOperator.GreaterThanEquals(left, right);
-            case FunxLexer.LessThan -> new BinaryOperator.LessThan(left, right);
-            case FunxLexer.LessThanEquals -> new BinaryOperator.LessThanEquals(left, right);
-            // Default case should never be reached
-            default -> throw new IllegalParserStateException(ctx, "comparison operator");
-        };
-    }
-
-    /**
      * Visit a parse tree produced by the {@code primExpression}
-     * labeled alternative in {@link FunxParser#expression}.
+     * labeled alternative in {@link FunxParser#expression()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
@@ -204,188 +208,186 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     }
 
     /**
+     * Visit a parse tree produced by the {@code appExpression}
+     * labeled alternative in {@link FunxParser#expression()}.
+     *
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    @Override
+    public ASTNode visitAppExpression(FunxParser.AppExpressionContext ctx) {
+        return new Expression.Application(visit(ctx.expression(0)),
+                visit(ctx.expression(1)));
+    }
+
+    /**
      * Visit a parse tree produced by the {@code notExpression}
-     * labeled alternative in {@link FunxParser#expression}.
+     * labeled alternative in {@link FunxParser#expression()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
      */
     @Override
     public ASTNode visitNotExpression(FunxParser.NotExpressionContext ctx) {
-        return new UnaryOperator.Not(visit(ctx.expression()));
-    }
-
-    /**
-     * Visit a parse tree produced by the {@code orExpression}
-     * labeled alternative in {@link FunxParser#expression}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    @Override
-    public ASTNode visitOrExpression(FunxParser.OrExpressionContext ctx) {
-        return new BinaryOperator.Or(visit(ctx.expression(0)),
-                visit(ctx.expression(1)));
-    }
-
-    /**
-     * Visit a parse tree produced by the {@code andExpression}
-     * labeled alternative in {@link FunxParser#expression}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    @Override
-    public ASTNode visitAndExpression(FunxParser.AndExpressionContext ctx) {
-        return new BinaryOperator.And(visit(ctx.expression(0)),
-                visit(ctx.expression(1)));
-    }
-
-    /**
-     * Visit a parse tree produced by the {@code addSubExpression}
-     * labeled alternative in {@link FunxParser#expression}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    @Override
-    public ASTNode visitAddSubExpression(FunxParser.AddSubExpressionContext ctx) {
-        ASTNode left = visit(ctx.expression(0));
-        ASTNode right = visit(ctx.expression(1));
-        return switch (ctx.bop.getType()) {
-            case FunxLexer.Add -> new BinaryOperator.Add(left, right);
-            case FunxLexer.Subtract -> new BinaryOperator.Subtract(left, right);
-            // Default case should never be reached
-            default -> throw new IllegalParserStateException(ctx, "lower precedence arithmetic operator");
-        };
-    }
-
-    /**
-     * Visit a parse tree produced by the {@code eqExpression}
-     * labeled alternative in {@link FunxParser#expression}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    @Override
-    public ASTNode visitEqExpression(FunxParser.EqExpressionContext ctx) {
-        ASTNode left = visit(ctx.expression(0));
-        ASTNode right = visit(ctx.expression(1));
-        return switch (ctx.bop.getType()) {
-            case FunxLexer.EqualsEquals -> new BinaryOperator.EqualsEquals(left, right);
-            case FunxLexer.NotEquals -> new BinaryOperator.NotEquals(left, right);
-            // Default case should never be reached
-            default -> throw new IllegalParserStateException(ctx, "equality operator");
-        };
+        return new Expression.Application(
+                new Primary.Variable(PreludeFunction.NOT.functionName),
+                visit(ctx.expression()));
     }
 
     /**
      * Visit a parse tree produced by the {@code divModMultExpression}
-     * labeled alternative in {@link FunxParser#expression}.
+     * labeled alternative in {@link FunxParser#expression()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
      */
     @Override
     public ASTNode visitDivModMultExpression(FunxParser.DivModMultExpressionContext ctx) {
-        ASTNode left = visit(ctx.expression(0));
-        ASTNode right = visit(ctx.expression(1));
-        return switch (ctx.bop.getType()) {
-            case FunxLexer.Divide -> new BinaryOperator.Divide(left, right);
-            case FunxLexer.Modulo -> new BinaryOperator.Modulo(left, right);
-            case FunxLexer.Multiply -> new BinaryOperator.Multiply(left, right);
-            // Default case should never be reached
-            default -> throw new IllegalParserStateException(ctx, "higher precedence arithmetic operator");
-        };
+        return binarySymbolApplication(
+                ASTNode.fromLexerToken(ctx.bop.getType()),
+                visit(ctx.expression(0)),
+                visit(ctx.expression(1)));
+    }
+
+    /**
+     * Visit a parse tree produced by the {@code addSubExpression}
+     * labeled alternative in {@link FunxParser#expression()}.
+     *
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    @Override
+    public ASTNode visitAddSubExpression(FunxParser.AddSubExpressionContext ctx) {
+        return binarySymbolApplication(
+                ASTNode.fromLexerToken(ctx.bop.getType()),
+                visit(ctx.expression(0)),
+                visit(ctx.expression(1)));
+    }
+
+    /**
+     * Visit a parse tree produced by the {@code compExpression}
+     * labeled alternative in {@link FunxParser#expression()}.
+     *
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    @Override
+    public ASTNode visitCompExpression(FunxParser.CompExpressionContext ctx) {
+        return binarySymbolApplication(
+                ASTNode.fromLexerToken(ctx.bop.getType()),
+                visit(ctx.expression(0)),
+                visit(ctx.expression(1)));
+    }
+
+    /**
+     * Visit a parse tree produced by the {@code eqExpression}
+     * labeled alternative in {@link FunxParser#expression()}.
+     *
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    @Override
+    public ASTNode visitEqExpression(FunxParser.EqExpressionContext ctx) {
+        return binarySymbolApplication(
+                ASTNode.fromLexerToken(ctx.bop.getType()),
+                visit(ctx.expression(0)),
+                visit(ctx.expression(1)));
+    }
+
+    /**
+     * Visit a parse tree produced by the {@code andExpression}
+     * labeled alternative in {@link FunxParser#expression()}.
+     *
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    @Override
+    public ASTNode visitAndExpression(FunxParser.AndExpressionContext ctx) {
+        // Transform logical conjunction into if statement for short-circuiting behavior
+        return new Statement.If(visit(ctx.expression(0)),
+                visit(ctx.expression(1)),
+                new Primary.Constant(false));
+    }
+
+    /**
+     * Visit a parse tree produced by the {@code orExpression}
+     * labeled alternative in {@link FunxParser#expression()}.
+     *
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    @Override
+    public ASTNode visitOrExpression(FunxParser.OrExpressionContext ctx) {
+        // Transform logical disjunction into if statement for short-circuiting behavior
+        return new Statement.If(visit(ctx.expression(0)),
+                new Primary.Constant(true),
+                visit(ctx.expression(1)));
     }
 
     /**
      * Visit a parse tree produced by the {@code parenPrimary}
-     * labeled alternative in {@link FunxParser#primary}.
+     * labeled alternative in {@link FunxParser#primary()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
      */
     @Override
     public ASTNode visitParenPrimary(FunxParser.ParenPrimaryContext ctx) {
-        return new Primary.Parenthesized(visit(ctx.statement()));
+        return visit(ctx.statement());
     }
 
     /**
-     * Visit a parse tree produced by the {@code litPrimary}
-     * labeled alternative in {@link FunxParser#primary}.
+     * Visit a parse tree produced by the {@code constPrimary}
+     * labeled alternative in {@link FunxParser#primary()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
      */
     @Override
-    public ASTNode visitLitPrimary(FunxParser.LitPrimaryContext ctx) {
-        return visit(ctx.literal());
+    public ASTNode visitConstPrimary(FunxParser.ConstPrimaryContext ctx) {
+        return visit(ctx.constant());
     }
 
     /**
-     * Visit a parse tree produced by the {@code funPrimary}
-     * labeled alternative in {@link FunxParser#primary}.
+     * Visit a parse tree produced by the {@code varPrimary}
+     * labeled alternative in {@link FunxParser#primary()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
      */
     @Override
-    public ASTNode visitFunPrimary(FunxParser.FunPrimaryContext ctx) {
-        return new Primary.Fun(ctx.funId.getText());
+    public ASTNode visitVarPrimary(FunxParser.VarPrimaryContext ctx) {
+        return new Primary.Variable(ctx.VARID().getText());
     }
 
     /**
-     * Visit a parse tree produced by {@link FunxParser#lambda}.
+     * Visit a parse tree produced by {@link FunxParser#lambda()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
      */
     @Override
     public ASTNode visitLambda(FunxParser.LambdaContext ctx) {
-        return new Statement.Lambda(visit(ctx.lambdaParams()), visit(ctx.statement()));
+        return createLambdaChain(ctx.lambdaParams().VARID().stream()
+                .map(ParseTree::getText)
+                .toList(), visit(ctx.statement()));
     }
 
     /**
-     * Visit a parse tree produced by the {@code paramLambda}
-     * labeled alternative in {@link FunxParser#lambdaParams}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    @Override
-    public ASTNode visitParamLambda(FunxParser.ParamLambdaContext ctx) {
-        return new Statement.Lambda.Param(ctx.FUNID().getText());
-    }
-
-    /**
-     * Visit a parse tree produced by the {@code multiParamLambda}
-     * labeled alternative in {@link FunxParser#lambdaParams}.
-     *
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    @Override
-    public ASTNode visitMultiParamLambda(FunxParser.MultiParamLambdaContext ctx) {
-        return new Statement.Lambda.MultiParam(visit(ctx.lambdaParams(0)),
-                visit(ctx.lambdaParams(1)));
-    }
-
-    /**
-     * Visit a parse tree produced by {@link FunxParser#let}.
+     * Visit a parse tree produced by {@link FunxParser#let()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
      */
     @Override
     public ASTNode visitLet(FunxParser.LetContext ctx) {
-        return new Statement.Let(ctx.localFunctions().functions().function().stream()
+        return new Statement.Let(ctx.localDeclarations().declarations().declaration().stream()
                 .map(this::visit).toList(),
                 visit(ctx.statement()));
     }
 
     /**
-     * Visit a parse tree produced by {@link FunxParser#ifS}.
+     * Visit a parse tree produced by {@link FunxParser#ifS()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
@@ -398,39 +400,37 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     }
 
     /**
-     * Visit a parse tree produced by {@link FunxParser#literal}.
+     * Visit a parse tree produced by {@link FunxParser#constant()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
      */
     @Override
-    public ASTNode visitLiteral(FunxParser.LiteralContext ctx) {
-        if (ctx.numLiteral() != null)
-            return visit(ctx.numLiteral());
+    public ASTNode visitConstant(FunxParser.ConstantContext ctx) {
+        if (ctx.numConstant() != null)
+            return visit(ctx.numConstant());
         return switch (ctx.start.getType()) {
-            case FunxLexer.BOOL -> new Primary.Literal(Boolean.parseBoolean(ctx.BOOL().getText()));
+            case FunxLexer.BOOL -> new Primary.Constant(Boolean.parseBoolean(ctx.BOOL().getText()));
             // Default case should never be reached
-            default -> throw new IllegalParserStateException(ctx, "literal");
+            default -> throw new IllegalParserStateException(ctx, "constant");
         };
     }
 
     /**
-     * Visit a parse tree produced by {@link FunxParser#numLiteral}.
+     * Visit a parse tree produced by {@link FunxParser#numConstant()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
      */
     @Override
-    public ASTNode visitNumLiteral(FunxParser.NumLiteralContext ctx) {
+    public ASTNode visitNumConstant(FunxParser.NumConstantContext ctx) {
         return switch (ctx.start.getType()) {
-            case FunxLexer.FLOAT -> new Primary.Literal(
-                    Double.parseDouble(
-                            ctx.FLOAT().getText().replaceAll("[()]", "")));
-            case FunxLexer.INT -> new Primary.Literal(
+            case FunxLexer.INT -> new Primary.Constant(
                     Integer.parseInt(
                             ctx.INT().getText().replaceAll("[()]", "")));
             // Default case should never be reached
-            default -> throw new IllegalParserStateException(ctx, "numeric literal");
+            default -> throw new IllegalParserStateException(ctx, "numeric constant");
         };
     }
 }
+

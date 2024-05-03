@@ -13,10 +13,6 @@ public enum TypeEnum {
      */
     BOOLEAN(ASTNode.fromLexerToken(FunxLexer.BOOLTYPE), Boolean.class),
     /**
-     * Floating type.
-     */
-    FLOATING(ASTNode.fromLexerToken(FunxLexer.FLOATTYPE), Double.class),
-    /**
      * Integer type.
      */
     INTEGER(ASTNode.fromLexerToken(FunxLexer.INTTYPE), Integer.class);
@@ -24,11 +20,11 @@ public enum TypeEnum {
     /**
      * Funx type name.
      */
-    private final String typeName;
+    public final String typeName;
     /**
      * Java type class.
      */
-    private final Class<?> typeClass;
+    public final Class<?> typeClass;
 
     /**
      * Constructor for the type enum.
@@ -49,26 +45,8 @@ public enum TypeEnum {
      */
     public static TypeEnum fromString(String typeName) {
         return Arrays.stream(TypeEnum.values())
-                .filter(type -> type.getTypeName().equals(typeName))
+                .filter(type -> type.typeName.equals(typeName))
                 .findFirst()
                 .orElse(null);
-    }
-
-    /**
-     * Type name getter.
-     *
-     * @return type name
-     */
-    public String getTypeName() {
-        return typeName;
-    }
-
-    /**
-     * Type class getter.
-     *
-     * @return type class
-     */
-    public Class<?> getTypeClass() {
-        return typeClass;
     }
 }

@@ -14,8 +14,9 @@ add3 a b c = add (add a b) c
 y : Int -> Int -> Bool
 y a b = (a * (b + 4 - 1 + 0) - 5 + 3 % 2 - 3 / (z a b)) == 4
 
-z : Float
-z = 1 (a b) c e (r t) f g h
+z : Int -> Int
+z = y (a b) c e (r t) f g h
 
-f : Bool
-f = (test) (bool) 
+f : Bool -> Bool
+f = (test) (bool)
+

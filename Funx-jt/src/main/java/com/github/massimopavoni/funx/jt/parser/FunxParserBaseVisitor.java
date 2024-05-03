@@ -18,35 +18,35 @@ public class FunxParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitProgram(FunxParser.ProgramContext ctx) { return visitChildren(ctx); }
+	@Override public T visitModule(FunxParser.ModuleContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitFunctions(FunxParser.FunctionsContext ctx) { return visitChildren(ctx); }
+	@Override public T visitDeclarations(FunxParser.DeclarationsContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitFunction(FunxParser.FunctionContext ctx) { return visitChildren(ctx); }
+	@Override public T visitDeclaration(FunxParser.DeclarationContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitFunctionType(FunxParser.FunctionTypeContext ctx) { return visitChildren(ctx); }
+	@Override public T visitDeclarationType(FunxParser.DeclarationTypeContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitLocalFunctions(FunxParser.LocalFunctionsContext ctx) { return visitChildren(ctx); }
+	@Override public T visitLocalDeclarations(FunxParser.LocalDeclarationsContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -172,14 +172,14 @@ public class FunxParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitLitPrimary(FunxParser.LitPrimaryContext ctx) { return visitChildren(ctx); }
+	@Override public T visitConstPrimary(FunxParser.ConstPrimaryContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitFunPrimary(FunxParser.FunPrimaryContext ctx) { return visitChildren(ctx); }
+	@Override public T visitVarPrimary(FunxParser.VarPrimaryContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -193,14 +193,7 @@ public class FunxParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitMultiParamLambda(FunxParser.MultiParamLambdaContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitParamLambda(FunxParser.ParamLambdaContext ctx) { return visitChildren(ctx); }
+	@Override public T visitLambdaParams(FunxParser.LambdaParamsContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -221,12 +214,12 @@ public class FunxParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitLiteral(FunxParser.LiteralContext ctx) { return visitChildren(ctx); }
+	@Override public T visitConstant(FunxParser.ConstantContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitNumLiteral(FunxParser.NumLiteralContext ctx) { return visitChildren(ctx); }
+	@Override public T visitNumConstant(FunxParser.NumConstantContext ctx) { return visitChildren(ctx); }
 }

@@ -4,21 +4,21 @@ options { tokenVocab = FunxLexer; }
 
 // ----------------------------------------------------------------
 // Root
-program: functions EOF;
+module: declarations EOF;
 
-functions: function (NEWLINE function?)*;
+declarations: declaration (NEWLINE declaration?)*;
 
 // ----------------------------------------------------------------
-// Function
-function
-    : functionType NEWLINE
-        id = FUNID lambdaParams? Equals statement
-        (NEWLINE WITH localFunctions OUT)?
+// Declaration
+declaration
+    : declarationType NEWLINE
+        id = VARID lambdaParams? Equals statement
+        (NEWLINE WITH localDeclarations OUT)?
     ;
 
-functionType: id = FUNID Colon typeElems;
+declarationType: id = VARID Colon typeElems;
 
-localFunctions: NEWLINE functions NEWLINE;
+localDeclarations: NEWLINE declarations NEWLINE;
 
 // ----------------------------------------------------------------
 // Type
@@ -53,35 +53,29 @@ expression
 
 primary
     : OpenParen statement CloseParen # parenPrimary
-    | literal # litPrimary
-    | funId = FUNID # funPrimary
+    | constant # constPrimary
+    | VARID # varPrimary
     ;
 
 // ----------------------------------------------------------------
 // Lambda
 lambda: Backslash lambdaParams? Arrow statement;
 
-lambdaParams
-    : FUNID # paramLambda
-    | <assoc = right> lambdaParams lambdaParams # multiParamLambda
-    ;
+lambdaParams: VARID+;
 
 // ----------------------------------------------------------------
 // Let
-let: LET localFunctions IN statement;
+let: LET localDeclarations IN statement;
 
 // ----------------------------------------------------------------
 // If
 ifS: IF statement THEN statement ELSE statement FI;
 
 // ----------------------------------------------------------------
-// Literal
-literal
+// Constant
+constant
     : BOOL
-    | numLiteral
+    | numConstant
     ;
 
-numLiteral
-    : FLOAT
-    | INT
-    ;
+numConstant: INT;

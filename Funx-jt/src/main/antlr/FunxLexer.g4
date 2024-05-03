@@ -8,8 +8,6 @@ fragment ALPHA_: ALPHA | UnderScore;
 
 fragment DIGIT: [0-9];
 fragment DECIMAL: DIGIT+;
-fragment EXPONENT: [eE] [+-]? DECIMAL;
-fragment FLOATING: DECIMAL ('.' DECIMAL) EXPONENT?;
 
 // Whitespace
 NEWLINE
@@ -40,28 +38,22 @@ OUT: 'out';
 THEN: 'then';
 WITH: 'with';
 
-// Functions
-FUNID: LALPHA (ALPHA_ | DIGIT)*;
+// Variables
+VARID: LALPHA (ALPHA_ | DIGIT)*;
 
 // Types
 TYPE
     : BOOLTYPE
-    | FLOATTYPE
     | INTTYPE
     ;
 
 BOOLTYPE: 'Bool';
-FLOATTYPE: 'Float';
 INTTYPE: 'Int';
 
 // Literals
 BOOL
     : 'False'
     | 'True'
-    ;
-FLOAT
-    : FLOATING
-    | OpenParen '-' FLOATING CloseParen
     ;
 INT
     : DECIMAL
