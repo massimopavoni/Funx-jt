@@ -5,6 +5,6 @@ fun : Int -> Int -> Int -> Int
 fun = if eq a b then f else g fi
 cond : Int -> Int -> Bool
 cond = neq m n
-h : Float
+h : Int
 h = 10
 out

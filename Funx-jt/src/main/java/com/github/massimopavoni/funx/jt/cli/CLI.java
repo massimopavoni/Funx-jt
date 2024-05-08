@@ -2,6 +2,8 @@ package com.github.massimopavoni.funx.jt.cli;
 
 import com.github.massimopavoni.funx.jt.ast.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.visitor.GraphvizBuilder;
+import com.github.massimopavoni.funx.jt.ast.visitor.IllegalASTStateException;
+import com.github.massimopavoni.funx.jt.ast.visitor.TypeChecker;
 import com.github.massimopavoni.funx.jt.parser.ASTBuilder;
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 import com.github.massimopavoni.funx.jt.parser.FunxParser;
@@ -64,6 +66,15 @@ public class CLI implements Callable<Integer> {
     private boolean ast;
 
     /**
+     * Remove .dot file after AST visualization flag.
+     */
+    @CommandLine.Option(
+            names = {"-d", "--no-dot"},
+            description = "Remove the .dot file after crating the AST visualization",
+            defaultValue = "false")
+    private boolean noDot;
+
+    /**
      * Default constructor.
      */
     public CLI() {
@@ -95,6 +106,7 @@ public class CLI implements Callable<Integer> {
         String filename = file.getName().split("\\.")[0];
         ParseTree tree = getParseTree(filePath.toString());
         ASTNode astRoot = getAST(tree);
+        typecheck(astRoot);
         transpile(astRoot, workingDir.resolve(String.format("%s.java", filename)));
         if (parseTree)
             outputParseTree(tree, workingDir.resolve(String.format("%s_parse_tree.png", filename)));
@@ -133,6 +145,21 @@ public class CLI implements Callable<Integer> {
      */
     private ASTNode getAST(ParseTree tree) {
         return new ASTBuilder().visit(tree);
+    }
+
+    /**
+     * Type check a created abstract syntax tree.
+     *
+     * @param astRoot abstract syntax tree root node
+     */
+    private void typecheck(ASTNode astRoot) {
+        TypeChecker typeChecker = new TypeChecker();
+        typeChecker.visit(astRoot);
+        if (typeChecker.getErrorsCount() > 0)
+            throw new IllegalASTStateException(
+                    String.format("%d type error%s found",
+                            typeChecker.getErrorsCount(),
+                            typeChecker.getErrorsCount() == 1 ? "" : "s"));
     }
 
     private void transpile(ASTNode astRoot, Path outputPath) throws CLIException {
@@ -201,6 +228,8 @@ public class CLI implements Callable<Integer> {
             int dotExitCode = process.waitFor();
             if (dotExitCode != 0)
                 throw new CLIException(String.format("Graphviz dot command failed with exit code %d", dotExitCode));
+            if (noDot)
+                Files.deleteIfExists(outputPath);
         } catch (IOException e) {
             throw new CLIException("Error writing AST dot file", e);
         } catch (InterruptedException e) {

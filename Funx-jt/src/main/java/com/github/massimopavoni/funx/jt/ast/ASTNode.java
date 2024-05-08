@@ -4,6 +4,8 @@ import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Base class for every node in the AST.
@@ -77,12 +79,20 @@ public abstract class ASTNode {
         public final List<ASTNode> declarationList;
 
         /**
+         * Map of declaration identifiers and corresponding type.
+         */
+        public final Map<String, Type> declarationTypeMap;
+
+        /**
          * Constructor for the Declarations node.
          *
          * @param declarationList list of declarations
          */
         public Declarations(List<ASTNode> declarationList) {
             this.declarationList = declarationList;
+            declarationTypeMap = declarationList.stream()
+                    .map(d -> (Declaration) d)
+                    .collect(Collectors.toMap(d -> d.id, d -> (Type) d.type));
         }
 
         /**

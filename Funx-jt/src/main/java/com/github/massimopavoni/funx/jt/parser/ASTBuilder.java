@@ -82,7 +82,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     public ASTNode visitDeclaration(FunxParser.DeclarationContext ctx) {
         ASTNode statement;
         if (ctx.localDeclarations() != null)
-            statement = new Statement.Let(visit(ctx.localDeclarations()),
+            statement = new Statement.Let(visit(ctx.localDeclarations().declarations()),
                     visit(ctx.statement()));
         else
             statement = visit(ctx.statement());
@@ -143,7 +143,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitType(FunxParser.TypeContext ctx) {
-        return new Type.SimpleType(TypeEnum.fromString(ctx.TYPE().getText()));
+        return new Type.SimpleType(TypeEnum.fromTypeName(ctx.TYPE().getText()));
     }
 
     /**

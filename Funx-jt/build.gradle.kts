@@ -118,8 +118,7 @@ tasks.register("projectProps") {
 
 // Project build
 tasks.compileJava {
-    dependsOn(tasks.generateGrammarSource)
-    dependsOn("projectProps")
+    dependsOn(tasks.generateGrammarSource, "projectProps")
 }
 
 // Project documentation

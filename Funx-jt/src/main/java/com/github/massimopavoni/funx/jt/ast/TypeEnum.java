@@ -2,8 +2,6 @@ package com.github.massimopavoni.funx.jt.ast;
 
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
-import java.util.Arrays;
-
 /**
  * Enum for type names and corresponding Java classes.
  */
@@ -43,10 +41,17 @@ public enum TypeEnum {
      * @param typeName type name
      * @return type enum
      */
-    public static TypeEnum fromString(String typeName) {
-        return Arrays.stream(TypeEnum.values())
-                .filter(type -> type.typeName.equals(typeName))
-                .findFirst()
-                .orElse(null);
+    public static TypeEnum fromTypeName(String typeName) {
+        return Utils.enumFromField(TypeEnum.class, t -> t.typeName.equals(typeName));
+    }
+
+    /**
+     * Get the type enum from the type class.
+     *
+     * @param typeClass type class
+     * @return type enum
+     */
+    public static TypeEnum fromTypeClass(Class<?> typeClass) {
+        return Utils.enumFromField(TypeEnum.class, t -> t.typeClass.equals(typeClass));
     }
 }

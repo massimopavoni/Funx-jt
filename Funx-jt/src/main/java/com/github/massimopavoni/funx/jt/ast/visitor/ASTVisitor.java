@@ -3,100 +3,58 @@ package com.github.massimopavoni.funx.jt.ast.visitor;
 import com.github.massimopavoni.funx.jt.ast.*;
 import com.github.massimopavoni.funx.jt.parser.ASTBuilder;
 
+import java.util.List;
+
 /**
- * Interface defining a complete generic visitor for an AST tree produced by {@link ASTBuilder}.
+ * Abstract class defining a complete generic visitor for an AST tree produced by an {@link ASTBuilder}.
  *
  * @param <T> The return type of the visit operation. Use {@link Void} for
  *            operations with no return type.
  */
-public interface ASTVisitor<T> {
+public abstract class ASTVisitor<T> {
     /**
-     * Visit a {@link ASTNode.Module} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
+     * Error reporter for the AST visitor.
      */
-    T visitModule(ASTNode.Module node);
+    private final ASTErrorReporter errorReporter = new ASTErrorReporter();
 
     /**
-     * Visit a {@link ASTNode.Declarations} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
+     * Current declaration identifier to more easily report errors.
      */
-    T visitDeclarations(ASTNode.Declarations node);
+    private String currentDeclaration;
 
     /**
-     * Visit a {@link Declaration} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
+     * Constructor for the AST visitor.
      */
-    T visitDeclaration(Declaration node);
+    public ASTVisitor() {
+        currentDeclaration = "Module Root";
+    }
 
     /**
-     * Visit a {@link Type.SimpleType} AST node.
+     * Retrieve the number of errors found.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @return number of errors
      */
-    T visitSimpleType(Type.SimpleType node);
+    public int getErrorsCount() {
+        return errorReporter.getErrorsCount();
+    }
 
     /**
-     * Visit a {@link Type.ArrowType} AST node.
+     * Current declaration identifier setter.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param declaration declaration id
      */
-    T visitArrowType(Type.ArrowType node);
+    public void setCurrentDeclaration(String declaration) {
+        currentDeclaration = declaration;
+    }
 
     /**
-     * Visit a {@link Statement.Lambda} AST node.
+     * Report an error using the AST reporter instance.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param message error message
      */
-    T visitLambda(Statement.Lambda node);
-
-    /**
-     * Visit a {@link Statement.Let} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    T visitLet(Statement.Let node);
-
-    /**
-     * Visit a {@link Statement.If} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    T visitIf(Statement.If node);
-
-    /**
-     * Visit a {@link Expression.Application} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    T visitApplication(Expression.Application node);
-
-    /**
-     * Visit a {@link Primary.Constant} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    T visitConstant(Primary.Constant node);
-
-    /**
-     * Visit a {@link Primary.Variable} AST node.
-     *
-     * @param node the AST node
-     * @return the visitor result
-     */
-    T visitVariable(Primary.Variable node);
+    void reportError(String message) {
+        errorReporter.reportError(String.format("At declaration \"%s\": %s", currentDeclaration, message));
+    }
 
     /**
      * Visit any {@link ASTNode}.
@@ -104,7 +62,128 @@ public interface ASTVisitor<T> {
      * @param node the AST node
      * @return the visitor result
      */
-    default T visit(ASTNode node) {
+    public T visit(ASTNode node) {
         return node.accept(this);
     }
+
+    /**
+     * Visit a list of {@link ASTNode}s.
+     *
+     * @param nodes list of AST nodes
+     * @return the visitor result
+     */
+    public T visit(List<ASTNode> nodes) {
+        T result = defaultResult();
+        for (ASTNode node : nodes)
+            result = aggregateResult(result, node.accept(this));
+        return result;
+    }
+
+    /**
+     * Default result for the visitor.
+     *
+     * @return the visitor result
+     */
+    public T defaultResult() {
+        return null;
+    }
+
+    /**
+     * Aggregate the result of visiting a node with the current aggregate.
+     *
+     * @param aggregate  current aggregate
+     * @param nextResult next node result
+     * @return the visitor result
+     */
+    public T aggregateResult(T aggregate, T nextResult) {
+        return nextResult;
+    }
+
+    /**
+     * Visit a {@link ASTNode.Module} AST node.
+     *
+     * @param node the AST node
+     * @return the visitor result
+     */
+    public abstract T visitModule(ASTNode.Module node);
+
+    /**
+     * Visit a {@link ASTNode.Declarations} AST node.
+     *
+     * @param node the AST node
+     * @return the visitor result
+     */
+    public abstract T visitDeclarations(ASTNode.Declarations node);
+
+    /**
+     * Visit a {@link Declaration} AST node.
+     *
+     * @param node the AST node
+     * @return the visitor result
+     */
+    public abstract T visitDeclaration(Declaration node);
+
+    /**
+     * Visit a {@link Type.SimpleType} AST node.
+     *
+     * @param node the AST node
+     * @return the visitor result
+     */
+    public abstract T visitSimpleType(Type.SimpleType node);
+
+    /**
+     * Visit a {@link Type.ArrowType} AST node.
+     *
+     * @param node the AST node
+     * @return the visitor result
+     */
+    public abstract T visitArrowType(Type.ArrowType node);
+
+    /**
+     * Visit a {@link Statement.Lambda} AST node.
+     *
+     * @param node the AST node
+     * @return the visitor result
+     */
+    public abstract T visitLambda(Statement.Lambda node);
+
+    /**
+     * Visit a {@link Statement.Let} AST node.
+     *
+     * @param node the AST node
+     * @return the visitor result
+     */
+    public abstract T visitLet(Statement.Let node);
+
+    /**
+     * Visit a {@link Statement.If} AST node.
+     *
+     * @param node the AST node
+     * @return the visitor result
+     */
+    public abstract T visitIf(Statement.If node);
+
+    /**
+     * Visit a {@link Expression.Application} AST node.
+     *
+     * @param node the AST node
+     * @return the visitor result
+     */
+    public abstract T visitApplication(Expression.Application node);
+
+    /**
+     * Visit a {@link Primary.Constant} AST node.
+     *
+     * @param node the AST node
+     * @return the visitor result
+     */
+    public abstract T visitConstant(Primary.Constant node);
+
+    /**
+     * Visit a {@link Primary.Variable} AST node.
+     *
+     * @param node the AST node
+     * @return the visitor result
+     */
+    public abstract T visitVariable(Primary.Variable node);
 }

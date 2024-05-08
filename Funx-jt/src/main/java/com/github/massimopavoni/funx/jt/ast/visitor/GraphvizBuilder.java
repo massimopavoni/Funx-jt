@@ -10,7 +10,7 @@ import java.util.List;
  * Graphviz visualization builder for the AST tree.
  * The parameter type is a string representing the node identifier.
  */
-public final class GraphvizBuilder implements ASTVisitor<String> {
+public final class GraphvizBuilder extends ASTVisitor<String> {
     /**
      * Graphviz code string builder.
      */
@@ -47,6 +47,7 @@ public final class GraphvizBuilder implements ASTVisitor<String> {
     /**
      * Default behavior for the Graphviz building,
      * using more parameters to set a node label and connect all children to this node.
+     * (We don't use the ASTVisitor visit method with node results aggregation within this very custom visitor).
      *
      * @param label    node label
      * @param parent   parent node
@@ -197,6 +198,6 @@ public final class GraphvizBuilder implements ASTVisitor<String> {
      */
     @Override
     public String visitVariable(Primary.Variable node) {
-        return toGraphvizDefault(node.varId, node, Collections.emptyList());
+        return toGraphvizDefault(node.id, node, Collections.emptyList());
     }
 }

@@ -47,6 +47,7 @@ public class Declaration extends ASTNode {
      */
     @Override
     public <T> T accept(ASTVisitor<? extends T> visitor) {
+        visitor.setCurrentDeclaration(id);
         return visitor.visitDeclaration(this);
     }
 }

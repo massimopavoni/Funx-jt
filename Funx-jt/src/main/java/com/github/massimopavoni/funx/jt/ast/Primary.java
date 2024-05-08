@@ -51,15 +51,15 @@ public abstract class Primary extends Expression {
         /**
          * Variable identifier.
          */
-        public final String varId;
+        public final String id;
 
         /**
          * Constructor for the variable primary node.
          *
-         * @param varId variable identifier
+         * @param id variable identifier
          */
-        public Variable(String varId) {
-            this.varId = varId;
+        public Variable(String id) {
+            this.id = id;
         }
 
         /**

@@ -1,6 +1,6 @@
 package com.github.massimopavoni.funx.jt.cli;
 
-import com.github.massimopavoni.funx.jt.ast.visitor.IllegalASTNodeException;
+import com.github.massimopavoni.funx.jt.ast.visitor.IllegalASTStateException;
 import com.github.massimopavoni.funx.jt.parser.IllegalParserStateException;
 import picocli.CommandLine;
 
@@ -29,9 +29,12 @@ public class ExceptionHandler implements CommandLine.IExecutionExceptionHandler 
                     clie.getCause() != null
                             ? String.format(" (%s)", clie.getCause().getMessage())
                             : "");
-            case IllegalASTNodeException ignored -> "Illegal AST node";
+            case IllegalASTStateException ignored -> "Illegal AST state";
             case IllegalParserStateException ignored -> "Illegal parser state";
-            default -> "Unknown error";
+            default -> {
+                e.printStackTrace(commandLine.getErr());
+                yield "Unknown error";
+            }
         }, e.getMessage());
         commandLine.getErr().println(commandLine.getColorScheme().errorText(message));
         return commandLine.getCommandSpec().exitCodeOnExecutionException();

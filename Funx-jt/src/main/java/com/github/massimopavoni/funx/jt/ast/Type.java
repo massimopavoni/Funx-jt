@@ -14,6 +14,31 @@ public abstract class Type extends ASTNode {
     }
 
     /**
+     * Force subclasses to override the {@link Object} equals method.
+     *
+     * @param obj object co compare
+     * @return true if the two objects are equal, false otherwise
+     */
+    @Override
+    public abstract boolean equals(Object obj);
+
+    /**
+     * Force subclasses to override the {@link Object} hashCode method.
+     *
+     * @return hash code of the object
+     */
+    @Override
+    public abstract int hashCode();
+
+    /**
+     * Force subclasses to override the {@link Object} toString method.
+     *
+     * @return string representation of the object
+     */
+    @Override
+    public abstract String toString();
+
+    /**
      * Simple type class.
      */
     public final static class SimpleType extends Type {
@@ -42,12 +67,63 @@ public abstract class Type extends ASTNode {
         public <T> T accept(ASTVisitor<? extends T> visitor) {
             return visitor.visitSimpleType(this);
         }
+
+        /**
+         * Equals method override to compare two simple type nodes.
+         *
+         * @param obj object to compare
+         * @return true if the two objects are equal, false otherwise
+         */
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this)
+                return true;
+            if (!(obj instanceof SimpleType other))
+                return false;
+            return this.type == other.type;
+        }
+
+        /**
+         * Hash code method override for the simple type node.
+         *
+         * @return hash code of the object
+         */
+        @Override
+        public int hashCode() {
+            return type.hashCode();
+        }
+
+        /**
+         * To string method override for the simple type node.
+         *
+         * @return string representation of the object
+         */
+        @Override
+        public String toString() {
+            return type.typeName;
+        }
     }
 
     /**
      * Arrow type class.
      */
     public final static class ArrowType extends Type {
+        /**
+         * Default arithmetic function type.
+         */
+        static final Type.ArrowType ARITHMETIC_FUNCTION_TYPE =
+                new Type.ArrowType(new Type.SimpleType(TypeEnum.INTEGER),
+                        new Type.ArrowType(new Type.SimpleType(TypeEnum.INTEGER),
+                                new Type.SimpleType(TypeEnum.INTEGER)));
+
+        /**
+         * Default comparison function type.
+         */
+        static final Type.ArrowType COMPARISON_FUNCTION_TYPE =
+                new Type.ArrowType(new Type.SimpleType(TypeEnum.INTEGER),
+                        new Type.ArrowType(new Type.SimpleType(TypeEnum.INTEGER),
+                                new Type.SimpleType(TypeEnum.BOOLEAN)));
+
         /**
          * Input type node.
          */
@@ -78,6 +154,41 @@ public abstract class Type extends ASTNode {
         @Override
         public <T> T accept(ASTVisitor<? extends T> visitor) {
             return visitor.visitArrowType(this);
+        }
+
+        /**
+         * Equals method override to compare two arrow type nodes.
+         *
+         * @param obj object to compare
+         * @return true if the two objects are equal, false otherwise
+         */
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this)
+                return true;
+            if (!(obj instanceof ArrowType other))
+                return false;
+            return this.input.equals(other.input) && this.output.equals(other.output);
+        }
+
+        /**
+         * Hash code method override for the arrow type node.
+         *
+         * @return hash code of the object
+         */
+        @Override
+        public int hashCode() {
+            return 31 * input.hashCode() + output.hashCode();
+        }
+
+        /**
+         * To string method override for the arrow type node.
+         *
+         * @return string representation of the object
+         */
+        @Override
+        public String toString() {
+            return String.format("(%s -> %s)", input, output);
         }
     }
 }
