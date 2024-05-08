@@ -1,5 +1,6 @@
 package com.github.massimopavoni.funx.jt.ast;
 
+import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
 import java.util.List;
@@ -27,6 +28,15 @@ public abstract class ASTNode {
     }
 
     /**
+     * Accepts a visitor to traverse the AST.
+     *
+     * @param visitor visitor to accept
+     * @param <T>     return type of the visitor
+     * @return the result of the visit
+     */
+    public abstract <T> T accept(ASTVisitor<? extends T> visitor);
+
+    /**
      * Root node of the AST.
      */
     public final static class Module extends ASTNode {
@@ -42,6 +52,18 @@ public abstract class ASTNode {
          */
         public Module(ASTNode declarations) {
             this.declarations = declarations;
+        }
+
+        /**
+         * Accepts a visitor to traverse the AST.
+         *
+         * @param visitor visitor to accept
+         * @param <T>     return type of the visitor
+         * @return the result of the visit
+         */
+        @Override
+        public <T> T accept(ASTVisitor<? extends T> visitor) {
+            return visitor.visitModule(this);
         }
     }
 
@@ -61,6 +83,18 @@ public abstract class ASTNode {
          */
         public Declarations(List<ASTNode> declarationList) {
             this.declarationList = declarationList;
+        }
+
+        /**
+         * Accepts a visitor to traverse the AST.
+         *
+         * @param visitor visitor to accept
+         * @param <T>     return type of the visitor
+         * @return the result of the visit
+         */
+        @Override
+        public <T> T accept(ASTVisitor<? extends T> visitor) {
+            return visitor.visitDeclarations(this);
         }
     }
 }

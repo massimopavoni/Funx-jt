@@ -1,5 +1,7 @@
 package com.github.massimopavoni.funx.jt.ast;
 
+import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
+
 /**
  * Base class for primary nodes.
  */
@@ -28,6 +30,18 @@ public abstract class Primary extends Expression {
         public Constant(Object value) {
             this.value = value;
         }
+
+        /**
+         * Accepts a visitor to traverse the AST.
+         *
+         * @param visitor visitor to accept
+         * @param <T>     return type of the visitor
+         * @return the result of the visit
+         */
+        @Override
+        public <T> T accept(ASTVisitor<? extends T> visitor) {
+            return visitor.visitConstant(this);
+        }
     }
 
     /**
@@ -46,6 +60,18 @@ public abstract class Primary extends Expression {
          */
         public Variable(String varId) {
             this.varId = varId;
+        }
+
+        /**
+         * Accepts a visitor to traverse the AST.
+         *
+         * @param visitor visitor to accept
+         * @param <T>     return type of the visitor
+         * @return the result of the visit
+         */
+        @Override
+        public <T> T accept(ASTVisitor<? extends T> visitor) {
+            return visitor.visitVariable(this);
         }
     }
 }

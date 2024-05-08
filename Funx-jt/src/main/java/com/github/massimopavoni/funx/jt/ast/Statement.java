@@ -1,5 +1,7 @@
 package com.github.massimopavoni.funx.jt.ast;
 
+import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
+
 import java.util.List;
 
 /**
@@ -36,6 +38,18 @@ public abstract class Statement extends ASTNode {
             this.paramId = paramId;
             this.statement = statement;
         }
+
+        /**
+         * Accepts a visitor to traverse the AST.
+         *
+         * @param visitor visitor to accept
+         * @param <T>     return type of the visitor
+         * @return the result of the visit
+         */
+        @Override
+        public <T> T accept(ASTVisitor<? extends T> visitor) {
+            return visitor.visitLambda(this);
+        }
     }
 
     /**
@@ -60,6 +74,18 @@ public abstract class Statement extends ASTNode {
         public Let(ASTNode localDeclarations, ASTNode statement) {
             this.localDeclarations = localDeclarations;
             this.statement = statement;
+        }
+
+        /**
+         * Accepts a visitor to traverse the AST.
+         *
+         * @param visitor visitor to accept
+         * @param <T>     return type of the visitor
+         * @return the result of the visit
+         */
+        @Override
+        public <T> T accept(ASTVisitor<? extends T> visitor) {
+            return visitor.visitLet(this);
         }
     }
 
@@ -91,6 +117,18 @@ public abstract class Statement extends ASTNode {
             this.condition = condition;
             this.thenBranch = thenBranch;
             this.elseBranch = elseBranch;
+        }
+
+        /**
+         * Accepts a visitor to traverse the AST.
+         *
+         * @param visitor visitor to accept
+         * @param <T>     return type of the visitor
+         * @return the result of the visit
+         */
+        @Override
+        public <T> T accept(ASTVisitor<? extends T> visitor) {
+            return visitor.visitIf(this);
         }
     }
 }

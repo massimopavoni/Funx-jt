@@ -60,7 +60,7 @@ public final class GraphvizBuilder implements ASTVisitor<String> {
         children.forEach(c -> builder.append(
                 String.format("%s -> %s;\n",
                         nodeId,
-                        visitNode(c))));
+                        c.accept(this))));
         return nodeId;
     }
 

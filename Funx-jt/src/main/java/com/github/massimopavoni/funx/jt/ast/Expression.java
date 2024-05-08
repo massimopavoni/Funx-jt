@@ -1,5 +1,7 @@
 package com.github.massimopavoni.funx.jt.ast;
 
+import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
+
 /**
  * Base class for expression nodes.
  */
@@ -33,6 +35,18 @@ public abstract class Expression extends Statement {
         public Application(ASTNode left, ASTNode right) {
             this.left = left;
             this.right = right;
+        }
+
+        /**
+         * Accepts a visitor to traverse the AST.
+         *
+         * @param visitor visitor to accept
+         * @param <T>     return type of the visitor
+         * @return the result of the visit
+         */
+        @Override
+        public <T> T accept(ASTVisitor<? extends T> visitor) {
+            return visitor.visitApplication(this);
         }
     }
 }

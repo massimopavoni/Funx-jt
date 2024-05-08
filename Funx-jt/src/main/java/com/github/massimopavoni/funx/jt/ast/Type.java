@@ -1,5 +1,7 @@
 package com.github.massimopavoni.funx.jt.ast;
 
+import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
+
 /**
  * Base class for type nodes.
  */
@@ -28,6 +30,18 @@ public abstract class Type extends ASTNode {
         public SimpleType(TypeEnum type) {
             this.type = type;
         }
+
+        /**
+         * Accepts a visitor to traverse the AST.
+         *
+         * @param visitor visitor to accept
+         * @param <T>     return type of the visitor
+         * @return the result of the visit
+         */
+        @Override
+        public <T> T accept(ASTVisitor<? extends T> visitor) {
+            return visitor.visitSimpleType(this);
+        }
     }
 
     /**
@@ -52,6 +66,18 @@ public abstract class Type extends ASTNode {
         public ArrowType(ASTNode input, ASTNode output) {
             this.input = input;
             this.output = output;
+        }
+
+        /**
+         * Accepts a visitor to traverse the AST.
+         *
+         * @param visitor visitor to accept
+         * @param <T>     return type of the visitor
+         * @return the result of the visit
+         */
+        @Override
+        public <T> T accept(ASTVisitor<? extends T> visitor) {
+            return visitor.visitArrowType(this);
         }
     }
 }
