@@ -12,7 +12,7 @@ public abstract class Type extends ASTNode {
      * Package private default constructor,
      * preventing instantiation of generalization class from outside.
      */
-    Type() {
+    protected Type() {
         super(InputPosition.UNKNOWN);
     }
 
@@ -44,7 +44,7 @@ public abstract class Type extends ASTNode {
     /**
      * Names type class.
      */
-    public final static class NamedType extends Type {
+    public static final class NamedType extends Type {
         /**
          * Type enum.
          */
@@ -110,7 +110,7 @@ public abstract class Type extends ASTNode {
     /**
      * Variable type class.
      */
-    public final static class VariableType extends Type {
+    public static final class VariableType extends Type {
         /**
          * Type name.
          */
@@ -176,7 +176,7 @@ public abstract class Type extends ASTNode {
     /**
      * Arrow type class.
      */
-    public final static class ArrowType extends Type {
+    public static final class ArrowType extends Type {
         /**
          * Default arithmetic function type.
          */

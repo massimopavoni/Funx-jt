@@ -23,7 +23,7 @@ public abstract class ASTNode {
      *
      * @param inputPosition input source code node position
      */
-    ASTNode(InputPosition inputPosition) {
+    protected ASTNode(InputPosition inputPosition) {
         this.inputPosition = inputPosition;
     }
 
@@ -35,7 +35,7 @@ public abstract class ASTNode {
      * @return string representation of the token
      */
     public static String fromLexerToken(int token) {
-        return FunxLexer.VOCABULARY.getLiteralName(token).replaceAll("'", "");
+        return FunxLexer.VOCABULARY.getLiteralName(token).replace("'", "");
     }
 
     /**
@@ -50,7 +50,7 @@ public abstract class ASTNode {
     /**
      * Root node of the AST.
      */
-    public final static class Module extends ASTNode {
+    public static final class Module extends ASTNode {
         /**
          * Declarations in the module.
          */
@@ -83,7 +83,7 @@ public abstract class ASTNode {
     /**
      * Declarations node class.
      */
-    public final static class Declarations extends ASTNode {
+    public static final class Declarations extends ASTNode {
         /**
          * List of declarations.
          */

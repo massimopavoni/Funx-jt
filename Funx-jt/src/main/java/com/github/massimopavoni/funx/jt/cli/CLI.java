@@ -9,7 +9,6 @@ import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 import com.github.massimopavoni.funx.jt.parser.FunxParser;
 import com.github.massimopavoni.funx.jt.parser.IllegalParserStateException;
 import org.antlr.v4.gui.TreeViewer;
-import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.DiagnosticErrorListener;
@@ -45,13 +44,37 @@ public class CLI implements Callable<Integer> {
             index = "0",
             arity = "1",
             description = "Input funx source file")
-    private File file;
+    private File input;
+    /**
+     * Type check flag.
+     */
+    @CommandLine.Option(
+            names = {"-T", "--no-typecheck"},
+            description = "Skip type checking phase",
+            defaultValue = "true")
+    private boolean typecheck;
+    /**
+     * Java transpilation flag.
+     */
+    @CommandLine.Option(
+            names = {"-J", "--no-java"},
+            description = "Skip Java transpilation",
+            defaultValue = "true")
+    private boolean java;
+    /**
+     * Output file parameter.
+     */
+    @CommandLine.Option(
+            names = {"-o", "--output"},
+            description = "Output file path",
+            defaultValue = "")
+    private File output;
     /**
      * Parse tree visualization flag.
      */
     @CommandLine.Option(
             names = {"-p", "--parse-tree"},
-            description = "Output the raw parse tree visualization",
+            description = "Output raw parse tree visualization",
             defaultValue = "false")
     private boolean parseTree;
     /**
@@ -59,7 +82,7 @@ public class CLI implements Callable<Integer> {
      */
     @CommandLine.Option(
             names = {"-a", "--ast"},
-            description = "Output the abstract syntax tree visualization",
+            description = "Output abstract syntax tree visualization",
             defaultValue = "false")
     private boolean ast;
     /**
@@ -67,7 +90,7 @@ public class CLI implements Callable<Integer> {
      */
     @CommandLine.Option(
             names = {"-d", "--no-dot"},
-            description = "Remove the .dot file after crating the AST visualization",
+            description = "Remove .dot file after AST visualization",
             defaultValue = "false")
     private boolean noDot;
 
@@ -75,6 +98,7 @@ public class CLI implements Callable<Integer> {
      * Default constructor.
      */
     public CLI() {
+        // Empty constructor
     }
 
     /**
@@ -98,13 +122,17 @@ public class CLI implements Callable<Integer> {
      */
     @Override
     public Integer call() throws Exception {
-        Path filePath = file.toPath().toAbsolutePath();
+        Path filePath = input.toPath().toAbsolutePath();
         Path workingDir = filePath.getParent();
-        String filename = file.getName().split("\\.")[0];
+        String filename = input.getName().split("\\.")[0];
         ParseTree tree = getParseTree(filePath.toString());
         ASTNode astRoot = getAST(tree);
-        typecheck(astRoot);
-        transpile(astRoot, workingDir.resolve(String.format("%s.java", filename)));
+        if (typecheck)
+            typecheck(astRoot);
+        if (java)
+            transpile(astRoot, output == null ?
+                    workingDir.resolve(String.format("%s.java", filename))
+                    : output.toPath().toAbsolutePath());
         if (parseTree)
             outputParseTree(tree, workingDir.resolve(String.format("%s_parse_tree.png", filename)));
         if (ast)
@@ -121,8 +149,10 @@ public class CLI implements Callable<Integer> {
      */
     private ParseTree getParseTree(String inputPath) throws CLIException {
         try {
-            CharStream input = CharStreams.fromFileName(inputPath);
-            FunxParser parser = new FunxParser(new CommonTokenStream(new FunxLexer(input)));
+            FunxParser parser = new FunxParser(
+                    new CommonTokenStream(
+                            new FunxLexer(
+                                    CharStreams.fromFileName(inputPath))));
             parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
             parser.addErrorListener(new DiagnosticErrorListener());
             ParseTree tree = parser.module();
@@ -159,6 +189,13 @@ public class CLI implements Callable<Integer> {
                             typeChecker.getErrorsCount() == 1 ? "" : "s"));
     }
 
+    /**
+     * Transpile the abstract syntax tree to Java code.
+     *
+     * @param astRoot    abstract syntax tree root node
+     * @param outputPath output file path
+     * @throws CLIException if an error occurs
+     */
     private void transpile(ASTNode astRoot, Path outputPath) throws CLIException {
     }
 
@@ -170,31 +207,32 @@ public class CLI implements Callable<Integer> {
      * @throws CLIException if an error occurs
      */
     private void outputParseTree(ParseTree tree, Path outputPath) throws CLIException {
+        TreeViewer viewer = new TreeViewer(Arrays.asList(FunxParser.ruleNames), tree);
+        BufferedImage image = new BufferedImage(viewer.getPreferredSize().width,
+                viewer.getPreferredSize().height,
+                BufferedImage.TYPE_INT_RGB);
+        Graphics2D graphics = image.createGraphics();
+        graphics.setPaint(Color.WHITE);
+        graphics.fillRect(0, 0, image.getWidth(), image.getHeight());
+        graphics.setPaint(Color.BLACK);
+        viewer.paint(graphics);
         PrintStream originalErr = System.err;
-        try {
-            TreeViewer viewer = new TreeViewer(Arrays.asList(FunxParser.ruleNames), tree);
-            BufferedImage image = new BufferedImage(viewer.getPreferredSize().width,
-                    viewer.getPreferredSize().height,
-                    BufferedImage.TYPE_INT_RGB);
-            Graphics2D graphics = image.createGraphics();
-            graphics.setPaint(Color.WHITE);
-            graphics.fillRect(0, 0, image.getWidth(), image.getHeight());
-            graphics.setPaint(Color.BLACK);
-            viewer.paint(graphics);
+        try (PrintStream err = new PrintStream(new OutputStream() {
+            @Override
+            public void write(int b) {
+                // Do nothing
+            }
+        })) {
             // Very bad shenanigans because of ImageIO internal workings
             // randomly printing the stack trace even if the exception is caught
             // Redirect the error stream
-            System.setErr(new PrintStream(new OutputStream() {
-                public void write(int b) {
-                    // Do nothing
-                }
-            }));
+            System.setErr(err);
             ImageIO.write(image, "png", outputPath.toFile());
+        } catch (IOException e) {
+            throw new CLIException("Error writing parse tree image", e);
+        } finally {
             // Reset the error stream
             System.setErr(originalErr);
-        } catch (IOException e) {
-            System.setErr(originalErr);
-            throw new CLIException("Error writing parse tree image", e);
         }
     }
 
@@ -221,6 +259,7 @@ public class CLI implements Callable<Integer> {
         } catch (IOException e) {
             throw new CLIException("Error writing AST dot file", e);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new CLIException("Error executing Graphviz dot command", e);
         }
     }

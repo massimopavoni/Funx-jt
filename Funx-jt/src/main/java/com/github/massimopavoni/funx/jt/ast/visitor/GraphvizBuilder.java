@@ -19,10 +19,10 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      */
     private final StringBuilder builder;
     /**
-     * Unique identifier for an AST node,
-     * used for Graphviz instead of the hash code to avoid collisions and a resulting weird looking graph.
+     * Internal counter to get identifiers for AST nodes,
+     * used instead of the hash code to avoid collisions and a resulting weird looking graph.
      */
-    private int nodeId = 0;
+    private int nodeCounter = 0;
 
     /**
      * Constructor for the Graphviz builder.
@@ -48,7 +48,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      * @return unique identifier using the internal counter
      */
     private String getNodeId() {
-        return String.valueOf(nodeId++);
+        return String.valueOf(nodeCounter++);
     }
 
     /**
@@ -62,10 +62,10 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      */
     private String toGraphvizDefault(String label, List<ASTNode> children) {
         String nodeId = getNodeId();
-        builder.append(String.format("%s [label=\"%s\"];\n",
+        builder.append(String.format("%s [label=\"%s\"];%n",
                 nodeId, label));
         children.forEach(c -> builder.append(
-                String.format("%s -> %s;\n",
+                String.format("%s -> %s;%n",
                         nodeId,
                         c.accept(this))));
         return nodeId;

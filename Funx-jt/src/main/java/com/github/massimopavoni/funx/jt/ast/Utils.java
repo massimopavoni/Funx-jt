@@ -8,6 +8,15 @@ import java.util.function.Predicate;
  */
 public final class Utils {
     /**
+     * Static class constructor, private to prevent instantiation.
+     *
+     * @throws IllegalStateException if an attempt to instantiate the class is made
+     */
+    private Utils() {
+        throw new IllegalStateException("Static class cannot be instantiated.");
+    }
+
+    /**
      * Get the enum constant from an enum by filtering on a filter.
      *
      * @param enumClass   enum class to use

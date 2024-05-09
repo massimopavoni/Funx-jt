@@ -32,6 +32,6 @@ public class ASTErrorReporter {
      */
     public void reportError(String message) {
         errorsCount++;
-        System.err.printf(message + '\n');
+        System.err.println(message);
     }
 }

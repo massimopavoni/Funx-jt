@@ -1,17 +1,8 @@
-package com.github.massimopavoni.funx.jt.testexamples;
+package com.github.massimopavoni.funx;
 
 import java.util.function.Function;
 
-public class Prelude {
-    // Unary operators
-
-    // This can be written in funx as
-    // not : Bool -> Bool
-    // not x = if x then False else True
-    public static Function<Boolean, Boolean> not() {
-        return x -> !x;
-    }
-
+public class JavaPrelude {
     // Binary operators
     public static Function<Integer, Function<Integer, Integer>> divide() {
         return x -> y -> x / y;

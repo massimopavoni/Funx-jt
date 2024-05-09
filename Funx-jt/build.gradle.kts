@@ -10,6 +10,8 @@ plugins {
     antlr
     application
     java
+    // SonarQube plugin for code quality analysis
+    id("org.sonarqube") version "5.+"
 }
 
 repositories {
@@ -37,9 +39,11 @@ tasks.generateGrammarSource {
     maxHeapSize = "256m"
     // Use a visitor
     arguments.addAll(listOf("-package", packageName, "-visitor", "-no-listener"))
+
     doFirst {
         delete("src/main/gen")
     }
+
     doLast {
         copy {
             from(layout.buildDirectory.dir("generated-src/antlr/main"))
@@ -52,11 +56,15 @@ tasks.generateGrammarSource {
             into("src/main/gen")
         }
     }
+
     finalizedBy("cleanGeneratedGrammarSource")
 }
 
 // Clean generated ANTLR sources
 tasks.register("cleanGeneratedGrammarSource") {
+    description = "Clean generated ANTLR sources."
+    group = "other"
+
     doLast {
         delete(layout.buildDirectory.dir("generated-src"))
     }
@@ -64,6 +72,9 @@ tasks.register("cleanGeneratedGrammarSource") {
 
 // Project properties from gradle configuration
 tasks.register("projectProps") {
+    description = "Generate project properties."
+    group = JavaBasePlugin.BUILD_NEEDED_TASK_NAME
+
     doLast {
         val className = "Properties"
         val packageName = project.group.toString() + ".cli"
@@ -119,16 +130,27 @@ tasks.register("projectProps") {
 // Project build
 tasks.compileJava {
     dependsOn(tasks.generateGrammarSource, "projectProps")
+
+    finalizedBy(tasks.javadoc)
 }
 
 // Project documentation
 tasks.javadoc {
     setDestinationDir(file("$rootDir/docs/javadoc/${project.name}"))
 
+    options.showFromPrivate()
+    (options as StandardJavadocDocletOptions).addStringOption("Xmaxwarns", "1024")
+
+    exclude("**/*Prelude*")
+
+    exclude("**/testexamples/**") // TEMPORARY, until test examples are deleted
+
     finalizedBy("zipJavadoc")
 }
 
 tasks.register<Zip>("zipJavadoc") {
+    description = "Zip the javadoc files."
+    group = JavaBasePlugin.DOCUMENTATION_GROUP
     dependsOn(tasks.javadoc)
 
     val javadocDest = tasks.javadoc.get().destinationDir
@@ -150,4 +172,15 @@ tasks.test {
 // Main class
 application {
     mainClass.set("com.github.massimopavoni.funx.jt.cli.CLI")
+}
+
+// Local SonarQube configuration
+sonar {
+    properties {
+        property("sonar.projectName", rootProject.name)
+        property("sonar.host.url", project.property("sonar.host.url").toString())
+        property("sonar.projectKey", project.property("sonar.projectKey").toString())
+        property("sonar.token", project.property("sonar.token").toString())
+        property("sonar.exclusions", "**/parser/Funx*, **/*Prelude*, **/testexamples/**")
+    }
 }

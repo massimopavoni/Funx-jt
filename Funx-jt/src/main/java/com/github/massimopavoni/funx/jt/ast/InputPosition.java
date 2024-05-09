@@ -13,15 +13,6 @@ public record InputPosition(int line, int column) {
     public static final InputPosition UNKNOWN = new InputPosition(-1, -1);
 
     /**
-     * Constructor for the input position.
-     *
-     * @param line   line number
-     * @param column column number
-     */
-    public InputPosition {
-    }
-
-    /**
      * To string method override for the input position.
      *
      * @return string representation of the object

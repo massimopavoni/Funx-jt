@@ -21,7 +21,8 @@ public abstract class ASTVisitor<T> {
     /**
      * Constructor for the AST visitor.
      */
-    public ASTVisitor() {
+    protected ASTVisitor() {
+        // Empty constructor
     }
 
     /**

@@ -17,6 +17,10 @@ import java.util.Optional;
  */
 public final class TypeChecker extends ASTVisitor<Void> {
     /**
+     * Illegal state message.
+     */
+    private static final String ILLEGAL_STATE_MESSAGE = "%s should not be visited directly by the TypeChecker";
+    /**
      * Types of currently in scope lambda parameters.
      */
     private final Map<String, Type> lambdaParamTypeMap = new HashMap<>();
@@ -41,6 +45,13 @@ public final class TypeChecker extends ASTVisitor<Void> {
      * Types of currently in scope local declarations.
      */
     private Map<String, Type> localDeclarationTypeMap = new HashMap<>();
+
+    /**
+     * Default constructor.
+     */
+    public TypeChecker() {
+        // Empty constructor
+    }
 
     /**
      * Get the type for a primary node,
@@ -167,8 +178,9 @@ public final class TypeChecker extends ASTVisitor<Void> {
         switch (expression) {
             case Expression.Lambda lambda -> reportError(lambda.inputPosition,
                     String.format("named type \"%s\" does not match lambda expression", type));
-            case Expression primary when
-                    (primary instanceof Expression.Constant || primary instanceof Expression.Variable) -> {
+            case Expression primary
+                    when primary instanceof Expression.Constant
+                    || primary instanceof Expression.Variable -> {
                 Type primaryType = getPrimaryType(primary);
                 if (primaryType != null && !primaryType.equals(type))
                     reportError(primary.inputPosition,
@@ -213,7 +225,7 @@ public final class TypeChecker extends ASTVisitor<Void> {
      */
     @Override
     public Void visitNamedType(Type.NamedType node) {
-        throw new IllegalStateException(String.format("%s should not be visited directly by the TypeChecker",
+        throw new IllegalStateException(String.format(ILLEGAL_STATE_MESSAGE,
                 Type.NamedType.class.getSimpleName()));
     }
 
@@ -225,7 +237,7 @@ public final class TypeChecker extends ASTVisitor<Void> {
      */
     @Override
     public Void visitVariableType(Type.VariableType node) {
-        throw new IllegalStateException(String.format("%s should not be visited directly by the TypeChecker",
+        throw new IllegalStateException(String.format(ILLEGAL_STATE_MESSAGE,
                 Type.VariableType.class.getSimpleName()));
     }
 
@@ -237,7 +249,7 @@ public final class TypeChecker extends ASTVisitor<Void> {
      */
     @Override
     public Void visitArrowType(Type.ArrowType node) {
-        throw new IllegalStateException(String.format("%s should not be visited directly by the TypeChecker",
+        throw new IllegalStateException(String.format(ILLEGAL_STATE_MESSAGE,
                 Type.ArrowType.class.getSimpleName()));
     }
 
@@ -273,8 +285,8 @@ public final class TypeChecker extends ASTVisitor<Void> {
     @Override
     public Void visitLet(Expression.Let node) {
         localDeclarationTypeMap = ((ASTNode.Declarations) node.localDeclarations).declarationTypeMap;
-        visit(List.of(node.localDeclarations, node.expression));
         checkDeclarationType(node.expression);
+        visit(List.of(node.localDeclarations, node.expression));
         localDeclarationTypeMap.clear();
         return null;
     }
@@ -288,12 +300,10 @@ public final class TypeChecker extends ASTVisitor<Void> {
     @Override
     public Void visitIf(Expression.If node) {
         switch (node.condition) {
-            case Expression.Constant constant -> {
-                if (!(constant.value instanceof Boolean))
-                    reportError(constant.inputPosition,
-                            String.format("type \"%s\" of constant in if condition is not boolean",
-                                    constant.value));
-            }
+            case Expression.Constant constant
+                    when !(constant.value instanceof Boolean) -> reportError(constant.inputPosition,
+                    String.format("type \"%s\" of constant in if condition is not boolean",
+                            constant.value));
             case Expression.Variable variable -> {
                 Type variableType = getVariableType(variable);
                 if (variableType != null && !(variableType instanceof Type.VariableType)
@@ -321,38 +331,45 @@ public final class TypeChecker extends ASTVisitor<Void> {
             case Expression.Constant constant -> reportError(constant.inputPosition,
                     String.format("attempt to use constant value \"%s\" as function",
                             constant.value));
-            case Expression.Variable variable -> {
-                Type variableType = getVariableType(variable);
-                if (variableType != null) {
-                    switch (variableType) {
-                        case Type.NamedType type -> reportError(variable.inputPosition,
-                                String.format(
-                                        "attempt to use function \"%s\" with simple type \"%s\" in application",
-                                        variable.id, type));
-                        case Type.ArrowType type -> {
-                            if (node.right instanceof Expression rightPrimary
-                                    && (rightPrimary instanceof Expression.Constant
-                                    || rightPrimary instanceof Expression.Variable)) {
-                                Type rightType = getPrimaryType(rightPrimary);
-                                if (rightType != null && !(rightType instanceof Type.VariableType)
-                                        && !rightType.equals(type.input))
-                                    reportError(variable.inputPosition,
-                                            String.format(
-                                                    "function \"%s\" has input type \"%s\" but was applied type \"%s\"",
-                                                    variable.id, type.input, rightType));
-                            }
-                        }
-                        default -> {
-                            // No error
-                        }
-                    }
-                }
-            }
+            case Expression.Variable variable -> checkApplicationVariable(node, variable);
             default -> {
                 // No error
             }
         }
         return visit(List.of(node.left, node.right));
+    }
+
+    /**
+     * Check a variable as left node in an application.
+     *
+     * @param node     application node
+     * @param variable variable node
+     */
+    private void checkApplicationVariable(Expression.Application node, Expression.Variable variable) {
+        Type variableType = getVariableType(variable);
+        if (variableType != null) {
+            switch (variableType) {
+                case Type.NamedType type -> reportError(variable.inputPosition,
+                        String.format(
+                                "attempt to use function \"%s\" with simple type \"%s\" in application",
+                                variable.id, type));
+                case Type.ArrowType type
+                        when node.right instanceof Expression rightPrimary
+                        && (rightPrimary instanceof Expression.Constant
+                        || rightPrimary instanceof Expression.Variable) -> {
+                    Type rightType = getPrimaryType(rightPrimary);
+                    if (rightType != null && !(rightType instanceof Type.VariableType)
+                            && !rightType.equals(type.input))
+                        reportError(variable.inputPosition,
+                                String.format(
+                                        "function \"%s\" has input type \"%s\" but was applied type \"%s\"",
+                                        variable.id, type.input, rightType));
+                }
+                default -> {
+                    // No error
+                }
+            }
+        }
     }
 
     /**

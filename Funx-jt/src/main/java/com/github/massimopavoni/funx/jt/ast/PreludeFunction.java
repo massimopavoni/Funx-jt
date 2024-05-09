@@ -9,19 +9,55 @@ import static com.github.massimopavoni.funx.jt.ast.node.Type.ArrowType.COMPARISO
  * Enum for symbols and corresponding Prelude functions.
  */
 public enum PreludeFunction {
+    /**
+     * Boolean not.
+     */
     NOT("!!", "not",
             new Type.ArrowType(new Type.NamedType(TypeEnum.BOOLEAN),
                     new Type.NamedType(TypeEnum.BOOLEAN))),
+    /**
+     * Arithmetic division.
+     */
     DIVIDE("/", "divide", ARITHMETIC_FUNCTION_TYPE),
+    /**
+     * Arithmetic modulo.
+     */
     MODULO("%", "modulo", ARITHMETIC_FUNCTION_TYPE),
+    /**
+     * Arithmetic multiplication.
+     */
     MULTIPLY("*", "multiply", ARITHMETIC_FUNCTION_TYPE),
+    /**
+     * Arithmetic addition.
+     */
     ADD("+", "add", ARITHMETIC_FUNCTION_TYPE),
+    /**
+     * Arithmetic subtraction.
+     */
     SUBTRACT("-", "subtract", ARITHMETIC_FUNCTION_TYPE),
+    /**
+     * Greater than comparison.
+     */
     GREATER_THAN(">", "greaterThan", COMPARISON_FUNCTION_TYPE),
+    /**
+     * Greater than or equal comparison.
+     */
     GREATER_THAN_EQUALS(">=", "greaterThanEquals", COMPARISON_FUNCTION_TYPE),
+    /**
+     * Less than comparison.
+     */
     LESS_THAN("<", "lessThan", COMPARISON_FUNCTION_TYPE),
+    /**
+     * Less than or equal comparison.
+     */
     LESS_THAN_EQUALS("<=", "lessThanEquals", COMPARISON_FUNCTION_TYPE),
+    /**
+     * Equal comparison.
+     */
     EQUALS_EQUALS("==", "equalsEquals", COMPARISON_FUNCTION_TYPE),
+    /**
+     * Not equal comparison.
+     */
     NOT_EQUALS("!=", "notEquals", COMPARISON_FUNCTION_TYPE);
 
     /**

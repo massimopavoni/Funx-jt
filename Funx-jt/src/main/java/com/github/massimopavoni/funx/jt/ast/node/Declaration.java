@@ -6,7 +6,7 @@ import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
 /**
  * Declaration node class.
  */
-public class Declaration extends ASTNode {
+public final class Declaration extends ASTNode {
     /**
      * Type declaration identifier.
      */

@@ -12,6 +12,7 @@ public class ExceptionHandler implements CommandLine.IExecutionExceptionHandler 
      * Default constructor.
      */
     public ExceptionHandler() {
+        // Empty constructor
     }
 
     /**

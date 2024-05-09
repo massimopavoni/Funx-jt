@@ -13,14 +13,14 @@ public abstract class Expression extends ASTNode {
      *
      * @param inputPosition input source code node position
      */
-    Expression(InputPosition inputPosition) {
+    protected Expression(InputPosition inputPosition) {
         super(inputPosition);
     }
 
     /**
      * Constant expression class.
      */
-    public final static class Constant extends Expression {
+    public static final class Constant extends Expression {
         /**
          * Constant value.
          */
@@ -53,7 +53,7 @@ public abstract class Expression extends ASTNode {
     /**
      * Variable expression class.
      */
-    public final static class Variable extends Expression {
+    public static final class Variable extends Expression {
         /**
          * Variable identifier.
          */
@@ -125,7 +125,7 @@ public abstract class Expression extends ASTNode {
     /**
      * Lambda expression class.
      */
-    public final static class Lambda extends Expression {
+    public static final class Lambda extends Expression {
         /**
          * Parameter identifier.
          */
@@ -164,7 +164,7 @@ public abstract class Expression extends ASTNode {
     /**
      * Let expression class.
      */
-    public final static class Let extends Expression {
+    public static final class Let extends Expression {
         /**
          * Local declarations node.
          */
@@ -203,7 +203,7 @@ public abstract class Expression extends ASTNode {
     /**
      * If expression class.
      */
-    public final static class If extends Expression {
+    public static final class If extends Expression {
         /**
          * Condition node.
          */

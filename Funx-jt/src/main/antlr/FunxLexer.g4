@@ -38,6 +38,20 @@ OUT: 'out';
 THEN: 'then';
 WITH: 'with';
 
+// Java keywords
+RESERVED_JAVA_KEYWORD
+    : 'abstract' | 'assert' | 'boolean' | 'break' | 'byte'
+    | 'case' | 'catch' | 'char' | 'class' | 'const'
+    | 'continue' | 'default' | 'do' | 'double' | 'enum'
+    | 'extends' | 'final' | 'finally' | 'float' | 'for'
+    | 'goto' | 'implements' | 'import' | 'instanceof' | 'int'
+    | 'interface' | 'long' | 'native' | 'new' | 'package'
+    | 'private' | 'protected' | 'public' | 'return' | 'short'
+    | 'static' | 'strictfp' | 'super' | 'switch' | 'synchronized'
+    | 'this' | 'throw' | 'throws' | 'transient' | 'try'
+    | 'void' | 'volatile' | 'while'
+    ;
+
 // Variables
 VARID: LALPHA (ALPHA_ | DIGIT)*;
 

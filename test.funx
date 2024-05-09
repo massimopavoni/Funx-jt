@@ -20,6 +20,6 @@ f = not
 p : Bool -> Bool
 p = g
 with
-g : Int -> Bool
-g x = not ((\b -> not (if False then not b else 1 fi)) False) && x
+g : Bool -> Bool
+g = not ((\b -> not (if False then not b else 1 fi)) False) && x
 out

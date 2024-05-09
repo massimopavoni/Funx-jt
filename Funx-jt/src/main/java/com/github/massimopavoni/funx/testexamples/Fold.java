@@ -1,4 +1,4 @@
-package com.github.massimopavoni.funx.jt.testexamples;
+package com.github.massimopavoni.funx.testexamples;
 
 import java.util.List;
 import java.util.function.Function;
