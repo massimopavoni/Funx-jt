@@ -1,5 +1,6 @@
-package com.github.massimopavoni.funx.jt.ast;
+package com.github.massimopavoni.funx.jt.ast.node;
 
+import com.github.massimopavoni.funx.jt.ast.InputPosition;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
 
 /**
@@ -9,8 +10,11 @@ public abstract class Primary extends Expression {
     /**
      * Package private default constructor,
      * preventing instantiation of generalization class from outside.
+     *
+     * @param inputPosition input source code node position
      */
-    Primary() {
+    Primary(InputPosition inputPosition) {
+        super(inputPosition);
     }
 
     /**
@@ -25,9 +29,11 @@ public abstract class Primary extends Expression {
         /**
          * Constructor for the constant primary node.
          *
-         * @param value constant value
+         * @param inputPosition input source code node position
+         * @param value         constant value
          */
-        public Constant(Object value) {
+        public Constant(InputPosition inputPosition, Object value) {
+            super(inputPosition);
             this.value = value;
         }
 
@@ -56,9 +62,11 @@ public abstract class Primary extends Expression {
         /**
          * Constructor for the variable primary node.
          *
-         * @param id variable identifier
+         * @param inputPosition input source code node position
+         * @param id            variable identifier
          */
-        public Variable(String id) {
+        public Variable(InputPosition inputPosition, String id) {
+            super(inputPosition);
             this.id = id;
         }
 

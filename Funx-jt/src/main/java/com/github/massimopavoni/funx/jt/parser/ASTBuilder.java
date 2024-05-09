@@ -1,6 +1,10 @@
 package com.github.massimopavoni.funx.jt.parser;
 
-import com.github.massimopavoni.funx.jt.ast.*;
+import com.github.massimopavoni.funx.jt.ast.InputPosition;
+import com.github.massimopavoni.funx.jt.ast.PreludeFunction;
+import com.github.massimopavoni.funx.jt.ast.TypeEnum;
+import com.github.massimopavoni.funx.jt.ast.node.*;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.ArrayList;
@@ -18,32 +22,45 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     }
 
     /**
+     * Get the input position from the start of a parser context.
+     *
+     * @param ctx parser context
+     * @return input position
+     */
+    private static InputPosition getInputPosition(ParserRuleContext ctx) {
+        return new InputPosition(ctx.getStart().getLine(), ctx.getStart().getCharPositionInLine());
+    }
+
+    /**
      * Convert a list of parameters and a statement into a lambda chain.
      *
+     * @param position  input position
      * @param params    list of parameters
      * @param statement statement
      * @return first node of the lambda chain
      */
-    private ASTNode createLambdaChain(List<String> params, ASTNode statement) {
+    private ASTNode createLambdaChain(InputPosition position, List<String> params, ASTNode statement) {
         if (params.size() == 1)
-            return new Statement.Lambda(params.getFirst(), statement);
-        return new Statement.Lambda(params.removeFirst(),
-                createLambdaChain(params, statement));
+            return new Statement.Lambda(position, params.getFirst(), statement);
+        return new Statement.Lambda(position, params.removeFirst(),
+                createLambdaChain(position, params, statement));
     }
 
     /**
      * Create a double application from a binary operator,
      * retrieving the Prelude function name from the used symbol.
      *
-     * @param symbol operator symbol
-     * @param left   left node
-     * @param right  right node
+     * @param position input position
+     * @param symbol   operator symbol
+     * @param left     left node
+     * @param right    right node
      * @return double application node
      */
-    private ASTNode binarySymbolApplication(String symbol, ASTNode left, ASTNode right) {
-        return new Expression.Application(
-                new Expression.Application(
-                        new Primary.Variable(PreludeFunction.fromFunctionSymbol(symbol).functionName),
+    private ASTNode binarySymbolApplication(InputPosition position, String symbol, ASTNode left, ASTNode right) {
+        return new Expression.Application(position,
+                new Expression.Application(position,
+                        new Primary.Variable(position,
+                                PreludeFunction.fromFunctionSymbol(symbol).functionName),
                         left),
                 right);
     }
@@ -57,7 +74,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitModule(FunxParser.ModuleContext ctx) {
         // Potentially do other things (e.g. set a different package)
-        return new ASTNode.Module(visit(ctx.declarations()));
+        return new ASTNode.Module(getInputPosition(ctx), visit(ctx.declarations()));
     }
 
     /**
@@ -68,7 +85,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitDeclarations(FunxParser.DeclarationsContext ctx) {
-        return new ASTNode.Declarations(ctx.declaration().stream()
+        return new ASTNode.Declarations(getInputPosition(ctx), ctx.declaration().stream()
                 .map(this::visit).toList());
     }
 
@@ -80,21 +97,25 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitDeclaration(FunxParser.DeclarationContext ctx) {
+        InputPosition position = getInputPosition(ctx);
         ASTNode statement;
         if (ctx.localDeclarations() != null)
-            statement = new Statement.Let(visit(ctx.localDeclarations().declarations()),
+            statement = new Statement.Let(position,
+                    visit(ctx.localDeclarations().declarations()),
                     visit(ctx.statement()));
         else
             statement = visit(ctx.statement());
         FunxParser.DeclarationTypeContext declarationTypeContext = ctx.declarationType();
         return new Declaration(
+                position,
                 declarationTypeContext.id.getText(),
                 visit(declarationTypeContext),
                 ctx.id.getText(),
                 ctx.lambdaParams() != null
-                        ? createLambdaChain(ctx.lambdaParams().VARID().stream()
-                        .map(ParseTree::getText)
-                        .collect(Collectors.toCollection(ArrayList::new)), statement)
+                        ? createLambdaChain(position,
+                        ctx.lambdaParams().VARID().stream()
+                                .map(ParseTree::getText)
+                                .collect(Collectors.toCollection(ArrayList::new)), statement)
                         : statement);
     }
 
@@ -135,15 +156,15 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     }
 
     /**
-     * Visit a parse tree produced by the {@code type}
+     * Visit a parse tree produced by the {@code namedType}
      * labeled alternative in {@link FunxParser#typeElems()}.
      *
      * @param ctx the parse tree
      * @return the visitor result
      */
     @Override
-    public ASTNode visitType(FunxParser.TypeContext ctx) {
-        return new Type.SimpleType(TypeEnum.fromTypeName(ctx.TYPE().getText()));
+    public ASTNode visitNamedType(FunxParser.NamedTypeContext ctx) {
+        return new Type.NamedType(TypeEnum.fromTypeName(ctx.TYPE().getText()));
     }
 
     /**
@@ -215,7 +236,8 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitAppExpression(FunxParser.AppExpressionContext ctx) {
-        return new Expression.Application(visit(ctx.expression(0)),
+        return new Expression.Application(getInputPosition(ctx),
+                visit(ctx.expression(0)),
                 visit(ctx.expression(1)));
     }
 
@@ -228,8 +250,9 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitNotExpression(FunxParser.NotExpressionContext ctx) {
-        return new Expression.Application(
-                new Primary.Variable(PreludeFunction.NOT.functionName),
+        InputPosition position = getInputPosition(ctx);
+        return new Expression.Application(position,
+                new Primary.Variable(position, PreludeFunction.NOT.functionName),
                 visit(ctx.expression()));
     }
 
@@ -242,7 +265,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitDivModMultExpression(FunxParser.DivModMultExpressionContext ctx) {
-        return binarySymbolApplication(
+        return binarySymbolApplication(getInputPosition(ctx),
                 ASTNode.fromLexerToken(ctx.bop.getType()),
                 visit(ctx.expression(0)),
                 visit(ctx.expression(1)));
@@ -258,6 +281,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitAddSubExpression(FunxParser.AddSubExpressionContext ctx) {
         return binarySymbolApplication(
+                getInputPosition(ctx),
                 ASTNode.fromLexerToken(ctx.bop.getType()),
                 visit(ctx.expression(0)),
                 visit(ctx.expression(1)));
@@ -273,6 +297,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitCompExpression(FunxParser.CompExpressionContext ctx) {
         return binarySymbolApplication(
+                getInputPosition(ctx),
                 ASTNode.fromLexerToken(ctx.bop.getType()),
                 visit(ctx.expression(0)),
                 visit(ctx.expression(1)));
@@ -288,6 +313,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitEqExpression(FunxParser.EqExpressionContext ctx) {
         return binarySymbolApplication(
+                getInputPosition(ctx),
                 ASTNode.fromLexerToken(ctx.bop.getType()),
                 visit(ctx.expression(0)),
                 visit(ctx.expression(1)));
@@ -303,9 +329,10 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitAndExpression(FunxParser.AndExpressionContext ctx) {
         // Transform logical conjunction into if statement for short-circuiting behavior
-        return new Statement.If(visit(ctx.expression(0)),
+        return new Statement.If(getInputPosition(ctx),
+                visit(ctx.expression(0)),
                 visit(ctx.expression(1)),
-                new Primary.Constant(false));
+                new Primary.Constant(InputPosition.UNKNOWN, false));
     }
 
     /**
@@ -318,8 +345,9 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitOrExpression(FunxParser.OrExpressionContext ctx) {
         // Transform logical disjunction into if statement for short-circuiting behavior
-        return new Statement.If(visit(ctx.expression(0)),
-                new Primary.Constant(true),
+        return new Statement.If(getInputPosition(ctx),
+                visit(ctx.expression(0)),
+                new Primary.Constant(InputPosition.UNKNOWN, true),
                 visit(ctx.expression(1)));
     }
 
@@ -356,7 +384,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitVarPrimary(FunxParser.VarPrimaryContext ctx) {
-        return new Primary.Variable(ctx.VARID().getText());
+        return new Primary.Variable(getInputPosition(ctx), ctx.VARID().getText());
     }
 
     /**
@@ -367,9 +395,10 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitLambda(FunxParser.LambdaContext ctx) {
-        return createLambdaChain(ctx.lambdaParams().VARID().stream()
-                .map(ParseTree::getText)
-                .toList(), visit(ctx.statement()));
+        return createLambdaChain(getInputPosition(ctx),
+                ctx.lambdaParams().VARID().stream()
+                        .map(ParseTree::getText)
+                        .toList(), visit(ctx.statement()));
     }
 
     /**
@@ -380,7 +409,8 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitLet(FunxParser.LetContext ctx) {
-        return new Statement.Let(visit(ctx.localDeclarations().declarations()),
+        return new Statement.Let(getInputPosition(ctx),
+                visit(ctx.localDeclarations().declarations()),
                 visit(ctx.statement()));
     }
 
@@ -392,7 +422,8 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitIfS(FunxParser.IfSContext ctx) {
-        return new Statement.If(visit(ctx.statement(0)),
+        return new Statement.If(getInputPosition(ctx),
+                visit(ctx.statement(0)),
                 visit(ctx.statement(1)),
                 visit(ctx.statement(2)));
     }
@@ -407,8 +438,9 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     public ASTNode visitConstant(FunxParser.ConstantContext ctx) {
         if (ctx.numConstant() != null)
             return visit(ctx.numConstant());
+        InputPosition position = getInputPosition(ctx);
         return switch (ctx.start.getType()) {
-            case FunxLexer.BOOL -> new Primary.Constant(Boolean.parseBoolean(ctx.BOOL().getText()));
+            case FunxLexer.BOOL -> new Primary.Constant(position, Boolean.parseBoolean(ctx.BOOL().getText()));
             // Default case should never be reached
             default -> throw new IllegalParserStateException(ctx, "constant");
         };
@@ -422,8 +454,9 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitNumConstant(FunxParser.NumConstantContext ctx) {
+        InputPosition position = getInputPosition(ctx);
         return switch (ctx.start.getType()) {
-            case FunxLexer.INT -> new Primary.Constant(
+            case FunxLexer.INT -> new Primary.Constant(position,
                     Integer.parseInt(
                             ctx.INT().getText().replaceAll("[()]", "")));
             // Default case should never be reached

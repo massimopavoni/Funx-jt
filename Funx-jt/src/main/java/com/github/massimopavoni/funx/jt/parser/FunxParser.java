@@ -417,6 +417,16 @@ public class FunxParser extends Parser {
 		}
 	}
 	@SuppressWarnings("CheckReturnValue")
+	public static class NamedTypeContext extends TypeElemsContext {
+		public TerminalNode TYPE() { return getToken(FunxParser.TYPE, 0); }
+		public NamedTypeContext(TypeElemsContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitNamedType(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class ArrowTypeContext extends TypeElemsContext {
 		public List<TypeElemsContext> typeElems() {
 			return getRuleContexts(TypeElemsContext.class);
@@ -443,16 +453,6 @@ public class FunxParser extends Parser {
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitParenType(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-	@SuppressWarnings("CheckReturnValue")
-	public static class TypeContext extends TypeElemsContext {
-		public TerminalNode TYPE() { return getToken(FunxParser.TYPE, 0); }
-		public TypeContext(TypeElemsContext ctx) { copyFrom(ctx); }
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitType(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -491,7 +491,7 @@ public class FunxParser extends Parser {
 				break;
 			case TYPE:
 				{
-				_localctx = new TypeContext(_localctx);
+				_localctx = new NamedTypeContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
 				setState(71);

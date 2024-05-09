@@ -1,5 +1,6 @@
-package com.github.massimopavoni.funx.jt.ast;
+package com.github.massimopavoni.funx.jt.ast.node;
 
+import com.github.massimopavoni.funx.jt.ast.InputPosition;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
@@ -12,10 +13,18 @@ import java.util.stream.Collectors;
  */
 public abstract class ASTNode {
     /**
+     * Position of the AST node in the input source code.
+     */
+    public final InputPosition inputPosition;
+
+    /**
      * Package private default constructor,
      * preventing instantiation of generalization class from outside.
+     *
+     * @param inputPosition input source code node position
      */
-    ASTNode() {
+    ASTNode(InputPosition inputPosition) {
+        this.inputPosition = inputPosition;
     }
 
     /**
@@ -50,9 +59,11 @@ public abstract class ASTNode {
         /**
          * Constructor for the module node.
          *
-         * @param declarations declarations in the module
+         * @param inputPosition input source code node position
+         * @param declarations  declarations in the module
          */
-        public Module(ASTNode declarations) {
+        public Module(InputPosition inputPosition, ASTNode declarations) {
+            super(inputPosition);
             this.declarations = declarations;
         }
 
@@ -86,9 +97,11 @@ public abstract class ASTNode {
         /**
          * Constructor for the Declarations node.
          *
+         * @param inputPosition   input source code node position
          * @param declarationList list of declarations
          */
-        public Declarations(List<ASTNode> declarationList) {
+        public Declarations(InputPosition inputPosition, List<ASTNode> declarationList) {
+            super(inputPosition);
             this.declarationList = declarationList;
             declarationTypeMap = declarationList.stream()
                     .map(d -> (Declaration) d)

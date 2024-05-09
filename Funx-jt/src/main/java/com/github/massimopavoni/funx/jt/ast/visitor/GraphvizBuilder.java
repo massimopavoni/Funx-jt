@@ -1,6 +1,6 @@
 package com.github.massimopavoni.funx.jt.ast.visitor;
 
-import com.github.massimopavoni.funx.jt.ast.*;
+import com.github.massimopavoni.funx.jt.ast.node.*;
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
 import java.util.Collections;
@@ -112,14 +112,26 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     }
 
     /**
-     * Visit a {@link Type.SimpleType} AST node.
+     * Visit a {@link Type.NamedType} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
     @Override
-    public String visitSimpleType(Type.SimpleType node) {
+    public String visitNamedType(Type.NamedType node) {
         return toGraphvizDefault(node.type.typeName,
+                Collections.emptyList());
+    }
+
+    /**
+     * Visit a {@link Type.VariableType} AST node.
+     *
+     * @param node the AST node
+     * @return the visitor result
+     */
+    @Override
+    public String visitVariableType(Type.VariableType node) {
+        return toGraphvizDefault(node.name,
                 Collections.emptyList());
     }
 

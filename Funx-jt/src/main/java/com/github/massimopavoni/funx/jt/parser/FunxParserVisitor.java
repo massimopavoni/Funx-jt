@@ -41,6 +41,13 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitLocalDeclarations(FunxParser.LocalDeclarationsContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code namedType}
+	 * labeled alternative in {@link FunxParser#typeElems}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNamedType(FunxParser.NamedTypeContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code arrowType}
 	 * labeled alternative in {@link FunxParser#typeElems}.
 	 * @param ctx the parse tree
@@ -54,13 +61,6 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitParenType(FunxParser.ParenTypeContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code type}
-	 * labeled alternative in {@link FunxParser#typeElems}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitType(FunxParser.TypeContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code expressionStatement}
 	 * labeled alternative in {@link FunxParser#statement}.

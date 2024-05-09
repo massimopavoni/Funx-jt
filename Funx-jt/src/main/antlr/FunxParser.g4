@@ -24,7 +24,7 @@ localDeclarations: NEWLINE declarations NEWLINE;
 // Type
 typeElems
     : OpenParen typeElems CloseParen # parenType
-    | TYPE # type
+    | TYPE # namedType
     | <assoc = right> typeElems Arrow typeElems # arrowType
     ;
 

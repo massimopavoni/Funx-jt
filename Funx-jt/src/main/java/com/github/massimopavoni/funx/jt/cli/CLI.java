@@ -1,6 +1,6 @@
 package com.github.massimopavoni.funx.jt.cli;
 
-import com.github.massimopavoni.funx.jt.ast.ASTNode;
+import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.visitor.GraphvizBuilder;
 import com.github.massimopavoni.funx.jt.ast.visitor.IllegalASTStateException;
 import com.github.massimopavoni.funx.jt.ast.visitor.TypeChecker;
@@ -46,7 +46,6 @@ public class CLI implements Callable<Integer> {
             arity = "1",
             description = "Input funx source file")
     private File file;
-
     /**
      * Parse tree visualization flag.
      */
@@ -55,7 +54,6 @@ public class CLI implements Callable<Integer> {
             description = "Output the raw parse tree visualization",
             defaultValue = "false")
     private boolean parseTree;
-
     /**
      * Abstract syntax tree visualization flag.
      */
@@ -64,7 +62,6 @@ public class CLI implements Callable<Integer> {
             description = "Output the abstract syntax tree visualization",
             defaultValue = "false")
     private boolean ast;
-
     /**
      * Remove .dot file after AST visualization flag.
      */

@@ -1,6 +1,7 @@
 package com.github.massimopavoni.funx.jt.ast.visitor;
 
-import com.github.massimopavoni.funx.jt.ast.*;
+import com.github.massimopavoni.funx.jt.ast.InputPosition;
+import com.github.massimopavoni.funx.jt.ast.node.*;
 import com.github.massimopavoni.funx.jt.parser.ASTBuilder;
 
 import java.util.List;
@@ -16,16 +17,11 @@ public abstract class ASTVisitor<T> {
      * Error reporter for the AST visitor.
      */
     private final ASTErrorReporter errorReporter = new ASTErrorReporter();
-    /**
-     * Current declaration identifier to more easily report errors.
-     */
-    private String currentDeclaration;
 
     /**
      * Constructor for the AST visitor.
      */
     public ASTVisitor() {
-        currentDeclaration = "Module Root";
     }
 
     /**
@@ -38,21 +34,13 @@ public abstract class ASTVisitor<T> {
     }
 
     /**
-     * Current declaration identifier setter.
-     *
-     * @param declaration declaration id
-     */
-    public void setCurrentDeclaration(String declaration) {
-        currentDeclaration = declaration;
-    }
-
-    /**
      * Report an error using the AST reporter instance.
      *
-     * @param message error message
+     * @param position error position
+     * @param message  error message
      */
-    void reportError(String message) {
-        errorReporter.reportError(String.format("At declaration \"%s\": %s", currentDeclaration, message));
+    void reportError(InputPosition position, String message) {
+        errorReporter.reportError(String.format("%s %s", position, message));
     }
 
     /**
@@ -123,12 +111,20 @@ public abstract class ASTVisitor<T> {
     public abstract T visitDeclaration(Declaration node);
 
     /**
-     * Visit a {@link Type.SimpleType} AST node.
+     * Visit a {@link Type.NamedType} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
-    public abstract T visitSimpleType(Type.SimpleType node);
+    public abstract T visitNamedType(Type.NamedType node);
+
+    /**
+     * Visit a {@link Type.VariableType} AST node.
+     *
+     * @param node the AST node
+     * @return the visitor result
+     */
+    public abstract T visitVariableType(Type.VariableType node);
 
     /**
      * Visit a {@link Type.ArrowType} AST node.

@@ -1,8 +1,7 @@
-package com.github.massimopavoni.funx.jt.ast;
+package com.github.massimopavoni.funx.jt.ast.node;
 
+import com.github.massimopavoni.funx.jt.ast.InputPosition;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
-
-import java.util.List;
 
 /**
  * Base class for statement nodes.
@@ -11,8 +10,11 @@ public abstract class Statement extends ASTNode {
     /**
      * Package private default constructor,
      * preventing instantiation of generalization class from outside.
+     *
+     * @param inputPosition input source code node position
      */
-    Statement() {
+    Statement(InputPosition inputPosition) {
+        super(inputPosition);
     }
 
     /**
@@ -31,10 +33,12 @@ public abstract class Statement extends ASTNode {
         /**
          * Constructor for the lambda statement node.
          *
-         * @param paramId   parameter identifier
-         * @param statement statement node
+         * @param inputPosition input source code node position
+         * @param paramId       parameter identifier
+         * @param statement     statement node
          */
-        public Lambda(String paramId, ASTNode statement) {
+        public Lambda(InputPosition inputPosition, String paramId, ASTNode statement) {
+            super(inputPosition);
             this.paramId = paramId;
             this.statement = statement;
         }
@@ -68,10 +72,12 @@ public abstract class Statement extends ASTNode {
         /**
          * Constructor for the let statement node.
          *
+         * @param inputPosition     input source code node position
          * @param localDeclarations local declaration node
          * @param statement         statement node
          */
-        public Let(ASTNode localDeclarations, ASTNode statement) {
+        public Let(InputPosition inputPosition, ASTNode localDeclarations, ASTNode statement) {
+            super(inputPosition);
             this.localDeclarations = localDeclarations;
             this.statement = statement;
         }
@@ -109,11 +115,13 @@ public abstract class Statement extends ASTNode {
         /**
          * Constructor for the if statement node.
          *
-         * @param condition  condition node
-         * @param thenBranch then branch node
-         * @param elseBranch else branch node
+         * @param inputPosition input source code node position
+         * @param condition     condition node
+         * @param thenBranch    then branch node
+         * @param elseBranch    else branch node
          */
-        public If(ASTNode condition, ASTNode thenBranch, ASTNode elseBranch) {
+        public If(InputPosition inputPosition, ASTNode condition, ASTNode thenBranch, ASTNode elseBranch) {
+            super(inputPosition);
             this.condition = condition;
             this.thenBranch = thenBranch;
             this.elseBranch = elseBranch;

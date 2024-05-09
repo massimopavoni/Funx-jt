@@ -1,5 +1,6 @@
-package com.github.massimopavoni.funx.jt.ast;
+package com.github.massimopavoni.funx.jt.ast.node;
 
+import com.github.massimopavoni.funx.jt.ast.InputPosition;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
 
 /**
@@ -26,12 +27,14 @@ public class Declaration extends ASTNode {
     /**
      * Constructor for the declaration node.
      *
-     * @param typeVarId type identifier
-     * @param type      type node
-     * @param id        identifier
-     * @param statement statement node
+     * @param inputPosition input source code node position
+     * @param typeVarId     type identifier
+     * @param type          type node
+     * @param id            identifier
+     * @param statement     statement node
      */
-    public Declaration(String typeVarId, ASTNode type, String id, ASTNode statement) {
+    public Declaration(InputPosition inputPosition, String typeVarId, ASTNode type, String id, ASTNode statement) {
+        super(inputPosition);
         this.typeVarId = typeVarId;
         this.type = type;
         this.id = id;
@@ -47,7 +50,6 @@ public class Declaration extends ASTNode {
      */
     @Override
     public <T> T accept(ASTVisitor<? extends T> visitor) {
-        visitor.setCurrentDeclaration(id);
         return visitor.visitDeclaration(this);
     }
 }

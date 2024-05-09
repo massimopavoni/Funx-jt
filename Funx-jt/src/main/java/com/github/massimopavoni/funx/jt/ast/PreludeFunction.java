@@ -1,15 +1,17 @@
 package com.github.massimopavoni.funx.jt.ast;
 
-import static com.github.massimopavoni.funx.jt.ast.Type.ArrowType.ARITHMETIC_FUNCTION_TYPE;
-import static com.github.massimopavoni.funx.jt.ast.Type.ArrowType.COMPARISON_FUNCTION_TYPE;
+import com.github.massimopavoni.funx.jt.ast.node.Type;
+
+import static com.github.massimopavoni.funx.jt.ast.node.Type.ArrowType.ARITHMETIC_FUNCTION_TYPE;
+import static com.github.massimopavoni.funx.jt.ast.node.Type.ArrowType.COMPARISON_FUNCTION_TYPE;
 
 /**
  * Enum for symbols and corresponding Prelude functions.
  */
 public enum PreludeFunction {
     NOT("!!", "not",
-            new Type.ArrowType(new Type.SimpleType(TypeEnum.BOOLEAN),
-                    new Type.SimpleType(TypeEnum.BOOLEAN))),
+            new Type.ArrowType(new Type.NamedType(TypeEnum.BOOLEAN),
+                    new Type.NamedType(TypeEnum.BOOLEAN))),
     DIVIDE("/", "divide", ARITHMETIC_FUNCTION_TYPE),
     MODULO("%", "modulo", ARITHMETIC_FUNCTION_TYPE),
     MULTIPLY("*", "multiply", ARITHMETIC_FUNCTION_TYPE),

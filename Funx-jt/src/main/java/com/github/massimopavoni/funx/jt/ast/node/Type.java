@@ -1,5 +1,7 @@
-package com.github.massimopavoni.funx.jt.ast;
+package com.github.massimopavoni.funx.jt.ast.node;
 
+import com.github.massimopavoni.funx.jt.ast.InputPosition;
+import com.github.massimopavoni.funx.jt.ast.TypeEnum;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
 
 /**
@@ -11,6 +13,7 @@ public abstract class Type extends ASTNode {
      * preventing instantiation of generalization class from outside.
      */
     Type() {
+        super(InputPosition.UNKNOWN);
     }
 
     /**
@@ -39,20 +42,20 @@ public abstract class Type extends ASTNode {
     public abstract String toString();
 
     /**
-     * Simple type class.
+     * Names type class.
      */
-    public final static class SimpleType extends Type {
+    public final static class NamedType extends Type {
         /**
          * Type enum.
          */
         public final TypeEnum type;
 
         /**
-         * Constructor for the simple type node.
+         * Constructor for the named type node.
          *
          * @param type type enum
          */
-        public SimpleType(TypeEnum type) {
+        public NamedType(TypeEnum type) {
             this.type = type;
         }
 
@@ -65,11 +68,11 @@ public abstract class Type extends ASTNode {
          */
         @Override
         public <T> T accept(ASTVisitor<? extends T> visitor) {
-            return visitor.visitSimpleType(this);
+            return visitor.visitNamedType(this);
         }
 
         /**
-         * Equals method override to compare two simple type nodes.
+         * Equals method override to compare two named type nodes.
          *
          * @param obj object to compare
          * @return true if the two objects are equal, false otherwise
@@ -78,13 +81,13 @@ public abstract class Type extends ASTNode {
         public boolean equals(Object obj) {
             if (obj == this)
                 return true;
-            if (!(obj instanceof SimpleType other))
+            if (!(obj instanceof NamedType other))
                 return false;
             return this.type == other.type;
         }
 
         /**
-         * Hash code method override for the simple type node.
+         * Hash code method override for the named type node.
          *
          * @return hash code of the object
          */
@@ -94,7 +97,7 @@ public abstract class Type extends ASTNode {
         }
 
         /**
-         * To string method override for the simple type node.
+         * To string method override for the named type node.
          *
          * @return string representation of the object
          */
@@ -105,24 +108,90 @@ public abstract class Type extends ASTNode {
     }
 
     /**
+     * Variable type class.
+     */
+    public final static class VariableType extends Type {
+        /**
+         * Type name.
+         */
+        public final String name;
+
+        /**
+         * Constructor for the variable type node.
+         *
+         * @param name type name
+         */
+        public VariableType(String name) {
+            this.name = name;
+        }
+
+        /**
+         * Accepts a visitor to traverse the AST.
+         *
+         * @param visitor visitor to accept
+         * @param <T>     return type of the visitor
+         * @return the result of the visit
+         */
+        @Override
+        public <T> T accept(ASTVisitor<? extends T> visitor) {
+            return visitor.visitVariableType(this);
+        }
+
+        /**
+         * Equals method override to compare two variable type nodes.
+         *
+         * @param obj object to compare
+         * @return true if the two objects are equal, false otherwise
+         */
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this)
+                return true;
+            if (!(obj instanceof VariableType other))
+                return false;
+            return this.name.equals(other.name);
+        }
+
+        /**
+         * Hash code method override for the variable type node.
+         *
+         * @return hash code of the object
+         */
+        @Override
+        public int hashCode() {
+            return name.hashCode();
+        }
+
+        /**
+         * To string method override for the variable type node.
+         *
+         * @return string representation of the object
+         */
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
+
+    /**
      * Arrow type class.
      */
     public final static class ArrowType extends Type {
         /**
          * Default arithmetic function type.
          */
-        static final Type.ArrowType ARITHMETIC_FUNCTION_TYPE =
-                new Type.ArrowType(new Type.SimpleType(TypeEnum.INTEGER),
-                        new Type.ArrowType(new Type.SimpleType(TypeEnum.INTEGER),
-                                new Type.SimpleType(TypeEnum.INTEGER)));
+        public static final Type.ArrowType ARITHMETIC_FUNCTION_TYPE =
+                new Type.ArrowType(new NamedType(TypeEnum.INTEGER),
+                        new Type.ArrowType(new NamedType(TypeEnum.INTEGER),
+                                new NamedType(TypeEnum.INTEGER)));
 
         /**
          * Default comparison function type.
          */
-        static final Type.ArrowType COMPARISON_FUNCTION_TYPE =
-                new Type.ArrowType(new Type.SimpleType(TypeEnum.INTEGER),
-                        new Type.ArrowType(new Type.SimpleType(TypeEnum.INTEGER),
-                                new Type.SimpleType(TypeEnum.BOOLEAN)));
+        public static final Type.ArrowType COMPARISON_FUNCTION_TYPE =
+                new Type.ArrowType(new NamedType(TypeEnum.INTEGER),
+                        new Type.ArrowType(new NamedType(TypeEnum.INTEGER),
+                                new NamedType(TypeEnum.BOOLEAN)));
 
         /**
          * Input type node.

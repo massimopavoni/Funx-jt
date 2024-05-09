@@ -1,5 +1,6 @@
-package com.github.massimopavoni.funx.jt.ast;
+package com.github.massimopavoni.funx.jt.ast.node;
 
+import com.github.massimopavoni.funx.jt.ast.InputPosition;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
 
 /**
@@ -9,8 +10,11 @@ public abstract class Expression extends Statement {
     /**
      * Package private default constructor,
      * preventing instantiation of generalization class from outside.
+     *
+     * @param inputPosition input source code node position
      */
-    Expression() {
+    Expression(InputPosition inputPosition) {
+        super(inputPosition);
     }
 
     /**
@@ -29,10 +33,12 @@ public abstract class Expression extends Statement {
         /**
          * Constructor for the application expression node.
          *
-         * @param left  left node
-         * @param right right node
+         * @param inputPosition input source code node position
+         * @param left          left node
+         * @param right         right node
          */
-        public Application(ASTNode left, ASTNode right) {
+        public Application(InputPosition inputPosition, ASTNode left, ASTNode right) {
+            super(inputPosition);
             this.left = left;
             this.right = right;
         }
