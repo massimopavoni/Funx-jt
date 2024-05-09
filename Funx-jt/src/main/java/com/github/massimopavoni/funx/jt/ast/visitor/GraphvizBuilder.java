@@ -15,6 +15,11 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      * Graphviz code string builder.
      */
     private final StringBuilder builder;
+    /**
+     * Unique identifier for an AST node,
+     * used for Graphviz instead of the hash code to avoid collisions and a resulting weird looking graph.
+     */
+    private int nodeId = 0;
 
     /**
      * Constructor for the Graphviz builder.
@@ -37,25 +42,23 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     /**
      * Returns a unique identifier for an AST node.
      *
-     * @param node AST node
-     * @return unique identifier using the hash code of the object
+     * @return unique identifier using the internal counter
      */
-    private String getNodeId(ASTNode node) {
-        return String.valueOf(node.hashCode());
+    private String getNodeId() {
+        return String.valueOf(nodeId++);
     }
 
     /**
      * Default behavior for the Graphviz building,
-     * using more parameters to set a node label and connect all children to this node.
+     * using more parameters to set a node label and connect all children to a parent node.
      * (We don't use the ASTVisitor visit method with node results aggregation within this very custom visitor).
      *
      * @param label    node label
-     * @param parent   parent node
      * @param children list of children nodes
      * @return node identifier
      */
-    private String toGraphvizDefault(String label, ASTNode parent, List<ASTNode> children) {
-        String nodeId = getNodeId(parent);
+    private String toGraphvizDefault(String label, List<ASTNode> children) {
+        String nodeId = getNodeId();
         builder.append(String.format("%s [label=\"%s\"];\n",
                 nodeId, label));
         children.forEach(c -> builder.append(
@@ -78,7 +81,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
                 node [fontname="Arial", color=gray40, shape=egg];
                 edge [fontname="Arial", color=gray40, arrowsize=0.8];
                 """);
-        String nodeId = toGraphvizDefault(ASTNode.Module.class.getSimpleName(), node,
+        String nodeId = toGraphvizDefault(ASTNode.Module.class.getSimpleName(),
                 Collections.singletonList(node.declarations));
         builder.append("}\n");
         return nodeId;
@@ -92,7 +95,8 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      */
     @Override
     public String visitDeclarations(ASTNode.Declarations node) {
-        return toGraphvizDefault(ASTNode.Declarations.class.getSimpleName(), node, node.declarationList);
+        return toGraphvizDefault(ASTNode.Declarations.class.getSimpleName(),
+                node.declarationList);
     }
 
     /**
@@ -103,7 +107,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      */
     @Override
     public String visitDeclaration(Declaration node) {
-        return toGraphvizDefault(node.id, node,
+        return toGraphvizDefault(node.id,
                 List.of(node.type, node.statement));
     }
 
@@ -115,7 +119,8 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      */
     @Override
     public String visitSimpleType(Type.SimpleType node) {
-        return toGraphvizDefault(node.type.typeName, node, Collections.emptyList());
+        return toGraphvizDefault(node.type.typeName,
+                Collections.emptyList());
     }
 
     /**
@@ -126,7 +131,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      */
     @Override
     public String visitArrowType(Type.ArrowType node) {
-        return toGraphvizDefault(ASTNode.fromLexerToken(FunxLexer.Arrow), node,
+        return toGraphvizDefault(ASTNode.fromLexerToken(FunxLexer.Arrow),
                 List.of(node.input, node.output));
     }
 
@@ -139,7 +144,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     @Override
     public String visitLambda(Statement.Lambda node) {
         return toGraphvizDefault(
-                String.format("\\\\%s", node.paramId), node,
+                String.format("\\\\%s", node.paramId),
                 Collections.singletonList(node.statement));
     }
 
@@ -151,7 +156,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      */
     @Override
     public String visitLet(Statement.Let node) {
-        return toGraphvizDefault(ASTNode.fromLexerToken(FunxLexer.LET), node,
+        return toGraphvizDefault(ASTNode.fromLexerToken(FunxLexer.LET),
                 List.of(node.localDeclarations, node.statement));
     }
 
@@ -163,7 +168,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      */
     @Override
     public String visitIf(Statement.If node) {
-        return toGraphvizDefault(ASTNode.fromLexerToken(FunxLexer.IF), node,
+        return toGraphvizDefault(ASTNode.fromLexerToken(FunxLexer.IF),
                 List.of(node.condition, node.thenBranch, node.elseBranch));
     }
 
@@ -175,7 +180,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      */
     @Override
     public String visitApplication(Expression.Application node) {
-        return toGraphvizDefault("@", node,
+        return toGraphvizDefault("@",
                 List.of(node.left, node.right));
     }
 
@@ -187,7 +192,8 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      */
     @Override
     public String visitConstant(Primary.Constant node) {
-        return toGraphvizDefault(node.value.toString(), node, Collections.emptyList());
+        return toGraphvizDefault(node.value.toString(),
+                Collections.emptyList());
     }
 
     /**
@@ -198,6 +204,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      */
     @Override
     public String visitVariable(Primary.Variable node) {
-        return toGraphvizDefault(node.id, node, Collections.emptyList());
+        return toGraphvizDefault(node.id,
+                Collections.emptyList());
     }
 }

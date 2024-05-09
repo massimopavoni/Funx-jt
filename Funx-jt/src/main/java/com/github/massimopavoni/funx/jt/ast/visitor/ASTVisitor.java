@@ -16,7 +16,6 @@ public abstract class ASTVisitor<T> {
      * Error reporter for the AST visitor.
      */
     private final ASTErrorReporter errorReporter = new ASTErrorReporter();
-
     /**
      * Current declaration identifier to more easily report errors.
      */
