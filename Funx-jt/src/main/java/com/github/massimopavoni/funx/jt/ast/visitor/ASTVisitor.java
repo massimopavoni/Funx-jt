@@ -135,28 +135,28 @@ public abstract class ASTVisitor<T> {
     public abstract T visitArrowType(Type.ArrowType node);
 
     /**
-     * Visit a {@link Statement.Lambda} AST node.
+     * Visit a {@link Expression.Lambda} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
-    public abstract T visitLambda(Statement.Lambda node);
+    public abstract T visitLambda(Expression.Lambda node);
 
     /**
-     * Visit a {@link Statement.Let} AST node.
+     * Visit a {@link Expression.Let} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
-    public abstract T visitLet(Statement.Let node);
+    public abstract T visitLet(Expression.Let node);
 
     /**
-     * Visit a {@link Statement.If} AST node.
+     * Visit a {@link Expression.If} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
-    public abstract T visitIf(Statement.If node);
+    public abstract T visitIf(Expression.If node);
 
     /**
      * Visit a {@link Expression.Application} AST node.
@@ -167,18 +167,18 @@ public abstract class ASTVisitor<T> {
     public abstract T visitApplication(Expression.Application node);
 
     /**
-     * Visit a {@link Primary.Constant} AST node.
+     * Visit a {@link Expression.Constant} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
-    public abstract T visitConstant(Primary.Constant node);
+    public abstract T visitConstant(Expression.Constant node);
 
     /**
-     * Visit a {@link Primary.Variable} AST node.
+     * Visit a {@link Expression.Variable} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
-    public abstract T visitVariable(Primary.Variable node);
+    public abstract T visitVariable(Expression.Variable node);
 }

@@ -1,6 +1,9 @@
 package com.github.massimopavoni.funx.jt.ast.visitor;
 
-import com.github.massimopavoni.funx.jt.ast.node.*;
+import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
+import com.github.massimopavoni.funx.jt.ast.node.Declaration;
+import com.github.massimopavoni.funx.jt.ast.node.Expression;
+import com.github.massimopavoni.funx.jt.ast.node.Type;
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
 import java.util.Collections;
@@ -108,7 +111,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     @Override
     public String visitDeclaration(Declaration node) {
         return toGraphvizDefault(node.id,
-                List.of(node.type, node.statement));
+                List.of(node.type, node.expression));
     }
 
     /**
@@ -148,38 +151,38 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     }
 
     /**
-     * Visit a {@link Statement.Lambda} AST node.
+     * Visit a {@link Expression.Lambda} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
     @Override
-    public String visitLambda(Statement.Lambda node) {
+    public String visitLambda(Expression.Lambda node) {
         return toGraphvizDefault(
                 String.format("\\\\%s", node.paramId),
-                Collections.singletonList(node.statement));
+                Collections.singletonList(node.expression));
     }
 
     /**
-     * Visit a {@link Statement.Let} AST node.
+     * Visit a {@link Expression.Let} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
     @Override
-    public String visitLet(Statement.Let node) {
+    public String visitLet(Expression.Let node) {
         return toGraphvizDefault(ASTNode.fromLexerToken(FunxLexer.LET),
-                List.of(node.localDeclarations, node.statement));
+                List.of(node.localDeclarations, node.expression));
     }
 
     /**
-     * Visit a {@link Statement.If} AST node.
+     * Visit a {@link Expression.If} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
     @Override
-    public String visitIf(Statement.If node) {
+    public String visitIf(Expression.If node) {
         return toGraphvizDefault(ASTNode.fromLexerToken(FunxLexer.IF),
                 List.of(node.condition, node.thenBranch, node.elseBranch));
     }
@@ -197,25 +200,25 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     }
 
     /**
-     * Visit a {@link Primary.Constant} AST node.
+     * Visit a {@link Expression.Constant} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
     @Override
-    public String visitConstant(Primary.Constant node) {
+    public String visitConstant(Expression.Constant node) {
         return toGraphvizDefault(node.value.toString(),
                 Collections.emptyList());
     }
 
     /**
-     * Visit a {@link Primary.Variable} AST node.
+     * Visit a {@link Expression.Variable} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
     @Override
-    public String visitVariable(Primary.Variable node) {
+    public String visitVariable(Expression.Variable node) {
         return toGraphvizDefault(node.id,
                 Collections.emptyList());
     }

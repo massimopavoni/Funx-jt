@@ -20,9 +20,9 @@ public class Declaration extends ASTNode {
      */
     public final String id;
     /**
-     * Statement node.
+     * Expression node.
      */
-    public final ASTNode statement;
+    public final ASTNode expression;
 
     /**
      * Constructor for the declaration node.
@@ -31,14 +31,14 @@ public class Declaration extends ASTNode {
      * @param typeVarId     type identifier
      * @param type          type node
      * @param id            identifier
-     * @param statement     statement node
+     * @param expression    expression node
      */
-    public Declaration(InputPosition inputPosition, String typeVarId, ASTNode type, String id, ASTNode statement) {
+    public Declaration(InputPosition inputPosition, String typeVarId, ASTNode type, String id, ASTNode expression) {
         super(inputPosition);
         this.typeVarId = typeVarId;
         this.type = type;
         this.id = id;
-        this.statement = statement;
+        this.expression = expression;
     }
 
     /**

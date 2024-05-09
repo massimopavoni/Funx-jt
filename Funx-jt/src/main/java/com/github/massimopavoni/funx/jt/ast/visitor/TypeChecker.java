@@ -2,7 +2,10 @@ package com.github.massimopavoni.funx.jt.ast.visitor;
 
 import com.github.massimopavoni.funx.jt.ast.PreludeFunction;
 import com.github.massimopavoni.funx.jt.ast.TypeEnum;
-import com.github.massimopavoni.funx.jt.ast.node.*;
+import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
+import com.github.massimopavoni.funx.jt.ast.node.Declaration;
+import com.github.massimopavoni.funx.jt.ast.node.Expression;
+import com.github.massimopavoni.funx.jt.ast.node.Type;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,7 +25,7 @@ public final class TypeChecker extends ASTVisitor<Void> {
      */
     private int variableTypeCount = 0;
     /**
-     * Current declaration type, used to match the statement.
+     * Current declaration type, used to match an expression.
      */
     private Type currentDeclarationType = null;
     /**
@@ -47,11 +50,11 @@ public final class TypeChecker extends ASTVisitor<Void> {
      * @param primary primary node
      * @return type of the primary or null if not found
      */
-    private Type getPrimaryType(Primary primary) {
+    private Type getPrimaryType(Expression primary) {
         return switch (primary) {
-            case Primary.Constant constant -> getConstantType(constant);
-            case Primary.Variable variable -> getVariableType(variable);
-            default -> throw new IllegalStateException("Primary is not a constant or variable");
+            case Expression.Constant constant -> getConstantType(constant);
+            case Expression.Variable variable -> getVariableType(variable);
+            default -> throw new IllegalStateException("Expression is not a constant or variable");
         };
     }
 
@@ -65,24 +68,24 @@ public final class TypeChecker extends ASTVisitor<Void> {
     }
 
     /**
-     * Get the type for a constant primary node.
+     * Get the type for a constant expression node.
      *
      * @param constant constant node
      * @return type of the constant or null if not found
      */
-    private Type getConstantType(Primary.Constant constant) {
+    private Type getConstantType(Expression.Constant constant) {
         TypeEnum constantType = TypeEnum.fromTypeClass(constant.value.getClass());
         return new Type.NamedType(constantType);
     }
 
     /**
-     * Get the type for a variable primary node,
+     * Get the type for a variable expression node,
      * searching a declaration within the current scope.
      *
      * @param node variable node
      * @return type of the variable or null if not found
      */
-    private Type getVariableType(Primary.Variable node) {
+    private Type getVariableType(Expression.Variable node) {
         Type type = lambdaParamTypeMap.getOrDefault(node.id,
                 localDeclarationTypeMap.getOrDefault(node.id,
                         moduleDeclarationTypeMap.getOrDefault(node.id,
@@ -131,23 +134,23 @@ public final class TypeChecker extends ASTVisitor<Void> {
                     String.format("type id \"%s\" does not match declaration id \"%s\"",
                             node.typeVarId, node.id));
         currentDeclarationType = (Type) node.type;
-        checkDeclarationType(node.statement);
+        checkDeclarationType(node.expression);
         if (localDeclarationTypeMap.isEmpty())
             lambdaParamTypeMap.clear();
-        if (node.statement instanceof Statement.Lambda)
+        if (node.expression instanceof Expression.Lambda)
             currentDeclarationPartialType = (Type) node.type;
-        return visit(node.statement);
+        return visit(node.expression);
     }
 
     /**
-     * Check the current declaration type against a statement.
+     * Check the current declaration type against an expression.
      *
-     * @param statement statement node
+     * @param expression expression node
      */
-    private void checkDeclarationType(ASTNode statement) {
+    private void checkDeclarationType(ASTNode expression) {
         switch (currentDeclarationType) {
-            case Type.NamedType type -> checkNamedType(type, statement);
-            case Type.ArrowType type -> checkArrowType(type, statement);
+            case Type.NamedType type -> checkNamedType(type, expression);
+            case Type.ArrowType type -> checkArrowType(type, expression);
             default -> {
                 // No error
             }
@@ -155,20 +158,21 @@ public final class TypeChecker extends ASTVisitor<Void> {
     }
 
     /**
-     * Check a declaration named type against a statement.
+     * Check a declaration named type against an expression.
      *
-     * @param type      declaration type
-     * @param statement statement to check
+     * @param type       declaration type
+     * @param expression expression to check
      */
-    private void checkNamedType(Type.NamedType type, ASTNode statement) {
-        switch (statement) {
-            case Statement.Lambda lambda -> reportError(lambda.inputPosition,
-                    String.format("named type \"%s\" does not match lambda statement", type));
-            case Primary primary -> {
+    private void checkNamedType(Type.NamedType type, ASTNode expression) {
+        switch (expression) {
+            case Expression.Lambda lambda -> reportError(lambda.inputPosition,
+                    String.format("named type \"%s\" does not match lambda expression", type));
+            case Expression primary when
+                    (primary instanceof Expression.Constant || primary instanceof Expression.Variable) -> {
                 Type primaryType = getPrimaryType(primary);
                 if (primaryType != null && !primaryType.equals(type))
                     reportError(primary.inputPosition,
-                            String.format("named type \"%s\" does not match primary type \"%s\"",
+                            String.format("named type \"%s\" does not match expression type \"%s\"",
                                     type, primaryType));
             }
             default -> {
@@ -178,17 +182,17 @@ public final class TypeChecker extends ASTVisitor<Void> {
     }
 
     /**
-     * Check a declaration arrow type against a statement.
+     * Check a declaration arrow type against an expression.
      *
-     * @param type      declaration type
-     * @param statement statement to check
+     * @param type       declaration type
+     * @param expression expression to check
      */
-    private void checkArrowType(Type.ArrowType type, ASTNode statement) {
-        switch (statement) {
-            case Primary.Constant constant -> reportError(constant.inputPosition,
+    private void checkArrowType(Type.ArrowType type, ASTNode expression) {
+        switch (expression) {
+            case Expression.Constant constant -> reportError(constant.inputPosition,
                     String.format("arrow type \"%s\" does not match constant type \"%s\"",
                             type, getConstantType(constant)));
-            case Primary.Variable variable -> {
+            case Expression.Variable variable -> {
                 Type variableType = getVariableType(variable);
                 if (variableType != null && !variableType.equals(type))
                     reportError(variable.inputPosition,
@@ -238,13 +242,13 @@ public final class TypeChecker extends ASTVisitor<Void> {
     }
 
     /**
-     * Visit a {@link Statement.Lambda} AST node.
+     * Visit a {@link Expression.Lambda} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
     @Override
-    public Void visitLambda(Statement.Lambda node) {
+    public Void visitLambda(Expression.Lambda node) {
         switch (currentDeclarationPartialType) {
             case null -> lambdaParamTypeMap.put(node.paramId, getNewVariableType());
             case Type.ArrowType arrowType -> {
@@ -252,45 +256,45 @@ public final class TypeChecker extends ASTVisitor<Void> {
                 currentDeclarationPartialType = (Type) arrowType.output;
             }
             default -> reportError(node.inputPosition,
-                    String.format("non-arrow type \"%s\" does not match lambda statement",
+                    String.format("non-arrow type \"%s\" does not match lambda expression",
                             currentDeclarationPartialType));
         }
-        if (!(node.statement instanceof Statement.Lambda))
+        if (!(node.expression instanceof Expression.Lambda))
             currentDeclarationPartialType = null;
-        return visit(node.statement);
+        return visit(node.expression);
     }
 
     /**
-     * Visit a {@link Statement.Let} AST node.
+     * Visit a {@link Expression.Let} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
     @Override
-    public Void visitLet(Statement.Let node) {
+    public Void visitLet(Expression.Let node) {
         localDeclarationTypeMap = ((ASTNode.Declarations) node.localDeclarations).declarationTypeMap;
-        visit(List.of(node.localDeclarations, node.statement));
-        checkDeclarationType(node.statement);
+        visit(List.of(node.localDeclarations, node.expression));
+        checkDeclarationType(node.expression);
         localDeclarationTypeMap.clear();
         return null;
     }
 
     /**
-     * Visit a {@link Statement.If} AST node.
+     * Visit a {@link Expression.If} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
     @Override
-    public Void visitIf(Statement.If node) {
+    public Void visitIf(Expression.If node) {
         switch (node.condition) {
-            case Primary.Constant constant -> {
+            case Expression.Constant constant -> {
                 if (!(constant.value instanceof Boolean))
                     reportError(constant.inputPosition,
                             String.format("type \"%s\" of constant in if condition is not boolean",
                                     constant.value));
             }
-            case Primary.Variable variable -> {
+            case Expression.Variable variable -> {
                 Type variableType = getVariableType(variable);
                 if (variableType != null && !(variableType instanceof Type.VariableType)
                         && !variableType.equals(new Type.NamedType(TypeEnum.BOOLEAN)))
@@ -314,10 +318,10 @@ public final class TypeChecker extends ASTVisitor<Void> {
     @Override
     public Void visitApplication(Expression.Application node) {
         switch (node.left) {
-            case Primary.Constant constant -> reportError(constant.inputPosition,
+            case Expression.Constant constant -> reportError(constant.inputPosition,
                     String.format("attempt to use constant value \"%s\" as function",
                             constant.value));
-            case Primary.Variable variable -> {
+            case Expression.Variable variable -> {
                 Type variableType = getVariableType(variable);
                 if (variableType != null) {
                     switch (variableType) {
@@ -326,7 +330,9 @@ public final class TypeChecker extends ASTVisitor<Void> {
                                         "attempt to use function \"%s\" with simple type \"%s\" in application",
                                         variable.id, type));
                         case Type.ArrowType type -> {
-                            if (node.right instanceof Primary rightPrimary) {
+                            if (node.right instanceof Expression rightPrimary
+                                    && (rightPrimary instanceof Expression.Constant
+                                    || rightPrimary instanceof Expression.Variable)) {
                                 Type rightType = getPrimaryType(rightPrimary);
                                 if (rightType != null && !(rightType instanceof Type.VariableType)
                                         && !rightType.equals(type.input))
@@ -350,24 +356,24 @@ public final class TypeChecker extends ASTVisitor<Void> {
     }
 
     /**
-     * Visit a {@link Primary.Constant} AST node.
+     * Visit a {@link Expression.Constant} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
     @Override
-    public Void visitConstant(Primary.Constant node) {
+    public Void visitConstant(Expression.Constant node) {
         return defaultResult();
     }
 
     /**
-     * Visit a {@link Primary.Variable} AST node.
+     * Visit a {@link Expression.Variable} AST node.
      *
      * @param node the AST node
      * @return the visitor result
      */
     @Override
-    public Void visitVariable(Primary.Variable node) {
+    public Void visitVariable(Expression.Variable node) {
         return defaultResult();
     }
 }

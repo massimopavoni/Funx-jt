@@ -160,15 +160,6 @@ public class CLI implements Callable<Integer> {
     }
 
     private void transpile(ASTNode astRoot, Path outputPath) throws CLIException {
-//        if (javaBuilder.getNumberOfSemanticErrors() > 0)
-//            throw new IllegalTranspilerStateException("Semantic errors found");
-// some checks for the java builder
-//        if (!ctx.functionType().id.getText()
-//                .equals(ctx.id.getText()))
-//            errorReporter.reportError(ctx.functionType(), "same identifier for type and function");
-//
-//        if (left instanceof Primary.Literal)
-//            errorReporter.reportError(ctx, "non-literal function application");
     }
 
     /**
