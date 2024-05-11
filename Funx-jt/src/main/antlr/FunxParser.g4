@@ -4,7 +4,7 @@ options { tokenVocab = FunxLexer; }
 
 // ----------------------------------------------------------------
 // Root
-module: declarations EOF;
+module: (MODULE MODULEID NEWLINE+)? declarations EOF;
 
 declarations: declaration (NEWLINE declaration?)*;
 

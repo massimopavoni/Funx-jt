@@ -43,7 +43,7 @@ public abstract class ASTNode {
      *
      * @param visitor visitor to accept
      * @param <T>     return type of the visitor
-     * @return the result of the visit
+     * @return result of the visit
      */
     public abstract <T> T accept(ASTVisitor<? extends T> visitor);
 
@@ -51,6 +51,10 @@ public abstract class ASTNode {
      * Root node of the AST.
      */
     public static final class Module extends ASTNode {
+        /**
+         * Module name.
+         */
+        public final String name;
         /**
          * Declarations in the module.
          */
@@ -60,10 +64,12 @@ public abstract class ASTNode {
          * Constructor for the module node.
          *
          * @param inputPosition input source code node position
+         * @param name          module name
          * @param declarations  declarations in the module
          */
-        public Module(InputPosition inputPosition, ASTNode declarations) {
+        public Module(InputPosition inputPosition, String name, ASTNode declarations) {
             super(inputPosition);
+            this.name = name;
             this.declarations = declarations;
         }
 
@@ -72,7 +78,7 @@ public abstract class ASTNode {
          *
          * @param visitor visitor to accept
          * @param <T>     return type of the visitor
-         * @return the result of the visit
+         * @return result of the visit
          */
         @Override
         public <T> T accept(ASTVisitor<? extends T> visitor) {
@@ -113,7 +119,7 @@ public abstract class ASTNode {
          *
          * @param visitor visitor to accept
          * @param <T>     return type of the visitor
-         * @return the result of the visit
+         * @return result of the visit
          */
         @Override
         public <T> T accept(ASTVisitor<? extends T> visitor) {

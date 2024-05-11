@@ -62,13 +62,12 @@ public class CLI implements Callable<Integer> {
             defaultValue = "true")
     private boolean java;
     /**
-     * Output file parameter.
+     * Output directory parameter.
      */
     @CommandLine.Option(
             names = {"-o", "--output"},
-            description = "Output file path",
-            defaultValue = "")
-    private File output;
+            description = "Output directory")
+    private File outputDir;
     /**
      * Parse tree visualization flag.
      */
@@ -89,9 +88,9 @@ public class CLI implements Callable<Integer> {
      * Remove .dot file after AST visualization flag.
      */
     @CommandLine.Option(
-            names = {"-d", "--no-dot"},
-            description = "Remove .dot file after AST visualization",
-            defaultValue = "false")
+            names = {"-d", "--dot"},
+            description = "Keep .dot file after AST visualization",
+            defaultValue = "true")
     private boolean noDot;
 
     /**
@@ -124,19 +123,27 @@ public class CLI implements Callable<Integer> {
     public Integer call() throws Exception {
         Path filePath = input.toPath().toAbsolutePath();
         Path workingDir = filePath.getParent();
-        String filename = input.getName().split("\\.")[0];
+        String fileName = input.getName().split("\\.")[0];
+        fileName = Character.toUpperCase(fileName.charAt(0)) + fileName.substring(1);
         ParseTree tree = getParseTree(filePath.toString());
-        ASTNode astRoot = getAST(tree);
+        ASTNode astRoot = getAST(fileName, tree);
+        // This should never fail
+        if (!(astRoot instanceof ASTNode.Module module))
+            throw new IllegalASTStateException("Root node is not a module");
+        if (!fileName.equals(module.name))
+            throw new IllegalASTStateException("File name does not match module name");
         if (typecheck)
-            typecheck(astRoot);
-        if (java)
-            transpile(astRoot, output == null ?
-                    workingDir.resolve(String.format("%s.java", filename))
-                    : output.toPath().toAbsolutePath());
+            typecheck(module);
+        if (java) {
+            if (outputDir != null && !outputDir.isDirectory())
+                throw new CLIException("Output path must be a directory");
+            transpile(module, (outputDir == null ? workingDir : outputDir.toPath())
+                    .resolve(String.format("%s.java", module.name)));
+        }
         if (parseTree)
-            outputParseTree(tree, workingDir.resolve(String.format("%s_parse_tree.png", filename)));
+            outputParseTree(tree, workingDir.resolve(String.format("%s_parse_tree.png", module.name)));
         if (ast)
-            outputAST(astRoot, workingDir.resolve(String.format("%s_ast.dot", filename)));
+            outputAST(astRoot, workingDir.resolve(String.format("%s_ast.dot", module.name)));
         return 0;
     }
 
@@ -167,11 +174,12 @@ public class CLI implements Callable<Integer> {
     /**
      * Build the abstract syntax tree by visiting the parse tree.
      *
-     * @param tree parse tree
+     * @param fileName input file name
+     * @param tree     parse tree
      * @return abstract syntax tree root node
      */
-    private ASTNode getAST(ParseTree tree) {
-        return new ASTBuilder().visit(tree);
+    private ASTNode getAST(String fileName, ParseTree tree) {
+        return new ASTBuilder(fileName).visit(tree);
     }
 
     /**

@@ -54,6 +54,15 @@ public final class TypeChecker extends ASTVisitor<Void> {
     }
 
     /**
+     * Get a new type variable.
+     *
+     * @return new type variable
+     */
+    private Type.VariableType getNewVariableType() {
+        return new Type.VariableType(String.format("t%d", variableTypeCount++));
+    }
+
+    /**
      * Get the type for a primary node,
      * either from the constant value,
      * or searching a declaration within the current scope.
@@ -67,15 +76,6 @@ public final class TypeChecker extends ASTVisitor<Void> {
             case Expression.Variable variable -> getVariableType(variable);
             default -> throw new IllegalStateException("Expression is not a constant or variable");
         };
-    }
-
-    /**
-     * Get a new type variable.
-     *
-     * @return new type variable
-     */
-    private Type.VariableType getNewVariableType() {
-        return new Type.VariableType(String.format("t%d", variableTypeCount++));
     }
 
     /**
@@ -93,64 +93,64 @@ public final class TypeChecker extends ASTVisitor<Void> {
      * Get the type for a variable expression node,
      * searching a declaration within the current scope.
      *
-     * @param node variable node
+     * @param variable variable node
      * @return type of the variable or null if not found
      */
-    private Type getVariableType(Expression.Variable node) {
-        Type type = lambdaParamTypeMap.getOrDefault(node.id,
-                localDeclarationTypeMap.getOrDefault(node.id,
-                        moduleDeclarationTypeMap.getOrDefault(node.id,
-                                Optional.ofNullable(PreludeFunction.fromFunctionName(node.id))
+    private Type getVariableType(Expression.Variable variable) {
+        Type type = lambdaParamTypeMap.getOrDefault(variable.id,
+                localDeclarationTypeMap.getOrDefault(variable.id,
+                        moduleDeclarationTypeMap.getOrDefault(variable.id,
+                                Optional.ofNullable(PreludeFunction.fromFunctionName(variable.id))
                                         .map(f -> f.functionType)
                                         .orElse(null))));
         if (type == null)
-            reportError(node.inputPosition,
-                    String.format("reference to non-existing variable \"%s\"", node.id));
+            reportError(variable.inputPosition,
+                    String.format("reference to non-existing variable \"%s\"", variable.id));
         return type;
     }
 
     /**
      * Visit a {@link ASTNode.Module} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param module module node
+     * @return visitor result
      */
     @Override
-    public Void visitModule(ASTNode.Module node) {
-        moduleDeclarationTypeMap = ((ASTNode.Declarations) node.declarations).declarationTypeMap;
-        return visit(node.declarations);
+    public Void visitModule(ASTNode.Module module) {
+        moduleDeclarationTypeMap = ((ASTNode.Declarations) module.declarations).declarationTypeMap;
+        return visit(module.declarations);
     }
 
     /**
      * Visit a {@link ASTNode.Declarations} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param declarations declarations node
+     * @return visitor result
      */
     @Override
-    public Void visitDeclarations(ASTNode.Declarations node) {
-        return visit(node.declarationList);
+    public Void visitDeclarations(ASTNode.Declarations declarations) {
+        return visit(declarations.declarationList);
     }
 
     /**
      * Visit a {@link Declaration} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param declaration declaration node
+     * @return visitor result
      */
     @Override
-    public Void visitDeclaration(Declaration node) {
-        if (!node.typeVarId.equals(node.id))
-            reportError(node.inputPosition,
+    public Void visitDeclaration(Declaration declaration) {
+        if (!declaration.typeVarId.equals(declaration.id))
+            reportError(declaration.inputPosition,
                     String.format("type id \"%s\" does not match declaration id \"%s\"",
-                            node.typeVarId, node.id));
-        currentDeclarationType = (Type) node.type;
-        checkDeclarationType(node.expression);
+                            declaration.typeVarId, declaration.id));
+        currentDeclarationType = (Type) declaration.type;
+        checkDeclarationType(declaration.expression);
         if (localDeclarationTypeMap.isEmpty())
             lambdaParamTypeMap.clear();
-        if (node.expression instanceof Expression.Lambda)
-            currentDeclarationPartialType = (Type) node.type;
-        return visit(node.expression);
+        if (declaration.expression instanceof Expression.Lambda)
+            currentDeclarationPartialType = (Type) declaration.type;
+        return visit(declaration.expression);
     }
 
     /**
@@ -220,11 +220,11 @@ public final class TypeChecker extends ASTVisitor<Void> {
     /**
      * Visit a {@link Type.NamedType} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param type type node
+     * @return visitor result
      */
     @Override
-    public Void visitNamedType(Type.NamedType node) {
+    public Void visitNamedType(Type.NamedType type) {
         throw new IllegalStateException(String.format(ILLEGAL_STATE_MESSAGE,
                 Type.NamedType.class.getSimpleName()));
     }
@@ -232,11 +232,11 @@ public final class TypeChecker extends ASTVisitor<Void> {
     /**
      * Visit a {@link Type.VariableType} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param type type node
+     * @return visitor result
      */
     @Override
-    public Void visitVariableType(Type.VariableType node) {
+    public Void visitVariableType(Type.VariableType type) {
         throw new IllegalStateException(String.format(ILLEGAL_STATE_MESSAGE,
                 Type.VariableType.class.getSimpleName()));
     }
@@ -244,11 +244,11 @@ public final class TypeChecker extends ASTVisitor<Void> {
     /**
      * Visit a {@link Type.ArrowType} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param type type node
+     * @return visitor result
      */
     @Override
-    public Void visitArrowType(Type.ArrowType node) {
+    public Void visitArrowType(Type.ArrowType type) {
         throw new IllegalStateException(String.format(ILLEGAL_STATE_MESSAGE,
                 Type.ArrowType.class.getSimpleName()));
     }
@@ -256,37 +256,37 @@ public final class TypeChecker extends ASTVisitor<Void> {
     /**
      * Visit a {@link Expression.Lambda} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param lambda lambda node
+     * @return visitor result
      */
     @Override
-    public Void visitLambda(Expression.Lambda node) {
+    public Void visitLambda(Expression.Lambda lambda) {
         switch (currentDeclarationPartialType) {
-            case null -> lambdaParamTypeMap.put(node.paramId, getNewVariableType());
+            case null -> lambdaParamTypeMap.put(lambda.paramId, getNewVariableType());
             case Type.ArrowType arrowType -> {
-                lambdaParamTypeMap.put(node.paramId, (Type) arrowType.input);
+                lambdaParamTypeMap.put(lambda.paramId, (Type) arrowType.input);
                 currentDeclarationPartialType = (Type) arrowType.output;
             }
-            default -> reportError(node.inputPosition,
+            default -> reportError(lambda.inputPosition,
                     String.format("non-arrow type \"%s\" does not match lambda expression",
                             currentDeclarationPartialType));
         }
-        if (!(node.expression instanceof Expression.Lambda))
+        if (!(lambda.expression instanceof Expression.Lambda))
             currentDeclarationPartialType = null;
-        return visit(node.expression);
+        return visit(lambda.expression);
     }
 
     /**
      * Visit a {@link Expression.Let} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param let let node
+     * @return visitor result
      */
     @Override
-    public Void visitLet(Expression.Let node) {
-        localDeclarationTypeMap = ((ASTNode.Declarations) node.localDeclarations).declarationTypeMap;
-        checkDeclarationType(node.expression);
-        visit(List.of(node.localDeclarations, node.expression));
+    public Void visitLet(Expression.Let let) {
+        localDeclarationTypeMap = ((ASTNode.Declarations) let.localDeclarations).declarationTypeMap;
+        checkDeclarationType(let.expression);
+        visit(List.of(let.localDeclarations, let.expression));
         localDeclarationTypeMap.clear();
         return null;
     }
@@ -294,12 +294,12 @@ public final class TypeChecker extends ASTVisitor<Void> {
     /**
      * Visit a {@link Expression.If} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param ifE if node
+     * @return visitor result
      */
     @Override
-    public Void visitIf(Expression.If node) {
-        switch (node.condition) {
+    public Void visitIf(Expression.If ifE) {
+        switch (ifE.condition) {
             case Expression.Constant constant
                     when !(constant.value instanceof Boolean) -> reportError(constant.inputPosition,
                     String.format("type \"%s\" of constant in if condition is not boolean",
@@ -316,36 +316,36 @@ public final class TypeChecker extends ASTVisitor<Void> {
                 // No error
             }
         }
-        return visit(List.of(node.condition, node.thenBranch, node.elseBranch));
+        return visit(List.of(ifE.condition, ifE.thenBranch, ifE.elseBranch));
     }
 
     /**
      * Visit a {@link Expression.Application} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param application application node
+     * @return visitor result
      */
     @Override
-    public Void visitApplication(Expression.Application node) {
-        switch (node.left) {
+    public Void visitApplication(Expression.Application application) {
+        switch (application.left) {
             case Expression.Constant constant -> reportError(constant.inputPosition,
                     String.format("attempt to use constant value \"%s\" as function",
                             constant.value));
-            case Expression.Variable variable -> checkApplicationVariable(node, variable);
+            case Expression.Variable variable -> checkApplicationVariable(application, variable);
             default -> {
                 // No error
             }
         }
-        return visit(List.of(node.left, node.right));
+        return visit(List.of(application.left, application.right));
     }
 
     /**
      * Check a variable as left node in an application.
      *
-     * @param node     application node
-     * @param variable variable node
+     * @param application application node
+     * @param variable    variable node
      */
-    private void checkApplicationVariable(Expression.Application node, Expression.Variable variable) {
+    private void checkApplicationVariable(Expression.Application application, Expression.Variable variable) {
         Type variableType = getVariableType(variable);
         if (variableType != null) {
             switch (variableType) {
@@ -354,7 +354,7 @@ public final class TypeChecker extends ASTVisitor<Void> {
                                 "attempt to use function \"%s\" with simple type \"%s\" in application",
                                 variable.id, type));
                 case Type.ArrowType type
-                        when node.right instanceof Expression rightPrimary
+                        when application.right instanceof Expression rightPrimary
                         && (rightPrimary instanceof Expression.Constant
                         || rightPrimary instanceof Expression.Variable) -> {
                     Type rightType = getPrimaryType(rightPrimary);
@@ -375,22 +375,22 @@ public final class TypeChecker extends ASTVisitor<Void> {
     /**
      * Visit a {@link Expression.Constant} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param constant constant node
+     * @return visitor result
      */
     @Override
-    public Void visitConstant(Expression.Constant node) {
+    public Void visitConstant(Expression.Constant constant) {
         return defaultResult();
     }
 
     /**
      * Visit a {@link Expression.Variable} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param variable variable node
+     * @return visitor result
      */
     @Override
-    public Void visitVariable(Expression.Variable node) {
+    public Void visitVariable(Expression.Variable variable) {
         return defaultResult();
     }
 }

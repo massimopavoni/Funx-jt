@@ -74,18 +74,18 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     /**
      * Visit a {@link ASTNode.Module} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param module module node
+     * @return visitor result
      */
     @Override
-    public String visitModule(ASTNode.Module node) {
+    public String visitModule(ASTNode.Module module) {
         builder.append("""
                 digraph AST {
                 node [fontname="Arial", color=gray40, shape=egg];
                 edge [fontname="Arial", color=gray40, arrowsize=0.8];
                 """);
-        String nodeId = toGraphvizDefault(ASTNode.Module.class.getSimpleName(),
-                Collections.singletonList(node.declarations));
+        String nodeId = toGraphvizDefault(String.format("module %s", module.name),
+                Collections.singletonList(module.declarations));
         builder.append("}\n");
         return nodeId;
     }
@@ -93,133 +93,135 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     /**
      * Visit a {@link ASTNode.Declarations} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param declarations declarations node
+     * @return visitor result
      */
     @Override
-    public String visitDeclarations(ASTNode.Declarations node) {
+    public String visitDeclarations(ASTNode.Declarations declarations) {
         return toGraphvizDefault(ASTNode.Declarations.class.getSimpleName(),
-                node.declarationList);
+                declarations.declarationList);
     }
 
     /**
      * Visit a {@link Declaration} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param declaration declaration node
+     * @return visitor result
      */
     @Override
-    public String visitDeclaration(Declaration node) {
-        return toGraphvizDefault(node.id,
-                List.of(node.type, node.expression));
+    public String visitDeclaration(Declaration declaration) {
+        return toGraphvizDefault(declaration.id,
+                List.of(declaration.type, declaration.expression));
     }
 
     /**
      * Visit a {@link Type.NamedType} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param type type node
+     * @return visitor result
      */
     @Override
-    public String visitNamedType(Type.NamedType node) {
-        return toGraphvizDefault(node.type.typeName,
+    public String visitNamedType(Type.NamedType type) {
+        return toGraphvizDefault(type.type.typeName,
                 Collections.emptyList());
     }
 
     /**
      * Visit a {@link Type.VariableType} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param type type node
+     * @return visitor result
      */
     @Override
-    public String visitVariableType(Type.VariableType node) {
-        return toGraphvizDefault(node.name,
+    public String visitVariableType(Type.VariableType type) {
+        return toGraphvizDefault(type.name,
                 Collections.emptyList());
     }
 
     /**
      * Visit a {@link Type.ArrowType} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param type type node
+     * @return visitor result
      */
     @Override
-    public String visitArrowType(Type.ArrowType node) {
+    public String visitArrowType(Type.ArrowType type) {
         return toGraphvizDefault(ASTNode.fromLexerToken(FunxLexer.Arrow),
-                List.of(node.input, node.output));
+                List.of(type.input, type.output));
     }
 
     /**
      * Visit a {@link Expression.Lambda} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param lambda lambda node
+     * @return visitor result
      */
     @Override
-    public String visitLambda(Expression.Lambda node) {
+    public String visitLambda(Expression.Lambda lambda) {
         return toGraphvizDefault(
-                String.format("\\\\%s", node.paramId),
-                Collections.singletonList(node.expression));
+                String.format("\\\\%s", lambda.paramId),
+                Collections.singletonList(lambda.expression));
     }
 
     /**
      * Visit a {@link Expression.Let} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param let let node
+     * @return visitor result
      */
     @Override
-    public String visitLet(Expression.Let node) {
+    public String visitLet(Expression.Let let) {
         return toGraphvizDefault(ASTNode.fromLexerToken(FunxLexer.LET),
-                List.of(node.localDeclarations, node.expression));
+                List.of(let.localDeclarations, let.expression));
     }
 
     /**
      * Visit a {@link Expression.If} AST node.
+     * application
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param ifE if node
+     * @return visitor result
      */
     @Override
-    public String visitIf(Expression.If node) {
+    public String visitIf(Expression.If ifE) {
         return toGraphvizDefault(ASTNode.fromLexerToken(FunxLexer.IF),
-                List.of(node.condition, node.thenBranch, node.elseBranch));
+                List.of(ifE.condition, ifE.thenBranch, ifE.elseBranch));
     }
 
     /**
      * Visit a {@link Expression.Application} AST node.
+     * constant
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param application application node
+     * @return visitor result
      */
     @Override
-    public String visitApplication(Expression.Application node) {
+    public String visitApplication(Expression.Application application) {
         return toGraphvizDefault("@",
-                List.of(node.left, node.right));
+                List.of(application.left, application.right));
     }
 
     /**
      * Visit a {@link Expression.Constant} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param constant constant node
+     * @return visitor result
      */
     @Override
-    public String visitConstant(Expression.Constant node) {
-        return toGraphvizDefault(node.value.toString(),
+    public String visitConstant(Expression.Constant constant) {
+        return toGraphvizDefault(constant.value.toString(),
                 Collections.emptyList());
     }
 
     /**
      * Visit a {@link Expression.Variable} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param variable variable node
+     * @return visitor result
      */
     @Override
-    public String visitVariable(Expression.Variable node) {
-        return toGraphvizDefault(node.id,
+    public String visitVariable(Expression.Variable variable) {
+        return toGraphvizDefault(variable.id,
                 Collections.emptyList());
     }
 }

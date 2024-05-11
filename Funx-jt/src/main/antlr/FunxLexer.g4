@@ -34,6 +34,7 @@ FI: 'fi';
 IF: 'if';
 IN: 'in';
 LET: 'let';
+MODULE: 'module';
 OUT: 'out';
 THEN: 'then';
 WITH: 'with';
@@ -51,9 +52,6 @@ RESERVED_JAVA_KEYWORD
     | 'this' | 'throw' | 'throws' | 'transient' | 'try'
     | 'void' | 'volatile' | 'while'
     ;
-
-// Variables
-VARID: LALPHA (ALPHA_ | DIGIT)*;
 
 // Types
 TYPE
@@ -73,6 +71,12 @@ INT
     : DECIMAL
     | OpenParen '-' DECIMAL CloseParen
     ;
+
+// Variables
+VARID: LALPHA (ALPHA_ | DIGIT)*;
+
+// Module
+MODULEID: UALPHA (ALPHA_ | DIGIT)*;
 
 // Bool
 And: '&&';

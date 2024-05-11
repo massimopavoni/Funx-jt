@@ -46,7 +46,7 @@ public final class Declaration extends ASTNode {
      *
      * @param visitor visitor to accept
      * @param <T>     return type of the visitor
-     * @return the result of the visit
+     * @return result of the visit
      */
     @Override
     public <T> T accept(ASTVisitor<? extends T> visitor) {

@@ -19,10 +19,17 @@ import java.util.stream.Collectors;
  */
 public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     /**
-     * Default constructor.
+     * Name of the file being parsed.
      */
-    public ASTBuilder() {
-        // Empty constructor
+    private final String fileName;
+
+    /**
+     * Constructor for the AST builder.
+     *
+     * @param fileName name of the file being parsed
+     */
+    public ASTBuilder(String fileName) {
+        this.fileName = fileName;
     }
 
     /**
@@ -83,13 +90,13 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * Visit a parse tree produced by {@link FunxParser#module()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitModule(FunxParser.ModuleContext ctx) {
-        // Potentially do other things (e.g. set a different package)
         return new ASTNode.Module(
                 getInputPosition(ctx),
+                ctx.MODULEID() != null ? ctx.MODULEID().getText() : fileName,
                 visit(ctx.declarations()));
     }
 
@@ -97,7 +104,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * Visit a parse tree produced by {@link FunxParser#declarations()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitDeclarations(FunxParser.DeclarationsContext ctx) {
@@ -111,7 +118,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * Visit a parse tree produced by {@link FunxParser#declaration()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitDeclaration(FunxParser.DeclarationContext ctx) {
@@ -142,7 +149,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * Visit a parse tree produced by {@link FunxParser#declarationType()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitDeclarationType(FunxParser.DeclarationTypeContext ctx) {
@@ -154,7 +161,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * labeled alternative in {@link FunxParser#typeElems()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitArrowType(FunxParser.ArrowTypeContext ctx) {
@@ -168,7 +175,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * labeled alternative in {@link FunxParser#typeElems()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitParenType(FunxParser.ParenTypeContext ctx) {
@@ -180,7 +187,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * labeled alternative in {@link FunxParser#typeElems()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitNamedType(FunxParser.NamedTypeContext ctx) {
@@ -193,7 +200,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * labeled alternative in {@link FunxParser#statement()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitExpressionStatement(FunxParser.ExpressionStatementContext ctx) {
@@ -205,7 +212,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * labeled alternative in {@link FunxParser#statement()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitLambdaStatement(FunxParser.LambdaStatementContext ctx) {
@@ -217,7 +224,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * labeled alternative in {@link FunxParser#statement()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitLetStatement(FunxParser.LetStatementContext ctx) {
@@ -229,7 +236,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * labeled alternative in {@link FunxParser#statement()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitIfStatement(FunxParser.IfStatementContext ctx) {
@@ -241,7 +248,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * labeled alternative in {@link FunxParser#expression()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitPrimExpression(FunxParser.PrimExpressionContext ctx) {
@@ -253,7 +260,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * labeled alternative in {@link FunxParser#expression()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitAppExpression(FunxParser.AppExpressionContext ctx) {
@@ -268,7 +275,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * labeled alternative in {@link FunxParser#expression()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitNotExpression(FunxParser.NotExpressionContext ctx) {
@@ -285,7 +292,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * labeled alternative in {@link FunxParser#expression()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitDivModMultExpression(FunxParser.DivModMultExpressionContext ctx) {
@@ -301,7 +308,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * labeled alternative in {@link FunxParser#expression()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitAddSubExpression(FunxParser.AddSubExpressionContext ctx) {
@@ -317,7 +324,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * labeled alternative in {@link FunxParser#expression()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitCompExpression(FunxParser.CompExpressionContext ctx) {
@@ -333,7 +340,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * labeled alternative in {@link FunxParser#expression()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitEqExpression(FunxParser.EqExpressionContext ctx) {
@@ -349,7 +356,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * labeled alternative in {@link FunxParser#expression()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitAndExpression(FunxParser.AndExpressionContext ctx) {
@@ -366,7 +373,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * labeled alternative in {@link FunxParser#expression()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitOrExpression(FunxParser.OrExpressionContext ctx) {
@@ -383,7 +390,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * labeled alternative in {@link FunxParser#primary()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitParenPrimary(FunxParser.ParenPrimaryContext ctx) {
@@ -395,7 +402,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * labeled alternative in {@link FunxParser#primary()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitConstPrimary(FunxParser.ConstPrimaryContext ctx) {
@@ -407,7 +414,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * labeled alternative in {@link FunxParser#primary()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitVarPrimary(FunxParser.VarPrimaryContext ctx) {
@@ -420,7 +427,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * Visit a parse tree produced by {@link FunxParser#lambda()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitLambda(FunxParser.LambdaContext ctx) {
@@ -435,7 +442,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * Visit a parse tree produced by {@link FunxParser#let()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitLet(FunxParser.LetContext ctx) {
@@ -449,7 +456,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * Visit a parse tree produced by {@link FunxParser#ifS()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitIfS(FunxParser.IfSContext ctx) {
@@ -464,7 +471,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * Visit a parse tree produced by {@link FunxParser#constant()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitConstant(FunxParser.ConstantContext ctx) {
@@ -484,7 +491,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * Visit a parse tree produced by {@link FunxParser#numConstant()}.
      *
      * @param ctx the parse tree
-     * @return the visitor result
+     * @return visitor result
      */
     @Override
     public ASTNode visitNumConstant(FunxParser.NumConstantContext ctx) {

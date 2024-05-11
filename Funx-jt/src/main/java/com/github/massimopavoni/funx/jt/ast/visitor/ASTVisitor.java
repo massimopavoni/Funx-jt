@@ -1,7 +1,10 @@
 package com.github.massimopavoni.funx.jt.ast.visitor;
 
 import com.github.massimopavoni.funx.jt.ast.InputPosition;
-import com.github.massimopavoni.funx.jt.ast.node.*;
+import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
+import com.github.massimopavoni.funx.jt.ast.node.Declaration;
+import com.github.massimopavoni.funx.jt.ast.node.Expression;
+import com.github.massimopavoni.funx.jt.ast.node.Type;
 import com.github.massimopavoni.funx.jt.parser.ASTBuilder;
 
 import java.util.List;
@@ -47,8 +50,8 @@ public abstract class ASTVisitor<T> {
     /**
      * Visit any {@link ASTNode}.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param node AST node
+     * @return visitor result
      */
     public T visit(ASTNode node) {
         return node.accept(this);
@@ -58,7 +61,7 @@ public abstract class ASTVisitor<T> {
      * Visit a list of {@link ASTNode}s.
      *
      * @param nodes list of AST nodes
-     * @return the visitor result
+     * @return visitor result
      */
     public T visit(List<ASTNode> nodes) {
         T result = defaultResult();
@@ -70,7 +73,7 @@ public abstract class ASTVisitor<T> {
     /**
      * Default result for the visitor.
      *
-     * @return the visitor result
+     * @return visitor result
      */
     public T defaultResult() {
         return null;
@@ -81,7 +84,7 @@ public abstract class ASTVisitor<T> {
      *
      * @param aggregate  current aggregate
      * @param nextResult next node result
-     * @return the visitor result
+     * @return visitor result
      */
     public T aggregateResult(T aggregate, T nextResult) {
         return nextResult;
@@ -90,96 +93,96 @@ public abstract class ASTVisitor<T> {
     /**
      * Visit a {@link ASTNode.Module} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param module module node
+     * @return visitor result
      */
-    public abstract T visitModule(ASTNode.Module node);
+    public abstract T visitModule(ASTNode.Module module);
 
     /**
      * Visit a {@link ASTNode.Declarations} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param declarations declarations node
+     * @return visitor result
      */
-    public abstract T visitDeclarations(ASTNode.Declarations node);
+    public abstract T visitDeclarations(ASTNode.Declarations declarations);
 
     /**
      * Visit a {@link Declaration} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param declaration declaration node
+     * @return visitor result
      */
-    public abstract T visitDeclaration(Declaration node);
+    public abstract T visitDeclaration(Declaration declaration);
 
     /**
      * Visit a {@link Type.NamedType} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param type type node
+     * @return visitor result
      */
-    public abstract T visitNamedType(Type.NamedType node);
+    public abstract T visitNamedType(Type.NamedType type);
 
     /**
      * Visit a {@link Type.VariableType} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param type type node
+     * @return visitor result
      */
-    public abstract T visitVariableType(Type.VariableType node);
+    public abstract T visitVariableType(Type.VariableType type);
 
     /**
      * Visit a {@link Type.ArrowType} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param type type node
+     * @return visitor result
      */
-    public abstract T visitArrowType(Type.ArrowType node);
+    public abstract T visitArrowType(Type.ArrowType type);
 
     /**
      * Visit a {@link Expression.Lambda} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param lambda lambda node
+     * @return visitor result
      */
-    public abstract T visitLambda(Expression.Lambda node);
+    public abstract T visitLambda(Expression.Lambda lambda);
 
     /**
      * Visit a {@link Expression.Let} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param let let node
+     * @return visitor result
      */
-    public abstract T visitLet(Expression.Let node);
+    public abstract T visitLet(Expression.Let let);
 
     /**
      * Visit a {@link Expression.If} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param ifE if node
+     * @return visitor result
      */
-    public abstract T visitIf(Expression.If node);
+    public abstract T visitIf(Expression.If ifE);
 
     /**
      * Visit a {@link Expression.Application} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param application application node
+     * @return visitor result
      */
-    public abstract T visitApplication(Expression.Application node);
+    public abstract T visitApplication(Expression.Application application);
 
     /**
      * Visit a {@link Expression.Constant} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param constant constant node
+     * @return visitor result
      */
-    public abstract T visitConstant(Expression.Constant node);
+    public abstract T visitConstant(Expression.Constant constant);
 
     /**
      * Visit a {@link Expression.Variable} AST node.
      *
-     * @param node the AST node
-     * @return the visitor result
+     * @param variable variable node
+     * @return visitor result
      */
-    public abstract T visitVariable(Expression.Variable node);
+    public abstract T visitVariable(Expression.Variable variable);
 }
