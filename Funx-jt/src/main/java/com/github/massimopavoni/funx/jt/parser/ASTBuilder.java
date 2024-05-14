@@ -103,7 +103,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
             moduleName = ctx.MODULEID().getLast().getText();
             packageName = String.join(".",
                     ctx.MODULEID().stream()
-                            .limit(ctx.MODULEID().size() - 1)
+                            .limit((long) ctx.MODULEID().size() - 1)
                             .map(ParseTree::getText)
                             .toList());
         }
