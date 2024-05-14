@@ -3,20 +3,27 @@ parser grammar FunxParser;
 options { tokenVocab = FunxLexer; }
 
 // ----------------------------------------------------------------
-// Root
-module: (MODULE MODULEID NEWLINE+)? declarations EOF;
+// Module
+module: (MODULE MODULEID (Dot MODULEID)* NEWLINE+)? (main NEWLINE+)? declarations EOF;
 
 declarations: declaration (NEWLINE declaration?)*;
+
+main
+    : id = MAIN Equals statement
+        with?
+    ;
 
 // ----------------------------------------------------------------
 // Declaration
 declaration
     : declarationType NEWLINE
         id = VARID lambdaParams? Equals statement
-        (NEWLINE WITH localDeclarations OUT)?
+        with?
     ;
 
 declarationType: id = VARID Colon typeElems;
+
+with: NEWLINE WITH localDeclarations OUT;
 
 localDeclarations: NEWLINE declarations NEWLINE;
 

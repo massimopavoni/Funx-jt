@@ -1,0 +1,5 @@
+module Com.Github.MassimoPavoni.Funx.Lib.FunxPrelude
+
+// Unary operators
+not : Bool -> Bool
+not x = if x then False else True fi

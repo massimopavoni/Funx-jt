@@ -1,5 +1,0 @@
-module FunxPrelude with
-
-// Unary operators
-not : Bool -> Bool
-not x = if x then False else True

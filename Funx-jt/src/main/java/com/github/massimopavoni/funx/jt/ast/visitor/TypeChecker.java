@@ -118,6 +118,8 @@ public final class TypeChecker extends ASTVisitor<Void> {
     @Override
     public Void visitModule(ASTNode.Module module) {
         moduleDeclarationTypeMap = ((ASTNode.Declarations) module.declarations).declarationTypeMap;
+        if (module.main != null)
+            visit(module.main);
         return visit(module.declarations);
     }
 
@@ -133,6 +135,17 @@ public final class TypeChecker extends ASTVisitor<Void> {
     }
 
     /**
+     * Visit the main {@link Declaration} AST node.
+     *
+     * @param main declaration node
+     * @return visitor result
+     */
+    @Override
+    public Void visitMain(Declaration main) {
+        return visit(main.expression);
+    }
+
+    /**
      * Visit a {@link Declaration} AST node.
      *
      * @param declaration declaration node
@@ -144,8 +157,10 @@ public final class TypeChecker extends ASTVisitor<Void> {
             reportError(declaration.inputPosition,
                     String.format("type id \"%s\" does not match declaration id \"%s\"",
                             declaration.typeVarId, declaration.id));
-        currentDeclarationType = (Type) declaration.type;
-        checkDeclarationType(declaration.expression);
+        if (declaration.type != null) {
+            currentDeclarationType = (Type) declaration.type;
+            checkDeclarationType(declaration.expression);
+        }
         if (localDeclarationTypeMap.isEmpty())
             lambdaParamTypeMap.clear();
         if (declaration.expression instanceof Expression.Lambda)
@@ -380,7 +395,7 @@ public final class TypeChecker extends ASTVisitor<Void> {
      */
     @Override
     public Void visitConstant(Expression.Constant constant) {
-        return defaultResult();
+        return null;
     }
 
     /**
@@ -391,6 +406,7 @@ public final class TypeChecker extends ASTVisitor<Void> {
      */
     @Override
     public Void visitVariable(Expression.Variable variable) {
-        return defaultResult();
+        getVariableType(variable);
+        return null;
     }
 }

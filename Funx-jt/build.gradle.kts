@@ -22,6 +22,7 @@ repositories {
 dependencies {
     antlr("org.antlr:antlr4:4.13.1")
     implementation("org.antlr:antlr4-runtime:4.13.1")
+    implementation("com.google.googlejavaformat:google-java-format:1.22.0")
     implementation("info.picocli:picocli:4.7.5")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
 }
@@ -130,6 +131,22 @@ tasks.register("projectProps") {
 // Project build
 tasks.compileJava {
     dependsOn(tasks.generateGrammarSource, "projectProps")
+    finalizedBy("jarPrelude")
+}
+
+// Funx prelude
+tasks.register<Jar>("jarPrelude") {
+    description = "Create a jar file containing the Funx prelude."
+    group = JavaBasePlugin.BUILD_NEEDED_TASK_NAME
+
+    from("${layout.buildDirectory.get()}/classes/java/main") {
+        include("**/lib/*Prelude*")
+        exclude("**/jt/**")
+
+        exclude("**/testexamples/**") // TEMPORARY, until test examples are deleted
+    }
+    archiveBaseName = "Funx-prelude"
+    archiveVersion = project.version.toString()
 }
 
 // Project documentation
@@ -138,8 +155,7 @@ tasks.javadoc {
 
     options.showFromPrivate()
     (options as StandardJavadocDocletOptions).addStringOption("Xmaxwarns", "1024")
-
-    exclude("**/*Prelude*")
+    exclude("**/lib/*Prelude*")
 
     exclude("**/testexamples/**") // TEMPORARY, until test examples are deleted
 
@@ -167,9 +183,32 @@ tasks.test {
     useJUnitPlatform()
 }
 
+// Project distribution
+distributions {
+    main {
+        contents {
+            from(tasks.named("zipJavadoc")) {
+                into("docs")
+            }
+            from(tasks.named("jarPrelude")) {
+                into("lib")
+            }
+        }
+    }
+}
+
 // Main class
 application {
     mainClass.set("com.github.massimopavoni.funx.jt.cli.CLI")
+    // Workaround for google-java-format IllegalAccessError issue
+    // https://github.com/google/google-java-format/issues/787
+    applicationDefaultJvmArgs = listOf(
+        "--add-exports", "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+        "--add-exports", "jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
+        "--add-exports", "jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
+        "--add-exports", "jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+        "--add-exports", "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
+    )
 }
 
 // Local SonarQube configuration
@@ -179,6 +218,6 @@ sonar {
         property("sonar.host.url", project.property("sonar.host.url").toString())
         property("sonar.projectKey", project.property("sonar.projectKey").toString())
         property("sonar.token", project.property("sonar.token").toString())
-        property("sonar.exclusions", "**/parser/Funx*, **/*Prelude*, **/testexamples/**")
+        property("sonar.exclusions", "**/parser/Funx*, **/lib/*Prelude*, **/testexamples/**")
     }
 }

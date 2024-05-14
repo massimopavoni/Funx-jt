@@ -1,4 +1,4 @@
-package com.github.massimopavoni.funx;
+package com.github.massimopavoni.funx.lib;
 
 import java.util.function.Function;
 

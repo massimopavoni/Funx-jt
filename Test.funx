@@ -1,0 +1,6 @@
+module Dir1.Dir2.Dir3.Test
+
+main = factorial 12
+
+factorial : Int -> Int
+factorial n = if n < 1 then 1 else n * factorial (n - 1) fi

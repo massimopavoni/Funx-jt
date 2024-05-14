@@ -3,11 +3,13 @@ package com.github.massimopavoni.funx.jt.cli;
 import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.visitor.GraphvizBuilder;
 import com.github.massimopavoni.funx.jt.ast.visitor.IllegalASTStateException;
+import com.github.massimopavoni.funx.jt.ast.visitor.JavaBuilder;
 import com.github.massimopavoni.funx.jt.ast.visitor.TypeChecker;
 import com.github.massimopavoni.funx.jt.parser.ASTBuilder;
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 import com.github.massimopavoni.funx.jt.parser.FunxParser;
 import com.github.massimopavoni.funx.jt.parser.IllegalParserStateException;
+import com.google.googlejavaformat.java.FormatterException;
 import org.antlr.v4.gui.TreeViewer;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -122,24 +124,28 @@ public class CLI implements Callable<Integer> {
     @Override
     public Integer call() throws Exception {
         Path filePath = input.toPath().toAbsolutePath();
-        Path workingDir = filePath.getParent();
+        Path workingDir = Path.of(System.getProperty("user.dir"));
+        if (outputDir != null) {
+            if (!outputDir.isDirectory())
+                throw new CLIException("Output path must be a directory");
+            workingDir = outputDir.toPath();
+        }
         String fileName = input.getName().split("\\.")[0];
         fileName = Character.toUpperCase(fileName.charAt(0)) + fileName.substring(1);
         ParseTree tree = getParseTree(filePath.toString());
         ASTNode astRoot = getAST(fileName, tree);
         // This should never fail
         if (!(astRoot instanceof ASTNode.Module module))
-            throw new IllegalASTStateException("Root node is not a module");
+            throw new IllegalASTStateException("root node does not identify a module");
         if (!fileName.equals(module.name))
-            throw new IllegalASTStateException("File name does not match module name");
+            throw new IllegalASTStateException("file name does not match module name");
+        workingDir = workingDir.resolve(Path.of(
+                module.packageName.toLowerCase()
+                        .replace('.', File.separatorChar)));
         if (typecheck)
             typecheck(module);
-        if (java) {
-            if (outputDir != null && !outputDir.isDirectory())
-                throw new CLIException("Output path must be a directory");
-            transpile(module, (outputDir == null ? workingDir : outputDir.toPath())
-                    .resolve(String.format("%s.java", module.name)));
-        }
+        if (java)
+            transpile(module, workingDir);
         if (parseTree)
             outputParseTree(tree, workingDir.resolve(String.format("%s_parse_tree.png", module.name)));
         if (ast)
@@ -190,21 +196,34 @@ public class CLI implements Callable<Integer> {
     private void typecheck(ASTNode astRoot) {
         TypeChecker typeChecker = new TypeChecker();
         typeChecker.visit(astRoot);
-        if (typeChecker.getErrorsCount() > 0)
+        int errorsCount = typeChecker.getErrorsCount();
+        if (errorsCount > 0)
             throw new IllegalASTStateException(
                     String.format("%d type error%s found",
-                            typeChecker.getErrorsCount(),
-                            typeChecker.getErrorsCount() == 1 ? "" : "s"));
+                            errorsCount,
+                            errorsCount == 1 ? "" : "s"));
     }
 
     /**
      * Transpile the abstract syntax tree to Java code.
      *
-     * @param astRoot    abstract syntax tree root node
-     * @param outputPath output file path
+     * @param module        abstract syntax tree root node
+     * @param outputDirPath output dir path
      * @throws CLIException if an error occurs
      */
-    private void transpile(ASTNode astRoot, Path outputPath) throws CLIException {
+    private void transpile(ASTNode.Module module, Path outputDirPath) throws CLIException {
+        JavaBuilder javaBuilder = new JavaBuilder(new StringBuilder());
+        javaBuilder.visit(module);
+        try {
+            Files.createDirectories(outputDirPath);
+            Files.write(
+                    outputDirPath.resolve(String.format("%s.java", module.name)),
+                    javaBuilder.getBuiltJava().getBytes());
+        } catch (FormatterException e) {
+            throw new CLIException("Error formatting Java code", e);
+        } catch (IOException e) {
+            throw new CLIException("Error writing Java file", e);
+        }
     }
 
     /**
@@ -252,9 +271,9 @@ public class CLI implements Callable<Integer> {
      * @throws CLIException if an error occurs
      */
     private void outputAST(ASTNode astRoot, Path outputPath) throws CLIException {
+        GraphvizBuilder graphvizBuilder = new GraphvizBuilder(new StringBuilder());
+        graphvizBuilder.visit(astRoot);
         try {
-            GraphvizBuilder graphvizBuilder = new GraphvizBuilder(new StringBuilder());
-            graphvizBuilder.visit(astRoot);
             Files.write(outputPath, graphvizBuilder.getBuiltGraphviz().getBytes());
             ProcessBuilder pb = new ProcessBuilder("dot", "-Tpng", outputPath.toString(), "-o",
                     outputPath.toString().replace(".dot", ".png"));

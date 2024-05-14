@@ -94,9 +94,24 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitModule(FunxParser.ModuleContext ctx) {
+        String moduleName;
+        String packageName;
+        if (ctx.MODULE() == null) {
+            moduleName = fileName;
+            packageName = "";
+        } else {
+            moduleName = ctx.MODULEID().getLast().getText();
+            packageName = String.join(".",
+                    ctx.MODULEID().stream()
+                            .limit(ctx.MODULEID().size() - 1)
+                            .map(ParseTree::getText)
+                            .toList());
+        }
         return new ASTNode.Module(
                 getInputPosition(ctx),
-                ctx.MODULEID() != null ? ctx.MODULEID().getText() : fileName,
+                moduleName,
+                packageName,
+                ctx.main() == null ? null : visit(ctx.main()),
                 visit(ctx.declarations()));
     }
 
@@ -115,6 +130,22 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     }
 
     /**
+     * Visit a parse tree produced by {@link FunxParser#main()}.
+     *
+     * @param ctx the parse tree
+     * @return visitor result
+     */
+    @Override
+    public ASTNode visitMain(FunxParser.MainContext ctx) {
+        return new Declaration(
+                getInputPosition(ctx),
+                ctx.MAIN().getText(),
+                null,
+                ctx.MAIN().getText(),
+                visit(ctx.statement()));
+    }
+
+    /**
      * Visit a parse tree produced by {@link FunxParser#declaration()}.
      *
      * @param ctx the parse tree
@@ -124,25 +155,25 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     public ASTNode visitDeclaration(FunxParser.DeclarationContext ctx) {
         InputPosition position = getInputPosition(ctx);
         ASTNode statement;
-        if (ctx.localDeclarations() != null)
+        if (ctx.with() == null)
+            statement = visit(ctx.statement());
+        else
             statement = new Expression.Let(
                     position,
-                    visit(ctx.localDeclarations().declarations()),
+                    visit(ctx.with().localDeclarations().declarations()),
                     visit(ctx.statement()));
-        else
-            statement = visit(ctx.statement());
         FunxParser.DeclarationTypeContext declarationTypeContext = ctx.declarationType();
         return new Declaration(
                 position,
                 declarationTypeContext.id.getText(),
                 visit(declarationTypeContext),
                 ctx.id.getText(),
-                ctx.lambdaParams() != null
-                        ? createLambdaChain(position,
+                ctx.lambdaParams() == null
+                        ? statement
+                        : createLambdaChain(position,
                         ctx.lambdaParams().VARID().stream()
                                 .map(ParseTree::getText)
-                                .collect(Collectors.toCollection(ArrayList::new)), statement)
-                        : statement);
+                                .collect(Collectors.toCollection(ArrayList::new)), statement));
     }
 
     /**

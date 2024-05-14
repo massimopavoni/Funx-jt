@@ -64,10 +64,11 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
         String nodeId = getNodeId();
         builder.append(String.format("%s [label=\"%s\"];%n",
                 nodeId, label));
-        children.forEach(c -> builder.append(
-                String.format("%s -> %s;%n",
-                        nodeId,
-                        c.accept(this))));
+        children.forEach(c ->
+                builder.append(
+                        String.format("%s -> %s;%n",
+                                nodeId,
+                                c.accept(this))));
         return nodeId;
     }
 
@@ -83,9 +84,14 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
                 digraph AST {
                 node [fontname="Arial", color=gray40, shape=egg];
                 edge [fontname="Arial", color=gray40, arrowsize=0.8];
-                """);
-        String nodeId = toGraphvizDefault(String.format("module %s", module.name),
-                Collections.singletonList(module.declarations));
+                """.stripIndent());
+        String nodeId = toGraphvizDefault(String.format("module %s%s%s",
+                        module.packageName,
+                        module.packageName.isEmpty() ? "" : ".",
+                        module.name),
+                module.main == null ?
+                        Collections.singletonList(module.declarations) :
+                        List.of(module.main, module.declarations));
         builder.append("}\n");
         return nodeId;
     }
@@ -103,6 +109,19 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     }
 
     /**
+     * Visit the main {@link Declaration} AST node.
+     *
+     * @param main declaration node
+     * @return visitor result
+     */
+    @Override
+    public String visitMain(Declaration main) {
+        return toGraphvizDefault(main.id,
+                Collections.singletonList(main.expression));
+    }
+
+
+    /**
      * Visit a {@link Declaration} AST node.
      *
      * @param declaration declaration node
@@ -111,7 +130,9 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     @Override
     public String visitDeclaration(Declaration declaration) {
         return toGraphvizDefault(declaration.id,
-                List.of(declaration.type, declaration.expression));
+                declaration.type == null ?
+                        Collections.singletonList(declaration.expression) :
+                        List.of(declaration.type, declaration.expression));
     }
 
     /**

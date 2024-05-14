@@ -34,7 +34,7 @@ public class ExceptionHandler implements CommandLine.IExecutionExceptionHandler 
             case IllegalParserStateException ignored -> "Illegal parser state";
             default -> {
                 e.printStackTrace(commandLine.getErr());
-                yield "Unknown error";
+                yield String.format("Unknown error (%s)", e.getClass().getName());
             }
         }, e.getMessage());
         commandLine.getErr().println(commandLine.getColorScheme().errorText(message));

@@ -2,6 +2,7 @@ package com.github.massimopavoni.funx.jt.ast.node;
 
 import com.github.massimopavoni.funx.jt.ast.InputPosition;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
+import com.github.massimopavoni.funx.jt.ast.visitor.IllegalASTStateException;
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
 import java.util.List;
@@ -56,6 +57,14 @@ public abstract class ASTNode {
          */
         public final String name;
         /**
+         * Package name.
+         */
+        public final String packageName;
+        /**
+         * Main declaration if present.
+         */
+        public final ASTNode main;
+        /**
          * Declarations in the module.
          */
         public final ASTNode declarations;
@@ -65,11 +74,16 @@ public abstract class ASTNode {
          *
          * @param inputPosition input source code node position
          * @param name          module name
+         * @param packageName   package name
+         * @param main          main declaration
          * @param declarations  declarations in the module
          */
-        public Module(InputPosition inputPosition, String name, ASTNode declarations) {
+        public Module(InputPosition inputPosition, String name, String packageName,
+                      ASTNode main, ASTNode declarations) {
             super(inputPosition);
             this.name = name;
+            this.packageName = packageName;
+            this.main = main;
             this.declarations = declarations;
         }
 
@@ -94,7 +108,6 @@ public abstract class ASTNode {
          * List of declarations.
          */
         public final List<ASTNode> declarationList;
-
         /**
          * Map of declaration identifiers and corresponding type.
          */
@@ -109,9 +122,29 @@ public abstract class ASTNode {
         public Declarations(InputPosition inputPosition, List<ASTNode> declarationList) {
             super(inputPosition);
             this.declarationList = declarationList;
-            declarationTypeMap = declarationList.stream()
+            Map<String, List<Declaration>> groupedDeclarations = declarationList.stream()
                     .map(d -> (Declaration) d)
-                    .collect(Collectors.toMap(d -> d.id, d -> (Type) d.type));
+                    .collect(Collectors.groupingBy(d -> d.id));
+            groupedDeclarations.forEach((id, declarations) -> {
+                String message = null;
+                if (id.equals(fromLexerToken(FunxLexer.MAIN)))
+                    message = String.format("%s declaration not at the beginning of the module",
+                            fromLexerToken(FunxLexer.MAIN));
+                if (declarations.size() > 1)
+                    message = String.format("multiple declarations for identifier \"%s\"", id);
+                if (message != null)
+                    throw new IllegalASTStateException(String.format("%s at lines %s",
+                            message,
+                            String.join(", ",
+                                    declarations.stream()
+                                            .map(d -> String.format("%d:%d",
+                                                    d.inputPosition.line(), d.inputPosition.column()))
+                                            .toList())));
+            });
+            this.declarationTypeMap = groupedDeclarations.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            e -> (Type) e.getValue().getFirst().type));
         }
 
         /**

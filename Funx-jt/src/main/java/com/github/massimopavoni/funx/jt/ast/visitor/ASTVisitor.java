@@ -64,10 +64,9 @@ public abstract class ASTVisitor<T> {
      * @return visitor result
      */
     public T visit(List<ASTNode> nodes) {
-        T result = defaultResult();
-        for (ASTNode node : nodes)
-            result = aggregateResult(result, node.accept(this));
-        return result;
+        return nodes.stream()
+                .map(node -> node.accept(this))
+                .reduce(defaultResult(), this::aggregateResult);
     }
 
     /**
@@ -105,6 +104,14 @@ public abstract class ASTVisitor<T> {
      * @return visitor result
      */
     public abstract T visitDeclarations(ASTNode.Declarations declarations);
+
+    /**
+     * Visit the main {@link Declaration} AST node.
+     *
+     * @param main declaration node
+     * @return visitor result
+     */
+    public abstract T visitMain(Declaration main);
 
     /**
      * Visit a {@link Declaration} AST node.

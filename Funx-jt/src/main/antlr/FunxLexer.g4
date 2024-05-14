@@ -34,6 +34,7 @@ FI: 'fi';
 IF: 'if';
 IN: 'in';
 LET: 'let';
+MAIN: 'main';
 MODULE: 'module';
 OUT: 'out';
 THEN: 'then';
@@ -99,6 +100,7 @@ Multiply: '*';
 Subtract: '-';
 
 // Other symbols
+Dot: '.';
 Backslash: '\\';
 Colon: ':';
 Equals: '=';
