@@ -174,6 +174,7 @@ tasks.register<Zip>("zipJavadoc") {
 
     // Do not keep javadoc files, just the archive
     doLast {
+        Thread.sleep(4000)
         delete(javadocDest)
     }
 }

@@ -112,17 +112,17 @@ public abstract class Type extends ASTNode {
      */
     public static final class VariableType extends Type {
         /**
-         * Type name.
+         * Type identifier.
          */
-        public final String name;
+        public final long id;
 
         /**
          * Constructor for the variable type node.
          *
-         * @param name type name
+         * @param id type identifier
          */
-        public VariableType(String name) {
-            this.name = name;
+        public VariableType(long id) {
+            this.id = id;
         }
 
         /**
@@ -149,7 +149,7 @@ public abstract class Type extends ASTNode {
                 return true;
             if (!(obj instanceof VariableType other))
                 return false;
-            return this.name.equals(other.name);
+            return this.id == other.id;
         }
 
         /**
@@ -159,7 +159,7 @@ public abstract class Type extends ASTNode {
          */
         @Override
         public int hashCode() {
-            return name.hashCode();
+            return Long.hashCode(id);
         }
 
         /**
@@ -169,7 +169,7 @@ public abstract class Type extends ASTNode {
          */
         @Override
         public String toString() {
-            return name;
+            return String.format("t%d", id);
         }
     }
 

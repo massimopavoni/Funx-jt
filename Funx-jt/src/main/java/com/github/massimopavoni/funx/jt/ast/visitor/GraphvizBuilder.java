@@ -143,7 +143,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      */
     @Override
     public String visitNamedType(Type.NamedType type) {
-        return toGraphvizDefault(type.type.typeName,
+        return toGraphvizDefault(type.toString(),
                 Collections.emptyList());
     }
 
@@ -155,7 +155,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      */
     @Override
     public String visitVariableType(Type.VariableType type) {
-        return toGraphvizDefault(type.name,
+        return toGraphvizDefault(type.toString(),
                 Collections.emptyList());
     }
 

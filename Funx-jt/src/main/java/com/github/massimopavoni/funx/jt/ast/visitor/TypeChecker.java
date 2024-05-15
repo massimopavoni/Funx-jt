@@ -28,7 +28,7 @@ public final class TypeChecker extends ASTVisitor<Void> {
     /**
      * Counter for type variables used in lambda parameters.
      */
-    private int variableTypeCount = 0;
+    private long variableTypeCount = 0;
     /**
      * Current declaration type, used to match an expression.
      */
@@ -60,7 +60,7 @@ public final class TypeChecker extends ASTVisitor<Void> {
      * @return new type variable
      */
     private Type.VariableType getNewVariableType() {
-        return new Type.VariableType(String.format("t%d", variableTypeCount++));
+        return new Type.VariableType(variableTypeCount++);
     }
 
     /**
