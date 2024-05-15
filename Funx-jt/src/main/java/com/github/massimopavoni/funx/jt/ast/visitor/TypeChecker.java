@@ -17,9 +17,10 @@ import java.util.Optional;
  */
 public final class TypeChecker extends ASTVisitor<Void> {
     /**
-     * Illegal state message.
+     * Illegal direct visit message.
      */
-    private static final String ILLEGAL_STATE_MESSAGE = "%s should not be visited directly by the TypeChecker";
+    private static final String ILLEGAL_DIRECT_VISIT_MESSAGE =
+            "%s should not be visited directly by the TypeChecker";
     /**
      * Types of currently in scope lambda parameters.
      */
@@ -240,7 +241,7 @@ public final class TypeChecker extends ASTVisitor<Void> {
      */
     @Override
     public Void visitNamedType(Type.NamedType type) {
-        throw new IllegalStateException(String.format(ILLEGAL_STATE_MESSAGE,
+        throw new IllegalStateException(String.format(ILLEGAL_DIRECT_VISIT_MESSAGE,
                 Type.NamedType.class.getSimpleName()));
     }
 
@@ -252,7 +253,7 @@ public final class TypeChecker extends ASTVisitor<Void> {
      */
     @Override
     public Void visitVariableType(Type.VariableType type) {
-        throw new IllegalStateException(String.format(ILLEGAL_STATE_MESSAGE,
+        throw new IllegalStateException(String.format(ILLEGAL_DIRECT_VISIT_MESSAGE,
                 Type.VariableType.class.getSimpleName()));
     }
 
@@ -264,7 +265,7 @@ public final class TypeChecker extends ASTVisitor<Void> {
      */
     @Override
     public Void visitArrowType(Type.ArrowType type) {
-        throw new IllegalStateException(String.format(ILLEGAL_STATE_MESSAGE,
+        throw new IllegalStateException(String.format(ILLEGAL_DIRECT_VISIT_MESSAGE,
                 Type.ArrowType.class.getSimpleName()));
     }
 
