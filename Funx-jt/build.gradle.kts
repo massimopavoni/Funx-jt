@@ -22,6 +22,7 @@ repositories {
 dependencies {
     antlr("org.antlr:antlr4:4.13.1")
     implementation("org.antlr:antlr4-runtime:4.13.1")
+    implementation("com.google.guava:guava:33.2.0-jre")
     implementation("com.google.googlejavaformat:google-java-format:1.22.0")
     implementation("info.picocli:picocli:4.7.5")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
@@ -142,8 +143,6 @@ tasks.register<Jar>("jarPrelude") {
     from("${layout.buildDirectory.get()}/classes/java/main") {
         include("**/lib/*Prelude*")
         exclude("**/jt/**")
-
-        exclude("**/testexamples/**") // TEMPORARY, until test examples are deleted
     }
     archiveBaseName = "Funx-prelude"
     archiveVersion = project.version.toString()
@@ -156,8 +155,6 @@ tasks.javadoc {
     options.showFromPrivate()
     (options as StandardJavadocDocletOptions).addStringOption("Xmaxwarns", "1024")
     exclude("**/lib/*Prelude*")
-
-    exclude("**/testexamples/**") // TEMPORARY, until test examples are deleted
 
     finalizedBy("zipJavadoc")
 }
@@ -219,6 +216,6 @@ sonar {
         property("sonar.host.url", project.property("sonar.host.url").toString())
         property("sonar.projectKey", project.property("sonar.projectKey").toString())
         property("sonar.token", project.property("sonar.token").toString())
-        property("sonar.exclusions", "**/parser/Funx*, **/lib/*Prelude*, **/testexamples/**")
+        property("sonar.exclusions", "**/parser/Funx*, **/lib/*Prelude*")
     }
 }

@@ -1,9 +1,9 @@
 package com.github.massimopavoni.funx.jt.ast.visitor;
 
+import com.github.massimopavoni.funx.jt.ast.Utils;
 import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.node.Declaration;
 import com.github.massimopavoni.funx.jt.ast.node.Expression;
-import com.github.massimopavoni.funx.jt.ast.node.Type;
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
 import java.util.Collections;
@@ -89,9 +89,9 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
                         module.packageName,
                         module.packageName.isEmpty() ? "" : ".",
                         module.name),
-                module.main == null ?
-                        Collections.singletonList(module.declarations) :
-                        List.of(module.main, module.declarations));
+                module.main == null
+                        ? Collections.singletonList(module.declarations)
+                        : List.of(module.main, module.declarations));
         builder.append("}\n");
         return nodeId;
     }
@@ -105,7 +105,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     @Override
     public String visitDeclarations(ASTNode.Declarations declarations) {
         return toGraphvizDefault(ASTNode.Declarations.class.getSimpleName(),
-                declarations.declarationList);
+                declarations.declarations);
     }
 
     /**
@@ -130,44 +130,44 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     @Override
     public String visitDeclaration(Declaration declaration) {
         return toGraphvizDefault(declaration.id,
-                declaration.type == null ?
-                        Collections.singletonList(declaration.expression) :
-                        List.of(declaration.type, declaration.expression));
+                declaration.type == null
+                        ? Collections.singletonList(declaration.expression)
+                        : List.of(declaration.type, declaration.expression));
     }
 
     /**
-     * Visit a {@link Type.NamedType} AST node.
+     * Visit a {@link TrashType.NamedTrashType} AST node.
      *
      * @param type type node
      * @return visitor result
      */
     @Override
-    public String visitNamedType(Type.NamedType type) {
+    public String visitNamedType(TrashType.NamedTrashType type) {
         return toGraphvizDefault(type.toString(),
                 Collections.emptyList());
     }
 
     /**
-     * Visit a {@link Type.VariableType} AST node.
+     * Visit a {@link TrashType.VariableTrashType} AST node.
      *
      * @param type type node
      * @return visitor result
      */
     @Override
-    public String visitVariableType(Type.VariableType type) {
+    public String visitVariableType(TrashType.VariableTrashType type) {
         return toGraphvizDefault(type.toString(),
                 Collections.emptyList());
     }
 
     /**
-     * Visit a {@link Type.ArrowType} AST node.
+     * Visit a {@link TrashType.ArrowTrashType} AST node.
      *
      * @param type type node
      * @return visitor result
      */
     @Override
-    public String visitArrowType(Type.ArrowType type) {
-        return toGraphvizDefault(ASTNode.fromLexerToken(FunxLexer.Arrow),
+    public String visitArrowType(TrashType.ArrowTrashType type) {
+        return toGraphvizDefault(Utils.fromLexerToken(FunxLexer.Arrow),
                 List.of(type.input, type.output));
     }
 
@@ -192,7 +192,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      */
     @Override
     public String visitLet(Expression.Let let) {
-        return toGraphvizDefault(ASTNode.fromLexerToken(FunxLexer.LET),
+        return toGraphvizDefault(Utils.fromLexerToken(FunxLexer.LET),
                 List.of(let.localDeclarations, let.expression));
     }
 
@@ -205,7 +205,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      */
     @Override
     public String visitIf(Expression.If ifE) {
-        return toGraphvizDefault(ASTNode.fromLexerToken(FunxLexer.IF),
+        return toGraphvizDefault(Utils.fromLexerToken(FunxLexer.IF),
                 List.of(ifE.condition, ifE.thenBranch, ifE.elseBranch));
     }
 

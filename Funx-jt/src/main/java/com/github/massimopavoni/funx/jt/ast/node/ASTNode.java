@@ -1,6 +1,7 @@
 package com.github.massimopavoni.funx.jt.ast.node;
 
 import com.github.massimopavoni.funx.jt.ast.InputPosition;
+import com.github.massimopavoni.funx.jt.ast.Utils;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
 import com.github.massimopavoni.funx.jt.ast.visitor.IllegalASTStateException;
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
@@ -12,7 +13,8 @@ import java.util.stream.Collectors;
 /**
  * Base class for every node in the AST.
  */
-public abstract class ASTNode {
+public sealed abstract class ASTNode
+        permits ASTNode.Module, ASTNode.Declarations, Declaration, Expression {
     /**
      * Position of the AST node in the input source code.
      */
@@ -26,17 +28,6 @@ public abstract class ASTNode {
      */
     protected ASTNode(InputPosition inputPosition) {
         this.inputPosition = inputPosition;
-    }
-
-    /**
-     * Returns the string representation of a lexer token.
-     * Put here instead of the lexer to avoid using java code snippets in ANTLR '.g4' grammar files.
-     *
-     * @param token lexer token
-     * @return string representation of the token
-     */
-    public static String fromLexerToken(int token) {
-        return FunxLexer.VOCABULARY.getLiteralName(token).replace("'", "");
     }
 
     /**
@@ -107,11 +98,11 @@ public abstract class ASTNode {
         /**
          * List of declarations.
          */
-        public final List<ASTNode> declarationList;
+        public final List<ASTNode> declarations;
         /**
          * Map of declaration identifiers and corresponding type.
          */
-        public final Map<String, Type> declarationTypeMap;
+        public final Map<String, TrashType> declarationTypes;
 
         /**
          * Constructor for the Declarations node.
@@ -121,15 +112,15 @@ public abstract class ASTNode {
          */
         public Declarations(InputPosition inputPosition, List<ASTNode> declarationList) {
             super(inputPosition);
-            this.declarationList = declarationList;
+            this.declarations = declarationList;
             Map<String, List<Declaration>> groupedDeclarations = declarationList.stream()
                     .map(d -> (Declaration) d)
                     .collect(Collectors.groupingBy(d -> d.id));
             groupedDeclarations.forEach((id, declarations) -> {
                 String message = null;
-                if (id.equals(fromLexerToken(FunxLexer.MAIN)))
+                if (id.equals(Utils.fromLexerToken(FunxLexer.MAIN)))
                     message = String.format("%s declaration not at the beginning of the module",
-                            fromLexerToken(FunxLexer.MAIN));
+                            Utils.fromLexerToken(FunxLexer.MAIN));
                 if (declarations.size() > 1)
                     message = String.format("multiple declarations for identifier \"%s\"", id);
                 if (message != null)
@@ -141,10 +132,10 @@ public abstract class ASTNode {
                                                     d.inputPosition.line(), d.inputPosition.column()))
                                             .toList())));
             });
-            this.declarationTypeMap = groupedDeclarations.entrySet().stream()
+            this.declarationTypes = groupedDeclarations.entrySet().stream()
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
-                            e -> (Type) e.getValue().getFirst().type));
+                            e -> (TrashType) e.getValue().getFirst().type));
         }
 
         /**

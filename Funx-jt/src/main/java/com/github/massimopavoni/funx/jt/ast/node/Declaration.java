@@ -1,6 +1,7 @@
 package com.github.massimopavoni.funx.jt.ast.node;
 
 import com.github.massimopavoni.funx.jt.ast.InputPosition;
+import com.github.massimopavoni.funx.jt.ast.Utils;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
@@ -51,8 +52,8 @@ public final class Declaration extends ASTNode {
      */
     @Override
     public <T> T accept(ASTVisitor<? extends T> visitor) {
-        return id.equals(fromLexerToken(FunxLexer.MAIN)) ?
-                visitor.visitMain(this) :
-                visitor.visitDeclaration(this);
+        return id.equals(Utils.fromLexerToken(FunxLexer.MAIN))
+                ? visitor.visitMain(this)
+                : visitor.visitDeclaration(this);
     }
 }

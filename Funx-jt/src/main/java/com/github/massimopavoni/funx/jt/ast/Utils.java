@@ -1,5 +1,7 @@
 package com.github.massimopavoni.funx.jt.ast;
 
+import com.github.massimopavoni.funx.jt.parser.FunxLexer;
+
 import java.util.Arrays;
 import java.util.function.Predicate;
 
@@ -29,5 +31,16 @@ public final class Utils {
                 .filter(fieldFilter)
                 .findFirst()
                 .orElse(null);
+    }
+
+    /**
+     * Returns the string representation of a lexer token.
+     * Put here instead of the lexer to avoid using java code snippets in ANTLR '.g4' grammar files.
+     *
+     * @param token lexer token
+     * @return string representation of the token
+     */
+    public static String fromLexerToken(int token) {
+        return FunxLexer.VOCABULARY.getLiteralName(token).replace("'", "");
     }
 }

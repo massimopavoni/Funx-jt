@@ -4,7 +4,6 @@ import com.github.massimopavoni.funx.jt.ast.InputPosition;
 import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.node.Declaration;
 import com.github.massimopavoni.funx.jt.ast.node.Expression;
-import com.github.massimopavoni.funx.jt.ast.node.Type;
 import com.github.massimopavoni.funx.jt.parser.ASTBuilder;
 
 import java.util.List;
@@ -122,28 +121,28 @@ public abstract class ASTVisitor<T> {
     public abstract T visitDeclaration(Declaration declaration);
 
     /**
-     * Visit a {@link Type.NamedType} AST node.
+     * Visit a {@link TrashType.NamedTrashType} AST node.
      *
      * @param type type node
      * @return visitor result
      */
-    public abstract T visitNamedType(Type.NamedType type);
+    public abstract T visitNamedType(TrashType.NamedTrashType type);
 
     /**
-     * Visit a {@link Type.VariableType} AST node.
+     * Visit a {@link TrashType.VariableTrashType} AST node.
      *
      * @param type type node
      * @return visitor result
      */
-    public abstract T visitVariableType(Type.VariableType type);
+    public abstract T visitVariableType(TrashType.VariableTrashType type);
 
     /**
-     * Visit a {@link Type.ArrowType} AST node.
+     * Visit a {@link TrashType.ArrowTrashType} AST node.
      *
      * @param type type node
      * @return visitor result
      */
-    public abstract T visitArrowType(Type.ArrowType type);
+    public abstract T visitArrowType(TrashType.ArrowTrashType type);
 
     /**
      * Visit a {@link Expression.Lambda} AST node.

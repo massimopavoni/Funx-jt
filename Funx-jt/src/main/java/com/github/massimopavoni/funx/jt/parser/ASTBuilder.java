@@ -2,11 +2,9 @@ package com.github.massimopavoni.funx.jt.parser;
 
 import com.github.massimopavoni.funx.jt.ast.InputPosition;
 import com.github.massimopavoni.funx.jt.ast.PreludeFunction;
-import com.github.massimopavoni.funx.jt.ast.TypeEnum;
 import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.node.Declaration;
 import com.github.massimopavoni.funx.jt.ast.node.Expression;
-import com.github.massimopavoni.funx.jt.ast.node.Type;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 
@@ -81,7 +79,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
                         position,
                         new Expression.Variable(
                                 position,
-                                PreludeFunction.fromFunctionSymbol(symbol).functionName),
+                                PreludeFunction.fromSymbol(symbol).name),
                         left),
                 right);
     }
@@ -196,7 +194,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitArrowType(FunxParser.ArrowTypeContext ctx) {
-        return new Type.ArrowType(
+        return new TrashType.ArrowTrashType(
                 visit(ctx.typeElems(0)),
                 visit(ctx.typeElems(1)));
     }
@@ -222,7 +220,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitNamedType(FunxParser.NamedTypeContext ctx) {
-        return new Type.NamedType(
+        return new TrashType.NamedTrashType(
                 TypeEnum.fromTypeName(ctx.TYPE().getText()));
     }
 
@@ -314,7 +312,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
         return new Expression.Application(position,
                 new Expression.Variable(
                         position,
-                        PreludeFunction.NOT.functionName),
+                        PreludeFunction.NOT.name),
                 visit(ctx.expression()));
     }
 

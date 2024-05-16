@@ -6,7 +6,9 @@ import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
 /**
  * Base class for expression nodes.
  */
-public abstract class Expression extends ASTNode {
+public sealed abstract class Expression extends ASTNode
+        permits Expression.Constant, Expression.Variable, Expression.Application,
+        Expression.Lambda, Expression.Let, Expression.If {
     /**
      * Package private default constructor,
      * preventing instantiation of generalization class from outside.

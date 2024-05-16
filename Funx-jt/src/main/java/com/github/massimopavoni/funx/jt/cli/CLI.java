@@ -4,7 +4,6 @@ import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.visitor.GraphvizBuilder;
 import com.github.massimopavoni.funx.jt.ast.visitor.IllegalASTStateException;
 import com.github.massimopavoni.funx.jt.ast.visitor.JavaBuilder;
-import com.github.massimopavoni.funx.jt.ast.visitor.TypeChecker;
 import com.github.massimopavoni.funx.jt.parser.ASTBuilder;
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 import com.github.massimopavoni.funx.jt.parser.FunxParser;
@@ -47,14 +46,6 @@ public class CLI implements Callable<Integer> {
             arity = "1",
             description = "Input funx source file")
     private File input;
-    /**
-     * Type check flag.
-     */
-    @CommandLine.Option(
-            names = {"-T", "--no-typecheck"},
-            description = "Skip type checking phase",
-            defaultValue = "true")
-    private boolean typecheck;
     /**
      * Java transpilation flag.
      */
@@ -142,8 +133,6 @@ public class CLI implements Callable<Integer> {
         workingDir = workingDir.resolve(Path.of(
                 module.packageName.toLowerCase()
                         .replace('.', File.separatorChar)));
-        if (typecheck)
-            typecheck(module);
         if (java)
             transpile(module, workingDir);
         if (parseTree)
@@ -186,22 +175,6 @@ public class CLI implements Callable<Integer> {
      */
     private ASTNode getAST(String fileName, ParseTree tree) {
         return new ASTBuilder(fileName).visit(tree);
-    }
-
-    /**
-     * Type check a created abstract syntax tree.
-     *
-     * @param astRoot abstract syntax tree root node
-     */
-    private void typecheck(ASTNode astRoot) {
-        TypeChecker typeChecker = new TypeChecker();
-        typeChecker.visit(astRoot);
-        int errorsCount = typeChecker.getErrorsCount();
-        if (errorsCount > 0)
-            throw new IllegalASTStateException(
-                    String.format("%d type error%s found",
-                            errorsCount,
-                            errorsCount == 1 ? "" : "s"));
     }
 
     /**

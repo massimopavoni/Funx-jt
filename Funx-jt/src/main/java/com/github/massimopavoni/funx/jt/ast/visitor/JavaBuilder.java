@@ -3,7 +3,6 @@ package com.github.massimopavoni.funx.jt.ast.visitor;
 import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.node.Declaration;
 import com.github.massimopavoni.funx.jt.ast.node.Expression;
-import com.github.massimopavoni.funx.jt.ast.node.Type;
 import com.github.massimopavoni.funx.lib.FunxPrelude;
 import com.github.massimopavoni.funx.lib.JavaPrelude;
 import com.google.googlejavaformat.java.Formatter;
@@ -28,7 +27,7 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     /**
      * List of currently in scope lambda parameters.
      */
-    private final List<String> lambdaParamList = new ArrayList<>();
+    private final List<String> lambdaParams = new ArrayList<>();
     /**
      * Flag to indicate if the current declarations are at top level.
      */
@@ -36,7 +35,7 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     /**
      * Current declaration type, used for let expressions.
      */
-    private Type currentDeclarationType = null;
+    private TrashType currentDeclarationTrashType = null;
 
     /**
      * Constructor for the Java builder.
@@ -98,23 +97,24 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     public Void visitModule(ASTNode.Module module) {
         builder.append(String.format("""
                         %1$s
-                        import %2$s;
-                        
+                                                
                         import static %3$s.*;
                         import static %4$s.*;
-                        
+                                                
+                        import %2$s;
+                                                
                         public class %5$s {
                         private %5$s() {
                         // Private constructor to prevent instantiation
                         }
-                        
+                                                
                         """,
-                module.packageName.isEmpty() ?
-                        "" :
-                        String.format("package %s;%n", module.packageName.toLowerCase()),
-                Function.class.getName(),
+                module.packageName.isEmpty()
+                        ? ""
+                        : String.format("package %s;%n", module.packageName.toLowerCase()),
                 JavaPrelude.class.getName(),
                 FunxPrelude.class.getName(),
+                Function.class.getName(),
                 module.name));
         if (module.main != null)
             visit(module.main);
@@ -131,7 +131,7 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      */
     @Override
     public Void visitDeclarations(ASTNode.Declarations declarations) {
-        return visit(declarations.declarationList);
+        return visit(declarations.declarations);
     }
 
     /**
@@ -165,7 +165,7 @@ public final class JavaBuilder extends ASTVisitor<Void> {
         builder.append(String.format("""
                  %s() {
                 return\s""", declaration.id));
-        currentDeclarationType = (Type) declaration.type;
+        currentDeclarationTrashType = (TrashType) declaration.type;
         visit(declaration.expression);
         appendSemiColon();
         appendCloseBrace();
@@ -174,36 +174,36 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     }
 
     /**
-     * Visit a {@link Type.NamedType} AST node.
+     * Visit a {@link TrashType.NamedTrashType} AST node.
      *
      * @param type type node
      * @return visitor result
      */
     @Override
-    public Void visitNamedType(Type.NamedType type) {
+    public Void visitNamedType(TrashType.NamedTrashType type) {
         builder.append(type.type.typeClass.getSimpleName());
         return null;
     }
 
     /**
-     * Visit a {@link Type.VariableType} AST node.
+     * Visit a {@link TrashType.VariableTrashType} AST node.
      *
      * @param type type node
      * @return visitor result
      */
     @Override
-    public Void visitVariableType(Type.VariableType type) {
+    public Void visitVariableType(TrashType.VariableTrashType type) {
         throw new IllegalASTStateException("type variable not yet supported");
     }
 
     /**
-     * Visit a {@link Type.ArrowType} AST node.
+     * Visit a {@link TrashType.ArrowTrashType} AST node.
      *
      * @param type type node
      * @return visitor result
      */
     @Override
-    public Void visitArrowType(Type.ArrowType type) {
+    public Void visitArrowType(TrashType.ArrowTrashType type) {
         builder.append("Function<");
         visit(type.input);
         builder.append(", ");
@@ -220,12 +220,12 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      */
     @Override
     public Void visitLambda(Expression.Lambda lambda) {
-        lambdaParamList.add(lambda.paramId);
+        lambdaParams.add(lambda.paramId);
         builder.append("(");
         builder.append(String.format("%s -> ", lambda.paramId));
         visit(lambda.expression);
         appendCloseParen();
-        lambdaParamList.clear();
+        lambdaParams.clear();
         return null;
     }
 
@@ -243,7 +243,7 @@ public final class JavaBuilder extends ASTVisitor<Void> {
         builder.append("""
                 @Override
                 public\s""");
-        visit(currentDeclarationType);
+        visit(currentDeclarationTrashType);
         builder.append("""
                  _eval() {
                 return\s""");
@@ -309,7 +309,7 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     @Override
     public Void visitVariable(Expression.Variable variable) {
         builder.append(variable.id);
-        if (!lambdaParamList.contains(variable.id))
+        if (!lambdaParams.contains(variable.id))
             builder.append("()");
         return null;
     }

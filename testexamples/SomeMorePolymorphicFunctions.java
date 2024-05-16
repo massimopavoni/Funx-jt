@@ -8,13 +8,13 @@ public class SomeMorePolymorphicFunctions {
                 .apply1(Const.function())
                 .apply(1)
                 .apply("ignore").equals(1);
-        // This cannot work with the weak type system of Java
+        // This cannot work with the weak typesystem system of Java
         // System.out.println(ReverseApply.apply1(1).apply(Const.function()).apply("ignore"));
         // So that's why we need to use the apply2 method
         assert ReverseApply
                 .apply2(2, Const.function())
                 .apply("ignore").equals(2);
-        // A not so bad possible solution to this problem could be to use type witnesses
+        // A not so bad possible solution to this problem could be to use typesystem witnesses
         assert ReverseApply
                 .<Integer, Function<String, Integer>>apply1(3)
                 .apply(Const.function())
@@ -22,7 +22,7 @@ public class SomeMorePolymorphicFunctions {
         // Might not actually be a big problem, since we can probably implement some rules to
         // always use the apply method with the most arguments available (there will still be
         // some cases where types will be annoying like this, and we can always resort to
-        // type witnesses, once again)
+        // typesystem witnesses, once again)
         // Another solution is to embrace the object-oriented paradigm and use normal parametrized classes,
         // instead of static classes with static methods (this might not be a good shot, though)
         // ---- Other examples ----
@@ -46,7 +46,7 @@ public class SomeMorePolymorphicFunctions {
                 .apply(5).equals(5);
     }
 
-    // Fix forces us to create and use a recursive type, but does in the end work and allows us to
+    // Fix forces us to create and use a recursive typesystem, but does in the end work and allows us to
     // use recursion with anonymous functions
     public interface RecursiveFunction<T> extends Function<RecursiveFunction<T>, Function<T, T>> {
     }
