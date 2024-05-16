@@ -97,24 +97,24 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     public Void visitModule(ASTNode.Module module) {
         builder.append(String.format("""
                         %1$s
-                                                
+                        
+                        import %2$s;
+                        
                         import static %3$s.*;
                         import static %4$s.*;
-                                                
-                        import %2$s;
-                                                
+                        
                         public class %5$s {
                         private %5$s() {
                         // Private constructor to prevent instantiation
                         }
-                                                
+                        
                         """,
                 module.packageName.isEmpty()
                         ? ""
                         : String.format("package %s;%n", module.packageName.toLowerCase()),
+                Function.class.getName(),
                 JavaPrelude.class.getName(),
                 FunxPrelude.class.getName(),
-                Function.class.getName(),
                 module.name));
         if (module.main != null)
             visit(module.main);
