@@ -20,7 +20,7 @@ public final class Substitution implements Types<Substitution> {
     }
 
     public void compose(Substitution other) {
-        variableTypes.putAll(other.apply(this).variableTypes);
+        variableTypes.putAll(other.applySubstitution(this).variableTypes);
     }
 
     public Set<Long> variables() {
@@ -45,8 +45,8 @@ public final class Substitution implements Types<Substitution> {
     }
 
     @Override
-    public Substitution apply(Substitution substitution) {
-        variableTypes.forEach((v, t) -> variableTypes.put(v, t.apply(substitution)));
+    public Substitution applySubstitution(Substitution substitution) {
+        variableTypes.forEach((v, t) -> variableTypes.put(v, t.applySubstitution(substitution)));
         return this;
     }
 }

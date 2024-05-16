@@ -24,7 +24,7 @@ public sealed abstract class Type implements Types<Type>
         }
 
         @Override
-        public Type apply(Substitution substitution) {
+        public Type applySubstitution(Substitution substitution) {
             return substitution.variables().contains(id)
                     ? substitution.substituteOf(id)
                     : this;
@@ -53,9 +53,9 @@ public sealed abstract class Type implements Types<Type>
         }
 
         @Override
-        public Type apply(Substitution substitution) {
+        public Type applySubstitution(Substitution substitution) {
             return new FunctionApplication(function, arguments.stream()
-                    .map(a -> a.apply(substitution))
+                    .map(a -> a.applySubstitution(substitution))
                     .collect(ImmutableList.toImmutableList()));
         }
     }

@@ -31,7 +31,7 @@ public final class Scheme implements Types<Scheme> {
 
     public final Set<Long> variables;
     public final Type type;
-    private final Sets.SetView<Long> freeVariables;
+    private final Set<Long> freeVariables;
 
     public Scheme(Set<Long> variables, Type type) {
         this.variables = variables;
@@ -45,7 +45,7 @@ public final class Scheme implements Types<Scheme> {
     }
 
     @Override
-    public Scheme apply(Substitution substitution) {
-        return new Scheme(variables, type.apply(substitution.exclude(variables)));
+    public Scheme applySubstitution(Substitution substitution) {
+        return new Scheme(variables, type.applySubstitution(substitution.exclude(variables)));
     }
 }

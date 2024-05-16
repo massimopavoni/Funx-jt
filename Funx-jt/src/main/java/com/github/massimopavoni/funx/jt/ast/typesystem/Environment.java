@@ -34,8 +34,8 @@ public final class Environment implements Types<Environment> {
     }
 
     @Override
-    public Environment apply(Substitution substitution) {
-        variableSchemes.forEach((v, s) -> variableSchemes.put(v, s.apply(substitution)));
+    public Environment applySubstitution(Substitution substitution) {
+        variableSchemes.forEach((v, s) -> variableSchemes.put(v, s.applySubstitution(substitution)));
         return this;
     }
 }
