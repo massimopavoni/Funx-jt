@@ -40,11 +40,11 @@ public class JavaPrelude {
         return x -> y -> x <= y;
     }
 
-    public static Function<Object, Function<Object, Boolean>> equalsEquals() {
+    public static <A> Function<A, Function<A, Boolean>> equalsEquals() {
         return x -> x::equals;
     }
 
-    public static Function<Object, Function<Object, Boolean>> notEquals() {
+    public static <A> Function<A, Function<A, Boolean>> notEquals() {
         return x -> y -> !x.equals(y);
     }
 

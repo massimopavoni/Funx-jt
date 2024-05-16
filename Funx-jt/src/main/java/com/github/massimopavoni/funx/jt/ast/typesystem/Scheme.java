@@ -8,6 +8,7 @@ import java.util.Set;
 
 import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.FunctionApplication.BOOLEAN_TYPE;
 import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.FunctionApplication.INTEGER_TYPE;
+import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.Variable.ZERO;
 import static com.github.massimopavoni.funx.jt.ast.typesystem.TypeFunction.ARROW;
 
 public final class Scheme implements Types<Scheme> {
@@ -23,6 +24,10 @@ public final class Scheme implements Types<Scheme> {
             new Type.FunctionApplication(ARROW,
                     List.of(INTEGER_TYPE, new Type.FunctionApplication(ARROW,
                             List.of(INTEGER_TYPE, BOOLEAN_TYPE)))));
+    public static final Scheme EQUALITY_FUNCTION = new Scheme(Set.of(ZERO.id),
+            new Type.FunctionApplication(ARROW,
+                    List.of(ZERO, new Type.FunctionApplication(ARROW,
+                            List.of(ZERO, BOOLEAN_TYPE)))));
 
     public final Set<Long> variables;
     public final Type type;

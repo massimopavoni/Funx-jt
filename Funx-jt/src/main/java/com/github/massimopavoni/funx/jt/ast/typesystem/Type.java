@@ -10,6 +10,8 @@ import java.util.Set;
 public sealed abstract class Type implements Types<Type>
         permits Type.Variable, Type.FunctionApplication {
     public static final class Variable extends Type {
+        public static final Variable ZERO = new Variable(0L);
+
         public final long id;
 
         public Variable(long id) {

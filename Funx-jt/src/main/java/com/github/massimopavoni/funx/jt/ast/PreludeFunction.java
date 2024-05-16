@@ -51,11 +51,11 @@ public enum PreludeFunction {
     /**
      * Equal comparison.
      */
-    EQUALS_EQUALS("==", "equalsEquals", COMPARISON_FUNCTION),
+    EQUALS_EQUALS("==", "equalsEquals", EQUALITY_FUNCTION),
     /**
      * Not equal comparison.
      */
-    NOT_EQUALS("!=", "notEquals", COMPARISON_FUNCTION);
+    NOT_EQUALS("!=", "notEquals", EQUALITY_FUNCTION);
 
     /**
      * Prelude function symbol.
