@@ -14,7 +14,8 @@ import java.util.List;
  * @param <T> The return type of the visit operation. Use {@link Void} for
  *            operations with no return type.
  */
-public abstract class ASTVisitor<T> {
+public abstract sealed class ASTVisitor<T>
+    permits InferenceEngine, JavaBuilder, GraphvizBuilder {
     /**
      * Error reporter for the AST visitor.
      */

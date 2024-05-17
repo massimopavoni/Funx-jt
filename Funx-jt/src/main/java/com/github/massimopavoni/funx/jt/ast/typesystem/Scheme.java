@@ -1,5 +1,7 @@
 package com.github.massimopavoni.funx.jt.ast.typesystem;
 
+import com.github.massimopavoni.funx.jt.ast.visitor.InferenceEngine;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
 import java.util.Collections;
@@ -37,6 +39,11 @@ public final class Scheme implements Types<Scheme> {
         this.variables = variables;
         this.type = type;
         freeVariables = Sets.difference(type.freeVariables(), variables);
+    }
+
+    public Type instantiate() {
+        return type.applySubstitution(new Substitution(variables.stream()
+                .collect(ImmutableMap.toImmutableMap(v -> v, v -> InferenceEngine.newTypeVariable()))));
     }
 
     @Override
