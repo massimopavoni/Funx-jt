@@ -19,4 +19,12 @@ public enum TypeFunction {
         this.arity = arity;
         this.typeClass = typeClass;
     }
+
+    public static TypeFunction fromName(String name) {
+        return Utils.enumFromField(TypeFunction.class, tf -> tf.name.equals(name));
+    }
+
+    public static TypeFunction fromClass(Class<?> typeClass) {
+        return Utils.enumFromField(TypeFunction.class, tf -> tf.typeClass.equals(typeClass));
+    }
 }

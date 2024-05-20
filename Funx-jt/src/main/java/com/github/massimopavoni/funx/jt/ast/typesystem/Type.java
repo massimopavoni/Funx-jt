@@ -2,13 +2,50 @@ package com.github.massimopavoni.funx.jt.ast.typesystem;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 public sealed abstract class Type implements Types<Type>
-        permits Type.Variable, Type.FunctionApplication {
+        permits Type.TypeError, Type.Variable, Type.FunctionApplication {
+    public Scheme generalize(Environment environment) {
+        return new Scheme(Sets.difference(freeVariables(), environment.freeVariables()), this);
+    }
+
+    public abstract Substitution unify(Type other) throws TypeException;
+
+    @Override
+    public abstract String toString();
+
+    public static final class TypeError extends Type {
+        public static final TypeError INSTANCE = new TypeError();
+
+        private TypeError() {
+        }
+
+        @Override
+        public Substitution unify(Type other) {
+            return Substitution.EMPTY;
+        }
+
+        @Override
+        public Set<Long> freeVariables() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Type applySubstitution(Substitution substitution) {
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            return "TypeError";
+        }
+    }
+
     public static final class Variable extends Type {
         public static final Variable ZERO = new Variable(0L);
 
@@ -16,6 +53,19 @@ public sealed abstract class Type implements Types<Type>
 
         public Variable(long id) {
             this.id = id;
+        }
+
+        @Override
+        public Substitution unify(Type other) throws TypeException {
+            return bind(other);
+        }
+
+        public Substitution bind(Type type) throws TypeException {
+            if (this.equals(type))
+                return Substitution.EMPTY;
+            if (type.freeVariables().contains(id))
+                throw new TypeException(this, type);
+            return new Substitution(Collections.singletonMap(id, type));
         }
 
         @Override
@@ -28,6 +78,25 @@ public sealed abstract class Type implements Types<Type>
             return substitution.variables().contains(id)
                     ? substitution.substituteOf(id)
                     : this;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof Variable other))
+                return false;
+            return id == other.id;
+        }
+
+        @Override
+        public int hashCode() {
+            return Long.hashCode(id);
+        }
+
+        @Override
+        public String toString() {
+            return "t" + id;
         }
     }
 
@@ -46,6 +115,27 @@ public sealed abstract class Type implements Types<Type>
         }
 
         @Override
+        public Substitution unify(Type other) throws TypeException {
+            return switch (other) {
+                case TypeError ignored -> Substitution.EMPTY;
+                case Variable var -> var.bind(this);
+                case FunctionApplication fun -> {
+                    if (function != fun.function || arguments.size() != fun.arguments.size())
+                        throw new TypeException(this, fun);
+                    if (arguments.isEmpty())
+                        yield Substitution.EMPTY;
+                    Substitution subst = arguments.getFirst().unify(fun.arguments.getFirst());
+                    for (int i = 1; i < arguments.size(); i++) {
+                        Substitution s = arguments.get(i).applySubstitution(subst)
+                                .unify(fun.arguments.get(i).applySubstitution(subst));
+                        subst = subst.compose(s);
+                    }
+                    yield subst;
+                }
+            };
+        }
+
+        @Override
         public Set<Long> freeVariables() {
             return arguments.stream()
                     .flatMap(a -> a.freeVariables().stream())
@@ -57,6 +147,19 @@ public sealed abstract class Type implements Types<Type>
             return new FunctionApplication(function, arguments.stream()
                     .map(a -> a.applySubstitution(substitution))
                     .collect(ImmutableList.toImmutableList()));
+        }
+
+        @Override
+        public String toString() {
+            if (function == TypeFunction.ARROW)
+                return String.format("(%s %s %s)",
+                        arguments.getFirst(), function.name, arguments.get(1));
+            if (arguments.isEmpty())
+                return function.name;
+            StringBuilder sb = new StringBuilder("(");
+            sb.append(function.name);
+            arguments.forEach(a -> sb.append(" ").append(a));
+            return sb.append(")").toString();
         }
     }
 }

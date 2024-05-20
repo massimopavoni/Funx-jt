@@ -62,8 +62,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      */
     private String toGraphvizDefault(String label, List<ASTNode> children) {
         String nodeId = getNodeId();
-        builder.append(String.format("%s [label=\"%s\"];%n",
-                nodeId, label));
+        builder.append(nodeId).append(" [label=\"").append(label).append("\"];\n");
         children.forEach(c ->
                 builder.append(
                         String.format("%s -> %s;%n",
@@ -84,7 +83,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
                 digraph AST {
                 node [fontname="Arial", color=gray40, shape=egg];
                 edge [fontname="Arial", color=gray40, arrowsize=0.8];
-                """.stripIndent());
+                """);
         String nodeId = toGraphvizDefault(String.format("module %s%s%s",
                         module.packageName,
                         module.packageName.isEmpty() ? "" : ".",
@@ -130,9 +129,9 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     @Override
     public String visitDeclaration(Declaration declaration) {
         return toGraphvizDefault(declaration.id,
-                declaration.type == null
+                declaration.scheme == null
                         ? Collections.singletonList(declaration.expression)
-                        : List.of(declaration.type, declaration.expression));
+                        : List.of(declaration.scheme, declaration.expression));
     }
 
     /**

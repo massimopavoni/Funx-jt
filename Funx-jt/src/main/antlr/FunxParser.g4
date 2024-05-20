@@ -16,7 +16,7 @@ main
 // ----------------------------------------------------------------
 // Declaration
 declaration
-    : declarationType NEWLINE
+    : (declarationType NEWLINE)?
         id = VARID lambdaParams? Equals statement
         with?
     ;
@@ -31,6 +31,7 @@ localDeclarations: NEWLINE declarations NEWLINE;
 // Type
 typeElems
     : OpenParen typeElems CloseParen # parenType
+    | VARID # typeVar
     | TYPE # namedType
     | <assoc = right> typeElems Arrow typeElems # arrowType
     ;

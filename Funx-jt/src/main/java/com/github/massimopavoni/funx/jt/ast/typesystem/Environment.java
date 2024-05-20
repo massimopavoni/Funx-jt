@@ -1,7 +1,6 @@
 package com.github.massimopavoni.funx.jt.ast.typesystem;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,16 +13,18 @@ public final class Environment implements Types<Environment> {
         variableSchemes = new HashMap<>();
     }
 
+    public Environment(Environment environment) {
+        variableSchemes = new HashMap<>(environment.variableSchemes);
+    }
+
     public Scheme bindingOf(String variable) {
         return variableSchemes.get(variable);
     }
 
-    public void remove(String variable) {
-        variableSchemes.remove(variable);
-    }
-
-    public Scheme generalizeType(Type type) {
-        return new Scheme(Sets.difference(type.freeVariables(), freeVariables()), type);
+    public Environment bind(String variable, Scheme scheme) {
+        Environment newEnv = new Environment(this);
+        newEnv.variableSchemes.put(variable, scheme);
+        return newEnv;
     }
 
     @Override
@@ -35,7 +36,8 @@ public final class Environment implements Types<Environment> {
 
     @Override
     public Environment applySubstitution(Substitution substitution) {
-        variableSchemes.forEach((v, s) -> variableSchemes.put(v, s.applySubstitution(substitution)));
-        return this;
+        Environment newEnv = new Environment(this);
+        newEnv.variableSchemes.replaceAll((v, s) -> s.applySubstitution(substitution));
+        return newEnv;
     }
 }

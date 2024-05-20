@@ -95,27 +95,15 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      */
     @Override
     public Void visitModule(ASTNode.Module module) {
-        builder.append(String.format("""
-                        %1$s
-                        
-                        import %2$s;
-                        
-                        import static %3$s.*;
-                        import static %4$s.*;
-                        
-                        public class %5$s {
-                        private %5$s() {
-                        // Private constructor to prevent instantiation
-                        }
-                        
-                        """,
-                module.packageName.isEmpty()
+        builder.append(module.packageName.isEmpty()
                         ? ""
-                        : String.format("package %s;%n", module.packageName.toLowerCase()),
-                Function.class.getName(),
-                JavaPrelude.class.getName(),
-                FunxPrelude.class.getName(),
-                module.name));
+                        : String.format("package %s;%n", module.packageName.toLowerCase()))
+                .append("\n\nimport ").append(Function.class.getName())
+                .append(";\n\nimport static ").append(JavaPrelude.class.getName())
+                .append(".*;\nimport static ").append(FunxPrelude.class.getName())
+                .append(".*;\n\npublic class ").append(module.name).append(" {\n")
+                .append("private ").append(module.name)
+                .append("() {\n// Private constructor to prevent instantiation\n}\n\n");
         if (module.main != null)
             visit(module.main);
         visit(module.declarations);
@@ -161,11 +149,9 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     @Override
     public Void visitDeclaration(Declaration declaration) {
         builder.append(currentlyTopLevel ? "public static " : "private ");
-        visit(declaration.type);
-        builder.append(String.format("""
-                 %s() {
-                return\s""", declaration.id));
-        currentDeclarationTrashType = (TrashType) declaration.type;
+        visit(declaration.scheme);
+        builder.append(" ").append(declaration.id).append("() {\nreturn ");
+        currentDeclarationTrashType = (TrashType) declaration.scheme;
         visit(declaration.expression);
         appendSemiColon();
         appendCloseBrace();
@@ -221,8 +207,7 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     @Override
     public Void visitLambda(Expression.Lambda lambda) {
         lambdaParams.add(lambda.paramId);
-        builder.append("(");
-        builder.append(String.format("%s -> ", lambda.paramId));
+        builder.append("(").append(lambda.paramId).append(" -> ");
         visit(lambda.expression);
         appendCloseParen();
         lambdaParams.clear();
@@ -238,7 +223,7 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     @Override
     public Void visitLet(Expression.Let let) {
         currentlyTopLevel = !currentlyTopLevel;
-        builder.append(String.format("(new %s<>() {%n", JavaPrelude.Let.class.getSimpleName()));
+        builder.append("(new ").append(JavaPrelude.Let.class.getSimpleName()).append("<>() {\n");
         visit(let.localDeclarations);
         builder.append("""
                 @Override

@@ -67,6 +67,13 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitArrowType(FunxParser.ArrowTypeContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code typeVar}
+	 * labeled alternative in {@link FunxParser#typeElems}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTypeVar(FunxParser.TypeVarContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code parenType}
 	 * labeled alternative in {@link FunxParser#typeElems}.
 	 * @param ctx the parse tree

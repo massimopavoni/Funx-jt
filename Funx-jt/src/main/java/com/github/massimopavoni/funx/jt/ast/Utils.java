@@ -43,4 +43,22 @@ public final class Utils {
     public static String fromLexerToken(int token) {
         return FunxLexer.VOCABULARY.getLiteralName(token).replace("'", "");
     }
+
+    public static final class Pair<A, B> {
+        public final A fst;
+        public final B snd;
+
+        public Pair(A fst, B snd) {
+            this.fst = fst;
+            this.snd = snd;
+        }
+
+        public Pair<A,B> setFst(A fst) {
+            return new Pair<>(fst, snd);
+        }
+
+        public Pair<A,B> setSnd(B snd) {
+            return new Pair<>(fst, snd);
+        }
+    }
 }

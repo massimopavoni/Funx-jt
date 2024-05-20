@@ -4,6 +4,7 @@ import com.github.massimopavoni.funx.jt.ast.InputPosition;
 import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.node.Declaration;
 import com.github.massimopavoni.funx.jt.ast.node.Expression;
+import com.github.massimopavoni.funx.jt.ast.typesystem.InferenceEngine;
 import com.github.massimopavoni.funx.jt.parser.ASTBuilder;
 
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.List;
  *            operations with no return type.
  */
 public abstract sealed class ASTVisitor<T>
-    permits InferenceEngine, JavaBuilder, GraphvizBuilder {
+    permits JavaBuilder, GraphvizBuilder {
     /**
      * Error reporter for the AST visitor.
      */
@@ -120,30 +121,6 @@ public abstract sealed class ASTVisitor<T>
      * @return visitor result
      */
     public abstract T visitDeclaration(Declaration declaration);
-
-    /**
-     * Visit a {@link TrashType.NamedTrashType} AST node.
-     *
-     * @param type type node
-     * @return visitor result
-     */
-    public abstract T visitNamedType(TrashType.NamedTrashType type);
-
-    /**
-     * Visit a {@link TrashType.VariableTrashType} AST node.
-     *
-     * @param type type node
-     * @return visitor result
-     */
-    public abstract T visitVariableType(TrashType.VariableTrashType type);
-
-    /**
-     * Visit a {@link TrashType.ArrowTrashType} AST node.
-     *
-     * @param type type node
-     * @return visitor result
-     */
-    public abstract T visitArrowType(TrashType.ArrowTrashType type);
 
     /**
      * Visit a {@link Expression.Lambda} AST node.

@@ -22,7 +22,7 @@ public class IllegalParserStateException extends IllegalStateException {
      * @param expected expected input
      */
     public IllegalParserStateException(ParserRuleContext ctx, String expected) {
-        super(String.format("line %d:%d mismatched input '%s' expecting %s%n",
+        super(String.format("line %d:%d mismatched input '%s' expecting %s",
                 ctx.start.getLine(), ctx.start.getCharPositionInLine(), ctx.start.getText(), expected));
     }
 }

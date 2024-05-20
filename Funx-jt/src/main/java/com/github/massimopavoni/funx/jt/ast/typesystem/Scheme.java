@@ -1,6 +1,5 @@
 package com.github.massimopavoni.funx.jt.ast.typesystem;
 
-import com.github.massimopavoni.funx.jt.ast.visitor.InferenceEngine;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 

@@ -1,14 +1,9 @@
 package com.github.massimopavoni.funx.jt.ast.node;
 
 import com.github.massimopavoni.funx.jt.ast.InputPosition;
-import com.github.massimopavoni.funx.jt.ast.Utils;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
-import com.github.massimopavoni.funx.jt.ast.visitor.IllegalASTStateException;
-import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Base class for every node in the AST.
@@ -52,13 +47,9 @@ public sealed abstract class ASTNode
          */
         public final String packageName;
         /**
-         * Main declaration if present.
+         * Let body of the module.
          */
-        public final ASTNode main;
-        /**
-         * Declarations in the module.
-         */
-        public final ASTNode declarations;
+        public final Expression.Let let;
 
         /**
          * Constructor for the module node.
@@ -66,16 +57,13 @@ public sealed abstract class ASTNode
          * @param inputPosition input source code node position
          * @param name          module name
          * @param packageName   package name
-         * @param main          main declaration
-         * @param declarations  declarations in the module
+         * @param let           let body of the module
          */
-        public Module(InputPosition inputPosition, String name, String packageName,
-                      ASTNode main, ASTNode declarations) {
+        public Module(InputPosition inputPosition, String name, String packageName, ASTNode let) {
             super(inputPosition);
             this.name = name;
             this.packageName = packageName;
-            this.main = main;
-            this.declarations = declarations;
+            this.let = (Expression.Let) let;
         }
 
         /**
@@ -98,11 +86,7 @@ public sealed abstract class ASTNode
         /**
          * List of declarations.
          */
-        public final List<ASTNode> declarations;
-        /**
-         * Map of declaration identifiers and corresponding type.
-         */
-        public final Map<String, TrashType> declarationTypes;
+        public final List<Declaration> declarations;
 
         /**
          * Constructor for the Declarations node.
@@ -112,30 +96,9 @@ public sealed abstract class ASTNode
          */
         public Declarations(InputPosition inputPosition, List<ASTNode> declarationList) {
             super(inputPosition);
-            this.declarations = declarationList;
-            Map<String, List<Declaration>> groupedDeclarations = declarationList.stream()
-                    .map(d -> (Declaration) d)
-                    .collect(Collectors.groupingBy(d -> d.id));
-            groupedDeclarations.forEach((id, declarations) -> {
-                String message = null;
-                if (id.equals(Utils.fromLexerToken(FunxLexer.MAIN)))
-                    message = String.format("%s declaration not at the beginning of the module",
-                            Utils.fromLexerToken(FunxLexer.MAIN));
-                if (declarations.size() > 1)
-                    message = String.format("multiple declarations for identifier \"%s\"", id);
-                if (message != null)
-                    throw new IllegalASTStateException(String.format("%s at lines %s",
-                            message,
-                            String.join(", ",
-                                    declarations.stream()
-                                            .map(d -> String.format("%d:%d",
-                                                    d.inputPosition.line(), d.inputPosition.column()))
-                                            .toList())));
-            });
-            this.declarationTypes = groupedDeclarations.entrySet().stream()
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            e -> (TrashType) e.getValue().getFirst().type));
+            this.declarations = declarationList.stream()
+                    .map(Declaration.class::cast)
+                    .toList();
         }
 
         /**

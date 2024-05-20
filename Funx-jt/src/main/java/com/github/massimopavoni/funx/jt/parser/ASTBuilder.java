@@ -2,14 +2,17 @@ package com.github.massimopavoni.funx.jt.parser;
 
 import com.github.massimopavoni.funx.jt.ast.InputPosition;
 import com.github.massimopavoni.funx.jt.ast.PreludeFunction;
+import com.github.massimopavoni.funx.jt.ast.Utils;
 import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.node.Declaration;
 import com.github.massimopavoni.funx.jt.ast.node.Expression;
+import com.github.massimopavoni.funx.jt.ast.typesystem.Scheme;
+import com.github.massimopavoni.funx.jt.ast.typesystem.Type;
+import com.github.massimopavoni.funx.jt.ast.typesystem.TypeFunction;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -20,6 +23,8 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * Name of the file being parsed.
      */
     private final String fileName;
+    private final Deque<Type> currentDeclarationTypes = new ArrayDeque<>();
+    private long declarationTypeVariable = 0;
 
     /**
      * Constructor for the AST builder.
@@ -105,12 +110,15 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
                             .map(ParseTree::getText)
                             .toList());
         }
+        InputPosition position = getInputPosition(ctx);
         return new ASTNode.Module(
-                getInputPosition(ctx),
+                position,
                 moduleName,
                 packageName,
-                ctx.main() == null ? null : visit(ctx.main()),
-                visit(ctx.declarations()));
+                new Expression.Let(
+                        position,
+                        visit(ctx.declarations()),
+                        visit(ctx.main())));
     }
 
     /**
@@ -160,11 +168,17 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
                     position,
                     visit(ctx.with().localDeclarations().declarations()),
                     visit(ctx.statement()));
-        FunxParser.DeclarationTypeContext declarationTypeContext = ctx.declarationType();
+        String typeId = null;
+        Scheme scheme = null;
+        if (ctx.declarationType() != null) {
+            FunxParser.DeclarationTypeContext declarationTypeContext = ctx.declarationType();
+            typeId = declarationTypeContext.id.getText();
+            visit(declarationTypeContext);
+            Type type = currentDeclarationTypes.pop();
+            scheme = new Scheme(type.freeVariables(), type);
+        }
         return new Declaration(
-                position,
-                declarationTypeContext.id.getText(),
-                visit(declarationTypeContext),
+                position, typeId, scheme,
                 ctx.id.getText(),
                 ctx.lambdaParams() == null
                         ? statement
@@ -182,6 +196,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitDeclarationType(FunxParser.DeclarationTypeContext ctx) {
+        declarationTypeVariable = 0;
         return visit(ctx.typeElems());
     }
 
@@ -194,9 +209,13 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitArrowType(FunxParser.ArrowTypeContext ctx) {
-        return new TrashType.ArrowTrashType(
-                visit(ctx.typeElems(0)),
-                visit(ctx.typeElems(1)));
+        visit(ctx.typeElems(0));
+        Type input = currentDeclarationTypes.pop();
+        visit(ctx.typeElems(1));
+        currentDeclarationTypes.add(new Type.FunctionApplication(
+                TypeFunction.ARROW,
+                List.of(input, currentDeclarationTypes.pop())));
+        return null;
     }
 
     /**
@@ -212,6 +231,19 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     }
 
     /**
+     * Visit a parse tree produced by the {@code typeVar}
+     * labeled alternative in {@link FunxParser#typeElems()}.
+     *
+     * @param ctx the parse tree
+     * @return visitor result
+     */
+    @Override
+    public ASTNode visitTypeVar(FunxParser.TypeVarContext ctx) {
+        currentDeclarationTypes.add(new Type.Variable(declarationTypeVariable++));
+        return null;
+    }
+
+    /**
      * Visit a parse tree produced by the {@code namedType}
      * labeled alternative in {@link FunxParser#typeElems()}.
      *
@@ -220,8 +252,10 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitNamedType(FunxParser.NamedTypeContext ctx) {
-        return new TrashType.NamedTrashType(
-                TypeEnum.fromTypeName(ctx.TYPE().getText()));
+        currentDeclarationTypes.add(new Type.FunctionApplication(
+                TypeFunction.fromName(ctx.TYPE().getText()),
+                Collections.emptyList()));
+        return null;
     }
 
     /**
@@ -327,7 +361,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     public ASTNode visitDivModMultExpression(FunxParser.DivModMultExpressionContext ctx) {
         return binarySymbolApplication(
                 getInputPosition(ctx),
-                ASTNode.fromLexerToken(ctx.bop.getType()),
+                Utils.fromLexerToken(ctx.bop.getType()),
                 visit(ctx.expression(0)),
                 visit(ctx.expression(1)));
     }
@@ -343,7 +377,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     public ASTNode visitAddSubExpression(FunxParser.AddSubExpressionContext ctx) {
         return binarySymbolApplication(
                 getInputPosition(ctx),
-                ASTNode.fromLexerToken(ctx.bop.getType()),
+                Utils.fromLexerToken(ctx.bop.getType()),
                 visit(ctx.expression(0)),
                 visit(ctx.expression(1)));
     }
@@ -359,7 +393,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     public ASTNode visitCompExpression(FunxParser.CompExpressionContext ctx) {
         return binarySymbolApplication(
                 getInputPosition(ctx),
-                ASTNode.fromLexerToken(ctx.bop.getType()),
+                Utils.fromLexerToken(ctx.bop.getType()),
                 visit(ctx.expression(0)),
                 visit(ctx.expression(1)));
     }
@@ -375,7 +409,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     public ASTNode visitEqExpression(FunxParser.EqExpressionContext ctx) {
         return binarySymbolApplication(
                 getInputPosition(ctx),
-                ASTNode.fromLexerToken(ctx.bop.getType()),
+                Utils.fromLexerToken(ctx.bop.getType()),
                 visit(ctx.expression(0)),
                 visit(ctx.expression(1)));
     }
@@ -528,7 +562,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
         return switch (ctx.start.getType()) {
             case FunxLexer.INT -> new Expression.Constant(
                     position,
-                    Integer.parseInt(
+                    Long.parseLong(
                             ctx.INT().getText().replaceAll("[()]", "")));
             // Default case should never be reached
             default -> throw new IllegalParserStateException(ctx, "numeric constant");

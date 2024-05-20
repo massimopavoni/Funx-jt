@@ -19,8 +19,10 @@ public final class Substitution implements Types<Substitution> {
         this.variableTypes = variableTypes;
     }
 
-    public void compose(Substitution other) {
-        variableTypes.putAll(other.applySubstitution(this).variableTypes);
+    public Substitution compose(Substitution other) {
+        Substitution subst = other.applySubstitution(this);
+        subst.variableTypes.putAll(variableTypes);
+        return subst;
     }
 
     public Set<Long> variables() {

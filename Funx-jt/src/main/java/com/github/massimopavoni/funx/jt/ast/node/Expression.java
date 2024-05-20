@@ -1,7 +1,14 @@
 package com.github.massimopavoni.funx.jt.ast.node;
 
 import com.github.massimopavoni.funx.jt.ast.InputPosition;
+import com.github.massimopavoni.funx.jt.ast.Utils;
+import com.github.massimopavoni.funx.jt.ast.typesystem.*;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
+
+import java.util.Collections;
+import java.util.List;
+
+import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.FunctionApplication.BOOLEAN_TYPE;
 
 /**
  * Base class for expression nodes.
@@ -9,6 +16,8 @@ import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
 public sealed abstract class Expression extends ASTNode
         permits Expression.Constant, Expression.Variable, Expression.Application,
         Expression.Lambda, Expression.Let, Expression.If {
+    protected Type type;
+
     /**
      * Package private default constructor,
      * preventing instantiation of generalization class from outside.
@@ -18,6 +27,12 @@ public sealed abstract class Expression extends ASTNode
     protected Expression(InputPosition inputPosition) {
         super(inputPosition);
     }
+
+    public Type type() {
+        return type;
+    }
+
+    public abstract Utils.Pair<Substitution, Type> infer(Environment env);
 
     /**
      * Constant expression class.
@@ -37,6 +52,18 @@ public sealed abstract class Expression extends ASTNode
         public Constant(InputPosition inputPosition, Object value) {
             super(inputPosition);
             this.value = value;
+        }
+
+        @Override
+        public Utils.Pair<Substitution, Type> infer(Environment env) {
+            TypeFunction typeFunction = TypeFunction.fromClass(value.getClass());
+            if (typeFunction == null) {
+                InferenceEngine.reportError(inputPosition,
+                        String.format("cannot infer type of constant '%s'", value));
+                type = Type.TypeError.INSTANCE;
+            } else
+                type = new Type.FunctionApplication(typeFunction, Collections.emptyList());
+            return new Utils.Pair<>(Substitution.EMPTY, type);
         }
 
         /**
@@ -72,6 +99,18 @@ public sealed abstract class Expression extends ASTNode
             this.id = id;
         }
 
+        @Override
+        public Utils.Pair<Substitution, Type> infer(Environment env) {
+            Scheme binding = env.bindingOf(id);
+            if (binding == null) {
+                InferenceEngine.reportError(inputPosition,
+                        String.format("unbound variable '%s'", id));
+                type = Type.TypeError.INSTANCE;
+            } else
+                type = binding.instantiate();
+            return new Utils.Pair<>(Substitution.EMPTY, type);
+        }
+
         /**
          * Accepts a visitor to traverse the AST.
          *
@@ -90,25 +129,47 @@ public sealed abstract class Expression extends ASTNode
      */
     public static final class Application extends Expression {
         /**
-         * Application left node.
+         * Application left expression.
          */
-        public final ASTNode left;
+        public final Expression left;
         /**
-         * Application right node.
+         * Application right expression.
          */
-        public final ASTNode right;
+        public final Expression right;
 
         /**
          * Constructor for the application expression node.
          *
          * @param inputPosition input source code node position
-         * @param left          left node
-         * @param right         right node
+         * @param left          left expression
+         * @param right         right expression
          */
         public Application(InputPosition inputPosition, ASTNode left, ASTNode right) {
             super(inputPosition);
-            this.left = left;
-            this.right = right;
+            this.left = (Expression) left;
+            this.right = (Expression) right;
+        }
+
+        @Override
+        public Utils.Pair<Substitution, Type> infer(Environment env) {
+            Utils.Pair<Substitution, Type> leftInference = left.infer(env);
+            Utils.Pair<Substitution, Type> rightInference =
+                    right.infer(env.applySubstitution(leftInference.fst));
+            Type.Variable funTypeVar = InferenceEngine.newTypeVariable();
+            Substitution subst = leftInference.fst
+                    .compose(rightInference.fst);
+            try {
+                Substitution applicationSubstitution = leftInference.snd
+                        .applySubstitution(rightInference.fst)
+                        .unify(new Type.FunctionApplication(TypeFunction.ARROW,
+                                List.of(rightInference.snd, funTypeVar)));
+                type = funTypeVar.applySubstitution(applicationSubstitution);
+                return new Utils.Pair<>(subst.compose(applicationSubstitution), type);
+            } catch (TypeException e) {
+                InferenceEngine.reportError(inputPosition, e.getMessage());
+            }
+            type = Type.TypeError.INSTANCE;
+            return new Utils.Pair<>(subst, type);
         }
 
         /**
@@ -135,7 +196,7 @@ public sealed abstract class Expression extends ASTNode
         /**
          * Expression node.
          */
-        public final ASTNode expression;
+        public final Expression expression;
 
         /**
          * Constructor for the lambda expression node.
@@ -147,7 +208,17 @@ public sealed abstract class Expression extends ASTNode
         public Lambda(InputPosition inputPosition, String paramId, ASTNode expression) {
             super(inputPosition);
             this.paramId = paramId;
-            this.expression = expression;
+            this.expression = (Expression) expression;
+        }
+
+        @Override
+        public Utils.Pair<Substitution, Type> infer(Environment env) {
+            Type.Variable paramTypeVar = InferenceEngine.newTypeVariable();
+            Utils.Pair<Substitution, Type> bodyInference = expression
+                    .infer(env.bind(paramId, new Scheme(Collections.emptySet(), paramTypeVar)));
+            type = new Type.FunctionApplication(TypeFunction.ARROW,
+                    List.of(paramTypeVar.applySubstitution(bodyInference.fst), bodyInference.snd));
+            return bodyInference.setSnd(type);
         }
 
         /**
@@ -170,11 +241,11 @@ public sealed abstract class Expression extends ASTNode
         /**
          * Local declarations node.
          */
-        public final ASTNode localDeclarations;
+        public final Declarations localDeclarations;
         /**
          * Expression node.
          */
-        public final ASTNode expression;
+        public final Expression expression;
 
         /**
          * Constructor for the let expression node.
@@ -185,8 +256,40 @@ public sealed abstract class Expression extends ASTNode
          */
         public Let(InputPosition inputPosition, ASTNode localDeclarations, ASTNode expression) {
             super(inputPosition);
-            this.localDeclarations = localDeclarations;
-            this.expression = expression;
+            this.localDeclarations = (Declarations) localDeclarations;
+            this.expression = (Expression) expression;
+        }
+
+        @Override
+        public Utils.Pair<Substitution, Type> infer(Environment env) {
+            Environment newEnv = new Environment(env);
+            for (Declaration decl : localDeclarations.declarations) {
+                if (newEnv.bindingOf(decl.id) != null)
+                    InferenceEngine.reportError(decl.inputPosition,
+                            String.format("variable '%s' rebound", decl.id));
+                else
+                    newEnv.bind(decl.id, new Scheme(Collections.emptySet(), InferenceEngine.newTypeVariable()));
+            }
+            Substitution subst = Substitution.EMPTY;
+            for (Declaration decl : localDeclarations.declarations) {
+                Utils.Pair<Substitution, Type> declInference = decl.expression.infer(newEnv);
+                try {
+                    subst = subst.compose(newEnv.bindingOf(decl.id).type
+                            .applySubstitution(declInference.fst)
+                            .unify(declInference.snd));
+                } catch (TypeException e) {
+                    InferenceEngine.reportError(decl.inputPosition, e.getMessage());
+                }
+                subst = subst.compose(declInference.fst);
+                newEnv = newEnv.applySubstitution(subst)
+                        .bind(decl.id, declInference.snd.generalize(newEnv));
+                decl.expression.type = newEnv.bindingOf(decl.id).type;
+                decl.checkType();
+            }
+            Utils.Pair<Substitution, Type> exprInference = expression.infer(newEnv);
+            subst = subst.compose(exprInference.fst);
+            type = exprInference.snd.applySubstitution(subst);
+            return new Utils.Pair<>(subst, type);
         }
 
         /**
@@ -207,31 +310,55 @@ public sealed abstract class Expression extends ASTNode
      */
     public static final class If extends Expression {
         /**
-         * Condition node.
+         * Condition expression node.
          */
-        public final ASTNode condition;
+        public final Expression condition;
         /**
-         * Then branch node.
+         * Then branch expression node.
          */
-        public final ASTNode thenBranch;
+        public final Expression thenBranch;
         /**
-         * Else branch node.
+         * Else branch expression node.
          */
-        public final ASTNode elseBranch;
+        public final Expression elseBranch;
 
         /**
          * Constructor for the if expression node.
          *
          * @param inputPosition input source code node position
-         * @param condition     condition node
-         * @param thenBranch    then branch node
-         * @param elseBranch    else branch node
+         * @param condition     condition expression
+         * @param thenBranch    then branch expression
+         * @param elseBranch    else branch expression
          */
         public If(InputPosition inputPosition, ASTNode condition, ASTNode thenBranch, ASTNode elseBranch) {
             super(inputPosition);
-            this.condition = condition;
-            this.thenBranch = thenBranch;
-            this.elseBranch = elseBranch;
+            this.condition = (Expression) condition;
+            this.thenBranch = (Expression) thenBranch;
+            this.elseBranch = (Expression) elseBranch;
+        }
+
+        @Override
+        public Utils.Pair<Substitution, Type> infer(Environment env) throws TypeException {
+            Utils.Pair<Substitution, Type> conditionInference = condition.infer(env);
+            Environment newEnv = env.applySubstitution(conditionInference.fst);
+            Utils.Pair<Substitution, Type> thenInference = thenBranch.infer(newEnv);
+            Utils.Pair<Substitution, Type> elseInference =
+                    elseBranch.infer(newEnv.applySubstitution(thenInference.fst));
+            try {
+                Substitution conditionSubstitution = conditionInference.snd.unify(BOOLEAN_TYPE);
+                Substitution thenElseSubstitution = thenInference.snd
+                        .applySubstitution(elseInference.fst)
+                        .unify(elseInference.snd);
+                type = thenInference.snd.applySubstitution(thenElseSubstitution);
+                return new Utils.Pair<>(conditionInference.fst
+                        .compose(thenInference.fst)
+                        .compose(elseInference.fst)
+                        .compose(conditionSubstitution)
+                        .compose(thenElseSubstitution),
+                        type);
+            } catch (TypeException e) {
+                throw new TypeException(inputPosition, e.getMessage());
+            }
         }
 
         /**
