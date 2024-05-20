@@ -1,5 +1,6 @@
 package com.github.massimopavoni.funx.jt.cli;
 
+import com.github.massimopavoni.funx.jt.ast.typesystem.InferenceException;
 import com.github.massimopavoni.funx.jt.ast.visitor.IllegalASTStateException;
 import com.github.massimopavoni.funx.jt.parser.IllegalParserStateException;
 import picocli.CommandLine;
@@ -32,6 +33,7 @@ public class ExceptionHandler implements CommandLine.IExecutionExceptionHandler 
                             : "");
             case IllegalASTStateException ignored -> "Illegal AST state";
             case IllegalParserStateException ignored -> "Illegal parser state";
+            case InferenceException ignored -> "Inference error";
             default -> {
                 e.printStackTrace(commandLine.getErr());
                 yield String.format("Unknown error (%s)", e.getClass().getName());

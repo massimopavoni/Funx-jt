@@ -3,14 +3,16 @@ package com.github.massimopavoni.funx.jt.ast.visitor;
 import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.node.Declaration;
 import com.github.massimopavoni.funx.jt.ast.node.Expression;
+import com.github.massimopavoni.funx.jt.ast.typesystem.InferenceException;
+import com.github.massimopavoni.funx.jt.ast.typesystem.Scheme;
+import com.github.massimopavoni.funx.jt.ast.typesystem.Type;
 import com.github.massimopavoni.funx.lib.FunxPrelude;
 import com.github.massimopavoni.funx.lib.JavaPrelude;
 import com.google.googlejavaformat.java.Formatter;
 import com.google.googlejavaformat.java.FormatterException;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Java code builder for the AST tree.
@@ -25,17 +27,9 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      */
     private final Formatter formatter;
     /**
-     * List of currently in scope lambda parameters.
-     */
-    private final List<String> lambdaParams = new ArrayList<>();
-    /**
      * Flag to indicate if the current declarations are at top level.
      */
     private boolean currentlyTopLevel = true;
-    /**
-     * Current declaration type, used for let expressions.
-     */
-    private TrashType currentDeclarationTrashType = null;
 
     /**
      * Constructor for the Java builder.
@@ -104,9 +98,9 @@ public final class JavaBuilder extends ASTVisitor<Void> {
                 .append(".*;\n\npublic class ").append(module.name).append(" {\n")
                 .append("private ").append(module.name)
                 .append("() {\n// Private constructor to prevent instantiation\n}\n\n");
-        if (module.main != null)
-            visit(module.main);
-        visit(module.declarations);
+        if (module.let.expression.type() != Type.Boring.INSTANCE)
+            visitMain(module.let.expression);
+        visit(module.let.localDeclarations);
         appendCloseBrace();
         return null;
     }
@@ -123,17 +117,17 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     }
 
     /**
-     * Visit the main {@link Declaration} AST node.
+     * Visit the main {@link Expression} AST node.
      *
-     * @param main declaration node
+     * @param main expression node
      * @return visitor result
      */
     @Override
-    public Void visitMain(Declaration main) {
+    public Void visitMain(Expression main) {
         builder.append("""
                 public static void main(String[] args) {
                 System.out.println(""");
-        visit(main.expression);
+        visit(main);
         appendCloseParen();
         appendSemiColon();
         appendCloseBrace();
@@ -149,9 +143,8 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     @Override
     public Void visitDeclaration(Declaration declaration) {
         builder.append(currentlyTopLevel ? "public static " : "private ");
-        visit(declaration.scheme);
+        visitScheme(declaration.scheme());
         builder.append(" ").append(declaration.id).append("() {\nreturn ");
-        currentDeclarationTrashType = (TrashType) declaration.scheme;
         visit(declaration.expression);
         appendSemiColon();
         appendCloseBrace();
@@ -159,43 +152,33 @@ public final class JavaBuilder extends ASTVisitor<Void> {
         return null;
     }
 
-    /**
-     * Visit a {@link TrashType.NamedTrashType} AST node.
-     *
-     * @param type type node
-     * @return visitor result
-     */
-    @Override
-    public Void visitNamedType(TrashType.NamedTrashType type) {
-        builder.append(type.type.typeClass.getSimpleName());
-        return null;
+    private void visitScheme(Scheme scheme) {
+        if (scheme.variables.isEmpty())
+            builder.append(typeStringOf(scheme.type));
+        else
+            builder.append("<")
+                    .append(scheme.variables.stream()
+                            .map(v -> "t" + v)
+                            .collect(Collectors.joining(", ")))
+                    .append(">");
     }
 
-    /**
-     * Visit a {@link TrashType.VariableTrashType} AST node.
-     *
-     * @param type type node
-     * @return visitor result
-     */
-    @Override
-    public Void visitVariableType(TrashType.VariableTrashType type) {
-        throw new IllegalASTStateException("type variable not yet supported");
-    }
-
-    /**
-     * Visit a {@link TrashType.ArrowTrashType} AST node.
-     *
-     * @param type type node
-     * @return visitor result
-     */
-    @Override
-    public Void visitArrowType(TrashType.ArrowTrashType type) {
-        builder.append("Function<");
-        visit(type.input);
-        builder.append(", ");
-        visit(type.output);
-        builder.append(">");
-        return null;
+    private String typeStringOf(Type type) {
+        return switch (type) {
+            case Type.Variable var -> var.toString();
+            case Type.FunctionApplication fun -> {
+                String functionName = fun.function.typeClass.getSimpleName();
+                if (fun.function.arity > 0)
+                    yield String.format("%s<%s>",
+                            functionName,
+                            fun.arguments.stream()
+                                    .map(this::typeStringOf)
+                                    .collect(Collectors.joining(", ")));
+                else
+                    yield functionName;
+            }
+            default -> throw new InferenceException("Illegal type for declaration found");
+        };
     }
 
     /**
@@ -206,11 +189,9 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      */
     @Override
     public Void visitLambda(Expression.Lambda lambda) {
-        lambdaParams.add(lambda.paramId);
         builder.append("(").append(lambda.paramId).append(" -> ");
         visit(lambda.expression);
         appendCloseParen();
-        lambdaParams.clear();
         return null;
     }
 
@@ -226,12 +207,12 @@ public final class JavaBuilder extends ASTVisitor<Void> {
         builder.append("(new ").append(JavaPrelude.Let.class.getSimpleName()).append("<>() {\n");
         visit(let.localDeclarations);
         builder.append("""
-                @Override
-                public\s""");
-        visit(currentDeclarationTrashType);
-        builder.append("""
-                 _eval() {
-                return\s""");
+                        @Override
+                        public\s""")
+                .append(typeStringOf(let.expression.type()))
+                .append("""
+                         _eval() {
+                        return\s""");
         visit(let.expression);
         appendSemiColon();
         appendCloseBrace();

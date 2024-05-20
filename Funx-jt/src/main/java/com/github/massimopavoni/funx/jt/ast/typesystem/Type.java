@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 public sealed abstract class Type implements Types<Type>
-        permits Type.TypeError, Type.Variable, Type.FunctionApplication {
+        permits Type.Error, Type.Boring, Type.Variable, Type.FunctionApplication {
     public Scheme generalize(Environment environment) {
         return new Scheme(Sets.difference(freeVariables(), environment.freeVariables()), this);
     }
@@ -19,10 +19,10 @@ public sealed abstract class Type implements Types<Type>
     @Override
     public abstract String toString();
 
-    public static final class TypeError extends Type {
-        public static final TypeError INSTANCE = new TypeError();
+    public static final class Error extends Type {
+        public static final Error INSTANCE = new Error();
 
-        private TypeError() {
+        private Error() {
         }
 
         @Override
@@ -43,6 +43,33 @@ public sealed abstract class Type implements Types<Type>
         @Override
         public String toString() {
             return "TypeError";
+        }
+    }
+
+    public static final class Boring extends Type {
+        public static final Boring INSTANCE = new Boring();
+
+        private Boring() {
+        }
+
+        @Override
+        public Substitution unify(Type other) {
+            return Substitution.EMPTY;
+        }
+
+        @Override
+        public Set<Long> freeVariables() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Type applySubstitution(Substitution substitution) {
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            return "()";
         }
     }
 
@@ -117,7 +144,8 @@ public sealed abstract class Type implements Types<Type>
         @Override
         public Substitution unify(Type other) throws TypeException {
             return switch (other) {
-                case TypeError ignored -> Substitution.EMPTY;
+                case Error ignored -> Substitution.EMPTY;
+                case Boring ignored -> Substitution.EMPTY;
                 case Variable var -> var.bind(this);
                 case FunctionApplication fun -> {
                     if (function != fun.function || arguments.size() != fun.arguments.size())

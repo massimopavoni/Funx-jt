@@ -56,11 +56,13 @@ public sealed abstract class Expression extends ASTNode
 
         @Override
         public Utils.Pair<Substitution, Type> infer(Environment env) {
+            if (value == null)
+                return new Utils.Pair<>(Substitution.EMPTY, Type.Boring.INSTANCE);
             TypeFunction typeFunction = TypeFunction.fromClass(value.getClass());
             if (typeFunction == null) {
                 InferenceEngine.reportError(inputPosition,
                         String.format("cannot infer type of constant '%s'", value));
-                type = Type.TypeError.INSTANCE;
+                type = Type.Error.INSTANCE;
             } else
                 type = new Type.FunctionApplication(typeFunction, Collections.emptyList());
             return new Utils.Pair<>(Substitution.EMPTY, type);
@@ -105,7 +107,7 @@ public sealed abstract class Expression extends ASTNode
             if (binding == null) {
                 InferenceEngine.reportError(inputPosition,
                         String.format("unbound variable '%s'", id));
-                type = Type.TypeError.INSTANCE;
+                type = Type.Error.INSTANCE;
             } else
                 type = binding.instantiate();
             return new Utils.Pair<>(Substitution.EMPTY, type);
@@ -167,9 +169,9 @@ public sealed abstract class Expression extends ASTNode
                 return new Utils.Pair<>(subst.compose(applicationSubstitution), type);
             } catch (TypeException e) {
                 InferenceEngine.reportError(inputPosition, e.getMessage());
+                type = Type.Error.INSTANCE;
+                return new Utils.Pair<>(subst, type);
             }
-            type = Type.TypeError.INSTANCE;
-            return new Utils.Pair<>(subst, type);
         }
 
         /**
@@ -277,14 +279,15 @@ public sealed abstract class Expression extends ASTNode
                     subst = subst.compose(newEnv.bindingOf(decl.id).type
                             .applySubstitution(declInference.fst)
                             .unify(declInference.snd));
+                    subst = subst.compose(declInference.fst);
+                    newEnv = newEnv.applySubstitution(subst)
+                            .bind(decl.id, declInference.snd.generalize(newEnv));
+                    decl.expression.type = newEnv.bindingOf(decl.id).type;
+                    decl.checkScheme(newEnv.bindingOf(decl.id));
                 } catch (TypeException e) {
                     InferenceEngine.reportError(decl.inputPosition, e.getMessage());
+                    decl.expression.type = Type.Error.INSTANCE;
                 }
-                subst = subst.compose(declInference.fst);
-                newEnv = newEnv.applySubstitution(subst)
-                        .bind(decl.id, declInference.snd.generalize(newEnv));
-                decl.expression.type = newEnv.bindingOf(decl.id).type;
-                decl.checkType();
             }
             Utils.Pair<Substitution, Type> exprInference = expression.infer(newEnv);
             subst = subst.compose(exprInference.fst);
@@ -338,7 +341,7 @@ public sealed abstract class Expression extends ASTNode
         }
 
         @Override
-        public Utils.Pair<Substitution, Type> infer(Environment env) throws TypeException {
+        public Utils.Pair<Substitution, Type> infer(Environment env) {
             Utils.Pair<Substitution, Type> conditionInference = condition.infer(env);
             Environment newEnv = env.applySubstitution(conditionInference.fst);
             Utils.Pair<Substitution, Type> thenInference = thenBranch.infer(newEnv);
@@ -357,7 +360,12 @@ public sealed abstract class Expression extends ASTNode
                         .compose(thenElseSubstitution),
                         type);
             } catch (TypeException e) {
-                throw new TypeException(inputPosition, e.getMessage());
+                InferenceEngine.reportError(inputPosition, e.getMessage());
+                type = Type.Error.INSTANCE;
+                return new Utils.Pair<>(conditionInference.fst
+                        .compose(thenInference.fst)
+                        .compose(elseInference.fst),
+                        type);
             }
         }
 

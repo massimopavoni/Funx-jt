@@ -4,6 +4,7 @@ import com.github.massimopavoni.funx.jt.ast.Utils;
 import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.node.Declaration;
 import com.github.massimopavoni.funx.jt.ast.node.Expression;
+import com.github.massimopavoni.funx.jt.ast.typesystem.Type;
 import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
 import java.util.Collections;
@@ -57,12 +58,16 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      * (We don't use the ASTVisitor visit method with node results aggregation within this very custom visitor).
      *
      * @param label    node label
+     * @param type     node type
      * @param children list of children nodes
      * @return node identifier
      */
-    private String toGraphvizDefault(String label, List<ASTNode> children) {
+    private String toGraphvizDefault(String label, String type, List<? extends ASTNode> children) {
         String nodeId = getNodeId();
-        builder.append(nodeId).append(" [label=\"").append(label).append("\"];\n");
+        builder.append(nodeId).append(" [label=\"").append(label);
+        if (type != null)
+            builder.append(" : ").append(type);
+        builder.append("\"];\n");
         children.forEach(c ->
                 builder.append(
                         String.format("%s -> %s;%n",
@@ -88,9 +93,8 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
                         module.packageName,
                         module.packageName.isEmpty() ? "" : ".",
                         module.name),
-                module.main == null
-                        ? Collections.singletonList(module.declarations)
-                        : List.of(module.main, module.declarations));
+                null,
+                Collections.singletonList(module.let));
         builder.append("}\n");
         return nodeId;
     }
@@ -104,19 +108,20 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     @Override
     public String visitDeclarations(ASTNode.Declarations declarations) {
         return toGraphvizDefault(ASTNode.Declarations.class.getSimpleName(),
+                null,
                 declarations.declarations);
     }
 
     /**
-     * Visit the main {@link Declaration} AST node.
+     * Visit the main {@link Expression} AST node.
      *
-     * @param main declaration node
+     * @param main expression node
      * @return visitor result
      */
     @Override
-    public String visitMain(Declaration main) {
-        return toGraphvizDefault(main.id,
-                Collections.singletonList(main.expression));
+    public String visitMain(Expression main) {
+        throw new IllegalStateException(String.format(
+                "Main expression cannot be visited directly by %s", GraphvizBuilder.class.getSimpleName()));
     }
 
 
@@ -129,45 +134,8 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     @Override
     public String visitDeclaration(Declaration declaration) {
         return toGraphvizDefault(declaration.id,
-                declaration.scheme == null
-                        ? Collections.singletonList(declaration.expression)
-                        : List.of(declaration.scheme, declaration.expression));
-    }
-
-    /**
-     * Visit a {@link TrashType.NamedTrashType} AST node.
-     *
-     * @param type type node
-     * @return visitor result
-     */
-    @Override
-    public String visitNamedType(TrashType.NamedTrashType type) {
-        return toGraphvizDefault(type.toString(),
-                Collections.emptyList());
-    }
-
-    /**
-     * Visit a {@link TrashType.VariableTrashType} AST node.
-     *
-     * @param type type node
-     * @return visitor result
-     */
-    @Override
-    public String visitVariableType(TrashType.VariableTrashType type) {
-        return toGraphvizDefault(type.toString(),
-                Collections.emptyList());
-    }
-
-    /**
-     * Visit a {@link TrashType.ArrowTrashType} AST node.
-     *
-     * @param type type node
-     * @return visitor result
-     */
-    @Override
-    public String visitArrowType(TrashType.ArrowTrashType type) {
-        return toGraphvizDefault(Utils.fromLexerToken(FunxLexer.Arrow),
-                List.of(type.input, type.output));
+                declaration.scheme().toString(),
+                Collections.singletonList(declaration.expression));
     }
 
     /**
@@ -180,6 +148,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     public String visitLambda(Expression.Lambda lambda) {
         return toGraphvizDefault(
                 String.format("\\\\%s", lambda.paramId),
+                lambda.type().toString(),
                 Collections.singletonList(lambda.expression));
     }
 
@@ -192,6 +161,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     @Override
     public String visitLet(Expression.Let let) {
         return toGraphvizDefault(Utils.fromLexerToken(FunxLexer.LET),
+                null,
                 List.of(let.localDeclarations, let.expression));
     }
 
@@ -205,6 +175,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     @Override
     public String visitIf(Expression.If ifE) {
         return toGraphvizDefault(Utils.fromLexerToken(FunxLexer.IF),
+                ifE.type().toString(),
                 List.of(ifE.condition, ifE.thenBranch, ifE.elseBranch));
     }
 
@@ -218,6 +189,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     @Override
     public String visitApplication(Expression.Application application) {
         return toGraphvizDefault("@",
+                application.type().toString(),
                 List.of(application.left, application.right));
     }
 
@@ -230,6 +202,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     @Override
     public String visitConstant(Expression.Constant constant) {
         return toGraphvizDefault(constant.value.toString(),
+                constant.type().toString(),
                 Collections.emptyList());
     }
 
@@ -242,6 +215,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     @Override
     public String visitVariable(Expression.Variable variable) {
         return toGraphvizDefault(variable.id,
+                variable.type().toString(),
                 Collections.emptyList());
     }
 }

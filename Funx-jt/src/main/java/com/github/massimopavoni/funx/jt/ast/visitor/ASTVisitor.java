@@ -64,10 +64,11 @@ public abstract sealed class ASTVisitor<T>
      * @param nodes list of AST nodes
      * @return visitor result
      */
-    public T visit(List<ASTNode> nodes) {
-        return nodes.stream()
-                .map(node -> node.accept(this))
-                .reduce(defaultResult(), this::aggregateResult);
+    public T visit(List<? extends ASTNode> nodes) {
+        T result = defaultResult();
+        for (ASTNode node : nodes)
+            result = aggregateResult(result, node.accept(this));
+        return result;
     }
 
     /**
@@ -107,12 +108,12 @@ public abstract sealed class ASTVisitor<T>
     public abstract T visitDeclarations(ASTNode.Declarations declarations);
 
     /**
-     * Visit the main {@link Declaration} AST node.
+     * Visit the main {@link Expression} AST node.
      *
-     * @param main declaration node
+     * @param main expression node
      * @return visitor result
      */
-    public abstract T visitMain(Declaration main);
+    public abstract T visitMain(Expression main);
 
     /**
      * Visit a {@link Declaration} AST node.

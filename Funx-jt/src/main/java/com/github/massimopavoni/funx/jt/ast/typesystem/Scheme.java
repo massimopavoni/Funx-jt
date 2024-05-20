@@ -6,6 +6,7 @@ import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.FunctionApplication.BOOLEAN_TYPE;
 import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.FunctionApplication.INTEGER_TYPE;
@@ -53,5 +54,14 @@ public final class Scheme implements Types<Scheme> {
     @Override
     public Scheme applySubstitution(Substitution substitution) {
         return new Scheme(variables, type.applySubstitution(substitution.exclude(variables)));
+    }
+
+    @Override
+    public String toString() {
+        return String.format("forall %s. %s)",
+                variables.stream()
+                        .map(v -> "t" + v)
+                        .collect(Collectors.joining(" ")),
+                type);
     }
 }

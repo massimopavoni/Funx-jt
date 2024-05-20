@@ -1,6 +1,8 @@
 package com.github.massimopavoni.funx.jt.cli;
 
 import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
+import com.github.massimopavoni.funx.jt.ast.typesystem.InferenceEngine;
+import com.github.massimopavoni.funx.jt.ast.typesystem.InferenceException;
 import com.github.massimopavoni.funx.jt.ast.visitor.GraphvizBuilder;
 import com.github.massimopavoni.funx.jt.ast.visitor.IllegalASTStateException;
 import com.github.massimopavoni.funx.jt.ast.visitor.JavaBuilder;
@@ -133,6 +135,9 @@ public class CLI implements Callable<Integer> {
         workingDir = workingDir.resolve(Path.of(
                 module.packageName.toLowerCase()
                         .replace('.', File.separatorChar)));
+        InferenceEngine.inferModuleTypes(module);
+        if (InferenceEngine.getErrorsCount() > 0)
+            throw new InferenceException("Type inference errors found");
         if (java)
             transpile(module, workingDir);
         if (parseTree)

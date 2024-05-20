@@ -1,10 +1,8 @@
 package com.github.massimopavoni.funx.jt.ast.node;
 
 import com.github.massimopavoni.funx.jt.ast.InputPosition;
-import com.github.massimopavoni.funx.jt.ast.Utils;
 import com.github.massimopavoni.funx.jt.ast.typesystem.*;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
-import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
 /**
  * Declaration node class.
@@ -17,7 +15,7 @@ public final class Declaration extends ASTNode {
     /**
      * Expected declaration scheme.
      */
-    public final Scheme scheme;
+    private Scheme scheme;
     /**
      * Identifier.
      */
@@ -44,18 +42,23 @@ public final class Declaration extends ASTNode {
         this.expression = (Expression) expression;
     }
 
-    public void checkType() {
+    public Scheme scheme() {
+        return scheme;
+    }
+
+    public void checkScheme(Scheme expectedScheme) {
         if (scheme != null) {
             if (!typeId.equals(id))
                 InferenceEngine.reportError(inputPosition,
                         String.format("type identifier '%s' does not match declaration identifier '%s'",
                                 typeId, id));
             try {
-                scheme.type.unify(expression.type);
+                scheme = scheme.applySubstitution(scheme.type.unify(expression.type));
             } catch (TypeException e) {
                 InferenceEngine.reportError(inputPosition, e.getMessage());
             }
-        }
+        } else
+            scheme = expectedScheme;
     }
 
     /**
@@ -67,8 +70,6 @@ public final class Declaration extends ASTNode {
      */
     @Override
     public <T> T accept(ASTVisitor<? extends T> visitor) {
-        return id.equals(Utils.fromLexerToken(FunxLexer.MAIN))
-                ? visitor.visitMain(this)
-                : visitor.visitDeclaration(this);
+        return visitor.visitDeclaration(this);
     }
 }

@@ -1,11 +1,13 @@
 package com.github.massimopavoni.funx.jt.ast.typesystem;
 
 import com.github.massimopavoni.funx.jt.ast.InputPosition;
+import com.github.massimopavoni.funx.jt.ast.PreludeFunction;
+import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTErrorReporter;
 
 public final class InferenceEngine {
-    private static long variableCounter = 0;
     private static final ASTErrorReporter errorReporter = new ASTErrorReporter();
+    private static long variableCounter = 0;
 
     private InferenceEngine() {
     }
@@ -33,7 +35,10 @@ public final class InferenceEngine {
         errorReporter.reportError(String.format("%s %s", position, message));
     }
 
-    public static void inferModuleTypes(Module module) {
+    public static void inferModuleTypes(ASTNode.Module module) {
         Environment env = new Environment();
+        for (PreludeFunction fun : PreludeFunction.values())
+            env.bind(fun.name, fun.scheme);
+        module.let.infer(env);
     }
 }

@@ -111,6 +111,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
                             .toList());
         }
         InputPosition position = getInputPosition(ctx);
+        FunxParser.MainContext mainContext = ctx.main();
         return new ASTNode.Module(
                 position,
                 moduleName,
@@ -118,7 +119,9 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
                 new Expression.Let(
                         position,
                         visit(ctx.declarations()),
-                        visit(ctx.main())));
+                        mainContext == null
+                                ? new Expression.Constant(InputPosition.UNKNOWN, null)
+                                : visit(ctx.main())));
     }
 
     /**
@@ -143,12 +146,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitMain(FunxParser.MainContext ctx) {
-        return new Declaration(
-                getInputPosition(ctx),
-                ctx.MAIN().getText(),
-                null,
-                ctx.MAIN().getText(),
-                visit(ctx.statement()));
+        return visit(ctx.statement());
     }
 
     /**
