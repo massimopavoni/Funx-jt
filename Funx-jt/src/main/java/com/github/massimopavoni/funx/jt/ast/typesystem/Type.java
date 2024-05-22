@@ -10,11 +10,17 @@ import java.util.Set;
 
 public sealed abstract class Type implements Types<Type>
         permits Type.Error, Type.Boring, Type.Variable, Type.FunctionApplication {
-    public Scheme generalize(Environment environment) {
-        return new Scheme(Sets.difference(freeVariables(), environment.freeVariables()), this);
+    public Scheme generalize(Environment env) {
+        return new Scheme(Sets.difference(freeVariables(), env.freeVariables()), this);
     }
 
     public abstract Substitution unify(Type other) throws TypeException;
+
+    @Override
+    public abstract boolean equals(Object obj);
+
+    @Override
+    public abstract int hashCode();
 
     @Override
     public abstract String toString();
@@ -38,6 +44,18 @@ public sealed abstract class Type implements Types<Type>
         @Override
         public Type applySubstitution(Substitution substitution) {
             return this;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            return obj instanceof Error;
+        }
+
+        @Override
+        public int hashCode() {
+            return 0;
         }
 
         @Override
@@ -65,6 +83,18 @@ public sealed abstract class Type implements Types<Type>
         @Override
         public Type applySubstitution(Substitution substitution) {
             return this;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            return obj instanceof Boring;
+        }
+
+        @Override
+        public int hashCode() {
+            return 0;
         }
 
         @Override
@@ -175,6 +205,20 @@ public sealed abstract class Type implements Types<Type>
             return new FunctionApplication(function, arguments.stream()
                     .map(a -> a.applySubstitution(substitution))
                     .collect(ImmutableList.toImmutableList()));
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof FunctionApplication other))
+                return false;
+            return function == other.function && arguments.equals(other.arguments);
+        }
+
+        @Override
+        public int hashCode() {
+            return 31 * function.hashCode() + arguments.hashCode();
         }
 
         @Override

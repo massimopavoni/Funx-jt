@@ -1,0 +1,6 @@
+main = weirdEquals 17 17
+
+weirdEquals x y = let
+even a b c = a == b && odd a b (c - 1)
+odd a b c = a == b && even a b (c - 1)
+in even x y 1000

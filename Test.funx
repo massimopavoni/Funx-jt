@@ -1,6 +1,21 @@
-module Dir1.Dir2.Dir3.Test
+module Test
 
-main = factorial 12
+main = a 13
 
 factorial : Int -> Int
 factorial n = if n < 1 then 1 else n * factorial (n - 1) fi
+
+id : a -> a
+id g = g
+
+boolCompose : (Bool -> a) -> (Bool -> Bool) -> Bool -> a
+boolCompose = compose
+
+compose : (b -> c) -> (a -> b) -> a -> c
+compose f g x = f (g x)
+
+a x = let
+even a = a == 0 || odd (a - 1)
+odd a = a != 0 && even (a - 1)
+compose f g x = f (g x)
+in (compose (and True) (or False)) (even x)

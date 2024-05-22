@@ -3,6 +3,7 @@ package com.github.massimopavoni.funx.jt.ast.visitor;
 import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.node.Declaration;
 import com.github.massimopavoni.funx.jt.ast.node.Expression;
+import com.github.massimopavoni.funx.jt.ast.typesystem.Environment;
 import com.github.massimopavoni.funx.jt.ast.typesystem.InferenceException;
 import com.github.massimopavoni.funx.jt.ast.typesystem.Scheme;
 import com.github.massimopavoni.funx.jt.ast.typesystem.Type;
@@ -11,6 +12,8 @@ import com.github.massimopavoni.funx.lib.JavaPrelude;
 import com.google.googlejavaformat.java.Formatter;
 import com.google.googlejavaformat.java.FormatterException;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -26,10 +29,13 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      * Java code formatter.
      */
     private final Formatter formatter;
+    private final Map<String, Expression> monomorphicTopLevelDeclarations = new LinkedHashMap<>();
+    private final Map<String, Expression> monomorphicLetDeclarations = new LinkedHashMap<>();
     /**
      * Flag to indicate if the current declarations are at top level.
      */
     private boolean currentlyTopLevel = true;
+    private Environment currentEnv;
 
     /**
      * Constructor for the Java builder.
@@ -98,9 +104,20 @@ public final class JavaBuilder extends ASTVisitor<Void> {
                 .append(".*;\n\npublic class ").append(module.name).append(" {\n")
                 .append("private ").append(module.name)
                 .append("() {\n// Private constructor to prevent instantiation\n}\n\n");
+        currentEnv = module.let.env();
         if (module.let.expression.type() != Type.Boring.INSTANCE)
             visitMain(module.let.expression);
         visit(module.let.localDeclarations);
+        if (!monomorphicTopLevelDeclarations.isEmpty()) {
+            builder.append("static {\n");
+            monomorphicTopLevelDeclarations.forEach((id, expression) -> {
+                builder.append(id).append(" = ");
+                visit(expression);
+                appendSemiColon();
+                appendNewline();
+            });
+            appendCloseBrace();
+        }
         appendCloseBrace();
         return null;
     }
@@ -131,6 +148,7 @@ public final class JavaBuilder extends ASTVisitor<Void> {
         appendCloseParen();
         appendSemiColon();
         appendCloseBrace();
+        appendNewline();
         return null;
     }
 
@@ -143,24 +161,30 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     @Override
     public Void visitDeclaration(Declaration declaration) {
         builder.append(currentlyTopLevel ? "public static " : "private ");
-        visitScheme(declaration.scheme());
-        builder.append(" ").append(declaration.id).append("() {\nreturn ");
-        visit(declaration.expression);
-        appendSemiColon();
-        appendCloseBrace();
+        String scheme = schemeStringOf(declaration.scheme());
+        if (declaration.scheme().variables.isEmpty()) {
+            builder.append(scheme).append(" ").append(declaration.id);
+            appendSemiColon();
+            (currentlyTopLevel ? monomorphicTopLevelDeclarations : monomorphicLetDeclarations)
+                    .put(declaration.id, declaration.expression);
+        } else {
+            builder.append(scheme)
+                    .append(" ").append(declaration.id).append("() {\nreturn ");
+            visit(declaration.expression);
+            appendSemiColon();
+            appendCloseBrace();
+        }
         appendNewline();
         return null;
     }
 
-    private void visitScheme(Scheme scheme) {
-        if (scheme.variables.isEmpty())
-            builder.append(typeStringOf(scheme.type));
-        else
-            builder.append("<")
-                    .append(scheme.variables.stream()
-                            .map(v -> "t" + v)
-                            .collect(Collectors.joining(", ")))
-                    .append(">");
+    private String schemeStringOf(Scheme scheme) {
+        String schemeString = "";
+        if (!scheme.variables.isEmpty())
+            schemeString += "<" + scheme.variables.stream()
+                    .map(v -> "t" + v)
+                    .collect(Collectors.joining(", ")) + "> ";
+        return schemeString + typeStringOf(scheme.type);
     }
 
     private String typeStringOf(Type type) {
@@ -189,9 +213,12 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      */
     @Override
     public Void visitLambda(Expression.Lambda lambda) {
+        Environment previousEnv = currentEnv;
+        currentEnv = lambda.env();
         builder.append("(").append(lambda.paramId).append(" -> ");
         visit(lambda.expression);
         appendCloseParen();
+        currentEnv = previousEnv;
         return null;
     }
 
@@ -204,20 +231,31 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     @Override
     public Void visitLet(Expression.Let let) {
         currentlyTopLevel = !currentlyTopLevel;
+        Environment previousEnv = currentEnv;
+        currentEnv = let.env();
         builder.append("(new ").append(JavaPrelude.Let.class.getSimpleName()).append("<>() {\n");
         visit(let.localDeclarations);
         builder.append("""
                         @Override
                         public\s""")
                 .append(typeStringOf(let.expression.type()))
-                .append("""
-                         _eval() {
-                        return\s""");
+                .append("\n_eval() {\n");
+        if (!monomorphicLetDeclarations.isEmpty()) {
+            monomorphicLetDeclarations.forEach((id, expression) -> {
+                builder.append(id).append(" = ");
+                visit(expression);
+                appendSemiColon();
+                appendNewline();
+            });
+            monomorphicLetDeclarations.clear();
+        }
+        builder.append("return ");
         visit(let.expression);
         appendSemiColon();
         appendCloseBrace();
         builder.append("})._eval()");
         currentlyTopLevel = !currentlyTopLevel;
+        currentEnv = previousEnv;
         return null;
     }
 
@@ -263,6 +301,8 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     @Override
     public Void visitConstant(Expression.Constant constant) {
         builder.append(constant.value);
+        if (constant.type().equals(Type.FunctionApplication.INTEGER_TYPE))
+            builder.append("L");
         return null;
     }
 
@@ -275,7 +315,7 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     @Override
     public Void visitVariable(Expression.Variable variable) {
         builder.append(variable.id);
-        if (!lambdaParams.contains(variable.id))
+        if (!currentEnv.bindingOf(variable.id).variables.isEmpty())
             builder.append("()");
         return null;
     }

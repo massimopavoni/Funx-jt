@@ -4,41 +4,23 @@ import java.util.function.Function;
 
 public class JavaPrelude {
     // Binary operators
-    public static Function<Integer, Function<Integer, Integer>> divide() {
-        return x -> y -> x / y;
-    }
+    public static Function<Long, Function<Long, Long>> divide = x -> y -> x / y;
 
-    public static Function<Integer, Function<Integer, Integer>> modulo() {
-        return x -> y -> x % y;
-    }
+    public static Function<Long, Function<Long, Long>> modulo = x -> y -> x % y;
 
-    public static Function<Integer, Function<Integer, Integer>> multiply() {
-        return x -> y -> x * y;
-    }
+    public static Function<Long, Function<Long, Long>> multiply = x -> y -> x * y;
 
-    public static Function<Integer, Function<Integer, Integer>> add() {
-        return x -> y -> x + y;
-    }
+    public static Function<Long, Function<Long, Long>> add = x -> y -> x + y;
 
-    public static Function<Integer, Function<Integer, Integer>> subtract() {
-        return x -> y -> x - y;
-    }
+    public static Function<Long, Function<Long, Long>> subtract = x -> y -> x - y;
 
-    public static Function<Integer, Function<Integer, Boolean>> greaterThan() {
-        return x -> y -> x > y;
-    }
+    public static Function<Long, Function<Long, Boolean>> greaterThan = x -> y -> x > y;
 
-    public static Function<Integer, Function<Integer, Boolean>> greaterThanEquals() {
-        return x -> y -> x >= y;
-    }
+    public static Function<Long, Function<Long, Boolean>> greaterThanEquals = x -> y -> x >= y;
 
-    public static Function<Integer, Function<Integer, Boolean>> lessThan() {
-        return x -> y -> x < y;
-    }
+    public static Function<Long, Function<Long, Boolean>> lessThan = x -> y -> x < y;
 
-    public static Function<Integer, Function<Integer, Boolean>> lessThanEquals() {
-        return x -> y -> x <= y;
-    }
+    public static Function<Long, Function<Long, Boolean>> lessThanEquals = x -> y -> x <= y;
 
     public static <A> Function<A, Function<A, Boolean>> equalsEquals() {
         return x -> x::equals;

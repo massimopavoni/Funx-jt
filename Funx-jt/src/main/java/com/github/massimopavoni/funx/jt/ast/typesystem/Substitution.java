@@ -48,7 +48,7 @@ public final class Substitution implements Types<Substitution> {
 
     @Override
     public Substitution applySubstitution(Substitution substitution) {
-        variableTypes.forEach((v, t) -> variableTypes.put(v, t.applySubstitution(substitution)));
-        return this;
+        return new Substitution(variableTypes.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().applySubstitution(substitution))));
     }
 }

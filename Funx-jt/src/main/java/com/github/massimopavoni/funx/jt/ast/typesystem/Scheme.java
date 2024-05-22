@@ -14,22 +14,26 @@ import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.Variable.ZERO
 import static com.github.massimopavoni.funx.jt.ast.typesystem.TypeFunction.ARROW;
 
 public final class Scheme implements Types<Scheme> {
-    public static final Scheme BOOLEAN_FUNCTION = new Scheme(Collections.emptySet(),
+    public static final Scheme BOOLEAN_UNARY = new Scheme(Collections.emptySet(),
             new Type.FunctionApplication(ARROW,
                     List.of(BOOLEAN_TYPE, new Type.FunctionApplication(ARROW,
                             List.of(BOOLEAN_TYPE, BOOLEAN_TYPE)))));
-    public static final Scheme ARITHMETIC_FUNCTION = new Scheme(Collections.emptySet(),
+    public static final Scheme ARITHMETIC_BINARY = new Scheme(Collections.emptySet(),
+            new Type.FunctionApplication(ARROW,
+                    List.of(INTEGER_TYPE, new Type.FunctionApplication(ARROW,
+                            List.of(INTEGER_TYPE, INTEGER_TYPE)))));
+    public static final Scheme COMPARISON_BINARY = new Scheme(Collections.emptySet(),
             new Type.FunctionApplication(ARROW,
                     List.of(INTEGER_TYPE, new Type.FunctionApplication(ARROW,
                             List.of(INTEGER_TYPE, BOOLEAN_TYPE)))));
-    public static final Scheme COMPARISON_FUNCTION = new Scheme(Collections.emptySet(),
-            new Type.FunctionApplication(ARROW,
-                    List.of(INTEGER_TYPE, new Type.FunctionApplication(ARROW,
-                            List.of(INTEGER_TYPE, BOOLEAN_TYPE)))));
-    public static final Scheme EQUALITY_FUNCTION = new Scheme(Set.of(ZERO.id),
+    public static final Scheme EQUALITY_BINARY = new Scheme(Set.of(ZERO.id),
             new Type.FunctionApplication(ARROW,
                     List.of(ZERO, new Type.FunctionApplication(ARROW,
                             List.of(ZERO, BOOLEAN_TYPE)))));
+    public static final Scheme BOOLEAN_BINARY = new Scheme(Collections.emptySet(),
+            new Type.FunctionApplication(ARROW,
+                    List.of(BOOLEAN_TYPE, new Type.FunctionApplication(ARROW,
+                            List.of(BOOLEAN_TYPE, BOOLEAN_TYPE)))));
 
     public final Set<Long> variables;
     public final Type type;
@@ -58,10 +62,26 @@ public final class Scheme implements Types<Scheme> {
 
     @Override
     public String toString() {
-        return String.format("forall %s. %s)",
+        if (variables.isEmpty())
+            return type.toString();
+        return String.format("forall %s. %s",
                 variables.stream()
                         .map(v -> "t" + v)
                         .collect(Collectors.joining(" ")),
                 type);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!(obj instanceof Scheme other))
+            return false;
+        return variables.equals(other.variables) && type.equals(other.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * variables.hashCode() + type.hashCode();
     }
 }

@@ -58,15 +58,14 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      * (We don't use the ASTVisitor visit method with node results aggregation within this very custom visitor).
      *
      * @param label    node label
-     * @param type     node type
      * @param children list of children nodes
      * @return node identifier
      */
-    private String toGraphvizDefault(String label, String type, List<? extends ASTNode> children) {
+    private String toGraphvizDefault(String label, String scheme, List<? extends ASTNode> children) {
         String nodeId = getNodeId();
         builder.append(nodeId).append(" [label=\"").append(label);
-        if (type != null)
-            builder.append(" : ").append(type);
+        if (scheme != null)
+            builder.append(" : ").append(scheme);
         builder.append("\"];\n");
         children.forEach(c ->
                 builder.append(
@@ -162,7 +161,9 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     public String visitLet(Expression.Let let) {
         return toGraphvizDefault(Utils.fromLexerToken(FunxLexer.LET),
                 null,
-                List.of(let.localDeclarations, let.expression));
+                let.expression.type() == Type.Boring.INSTANCE
+                        ? Collections.singletonList(let.localDeclarations)
+                        : List.of(let.localDeclarations, let.expression));
     }
 
     /**

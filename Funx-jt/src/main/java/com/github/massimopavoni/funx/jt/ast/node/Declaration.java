@@ -4,6 +4,8 @@ import com.github.massimopavoni.funx.jt.ast.InputPosition;
 import com.github.massimopavoni.funx.jt.ast.typesystem.*;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
 
+import java.util.Collections;
+
 /**
  * Declaration node class.
  */
@@ -13,10 +15,6 @@ public final class Declaration extends ASTNode {
      */
     public final String typeId;
     /**
-     * Expected declaration scheme.
-     */
-    private Scheme scheme;
-    /**
      * Identifier.
      */
     public final String id;
@@ -24,6 +22,10 @@ public final class Declaration extends ASTNode {
      * Expression node.
      */
     public final Expression expression;
+    /**
+     * Expected declaration scheme.
+     */
+    private Scheme scheme;
 
     /**
      * Constructor for the declaration node.
@@ -46,14 +48,22 @@ public final class Declaration extends ASTNode {
         return scheme;
     }
 
-    public void checkScheme(Scheme expectedScheme) {
-        if (scheme != null) {
+    public void checkScheme(Scheme expectedScheme, Environment env) {
+        if (typeId != null) {
             if (!typeId.equals(id))
                 InferenceEngine.reportError(inputPosition,
                         String.format("type identifier '%s' does not match declaration identifier '%s'",
                                 typeId, id));
             try {
-                scheme = scheme.applySubstitution(scheme.type.unify(expression.type));
+                if (expectedScheme.type.applySubstitution(expectedScheme.type.unify(scheme.type))
+                        .equals(scheme.type)) {
+                    Substitution unification = scheme.type.unify(expectedScheme.type);
+                    scheme = scheme.type.applySubstitution(unification).generalize(env);
+                    expression.propagateSubstitution(unification);
+                } else
+                    InferenceEngine.reportError(inputPosition,
+                            String.format("could not match expected type '%s' with actual type '%s'",
+                                    expectedScheme, scheme));
             } catch (TypeException e) {
                 InferenceEngine.reportError(inputPosition, e.getMessage());
             }

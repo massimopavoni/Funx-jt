@@ -10,7 +10,21 @@ public class FunxPrelude {
     // Private constructor to prevent instantiation
   }
 
-  public static Function<Boolean, Boolean> not() {
-    return (x -> ((x) ? (false) : (true)));
+  public static Function<Boolean, Boolean> not = null;
+
+  static {
+    not = (x -> ((x) ? (false) : (true)));
+  }
+
+  public static Function<Boolean, Function<Boolean, Boolean>> and = null;
+
+  static {
+    and = (x -> (y -> ((x) ? (y) : (false))));
+  }
+
+  public static Function<Boolean, Function<Boolean, Boolean>> or = null;
+
+  static {
+    or = (x -> (y -> ((x) ? (true) : (y))));
   }
 }

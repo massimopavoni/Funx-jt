@@ -5,6 +5,8 @@ import com.github.massimopavoni.funx.jt.ast.PreludeFunction;
 import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTErrorReporter;
 
+import java.util.Arrays;
+
 public final class InferenceEngine {
     private static final ASTErrorReporter errorReporter = new ASTErrorReporter();
     private static long variableCounter = 0;
@@ -37,8 +39,11 @@ public final class InferenceEngine {
 
     public static void inferModuleTypes(ASTNode.Module module) {
         Environment env = new Environment();
-        for (PreludeFunction fun : PreludeFunction.values())
-            env.bind(fun.name, fun.scheme);
+        Arrays.stream(PreludeFunction.values())
+                .filter(module.name.equals("FunxPrelude")
+                        ? fun -> fun.nativeJava
+                        : fun -> true)
+                .forEach(fun -> env.bind(fun.name, fun.scheme));
         module.let.infer(env);
     }
 }

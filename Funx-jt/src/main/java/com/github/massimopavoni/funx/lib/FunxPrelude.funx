@@ -3,3 +3,16 @@ module Com.Github.MassimoPavoni.Funx.Lib.FunxPrelude
 // Unary operators
 not : Bool -> Bool
 not x = if x then False else True fi
+
+// Binary operators
+
+// ----------------------------------------------------------------
+// These result in strict evaluation when transpiled to Java, use with caution
+
+and : Bool -> Bool -> Bool
+and x y = if x then y else False fi
+
+or : Bool -> Bool -> Bool
+or x y = if x then True else y fi
+
+// ----------------------------------------------------------------

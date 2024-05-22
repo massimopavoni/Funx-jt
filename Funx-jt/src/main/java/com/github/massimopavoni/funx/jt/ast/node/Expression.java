@@ -28,6 +28,8 @@ public sealed abstract class Expression extends ASTNode
         super(inputPosition);
     }
 
+    protected abstract void propagateSubstitution(Substitution substitution);
+
     public Type type() {
         return type;
     }
@@ -56,8 +58,10 @@ public sealed abstract class Expression extends ASTNode
 
         @Override
         public Utils.Pair<Substitution, Type> infer(Environment env) {
-            if (value == null)
-                return new Utils.Pair<>(Substitution.EMPTY, Type.Boring.INSTANCE);
+            if (value == null) {
+                type = Type.Boring.INSTANCE;
+                return new Utils.Pair<>(Substitution.EMPTY, type);
+            }
             TypeFunction typeFunction = TypeFunction.fromClass(value.getClass());
             if (typeFunction == null) {
                 InferenceEngine.reportError(inputPosition,
@@ -66,6 +70,11 @@ public sealed abstract class Expression extends ASTNode
             } else
                 type = new Type.FunctionApplication(typeFunction, Collections.emptyList());
             return new Utils.Pair<>(Substitution.EMPTY, type);
+        }
+
+        @Override
+        protected void propagateSubstitution(Substitution substitution) {
+            // Do nothing
         }
 
         /**
@@ -111,6 +120,11 @@ public sealed abstract class Expression extends ASTNode
             } else
                 type = binding.instantiate();
             return new Utils.Pair<>(Substitution.EMPTY, type);
+        }
+
+        @Override
+        protected void propagateSubstitution(Substitution substitution) {
+            type = type.applySubstitution(substitution);
         }
 
         /**
@@ -166,12 +180,21 @@ public sealed abstract class Expression extends ASTNode
                         .unify(new Type.FunctionApplication(TypeFunction.ARROW,
                                 List.of(rightInference.snd, funTypeVar)));
                 type = funTypeVar.applySubstitution(applicationSubstitution);
+                left.propagateSubstitution(applicationSubstitution);
+                right.propagateSubstitution(applicationSubstitution);
                 return new Utils.Pair<>(subst.compose(applicationSubstitution), type);
             } catch (TypeException e) {
                 InferenceEngine.reportError(inputPosition, e.getMessage());
                 type = Type.Error.INSTANCE;
                 return new Utils.Pair<>(subst, type);
             }
+        }
+
+        @Override
+        protected void propagateSubstitution(Substitution substitution) {
+            type = type.applySubstitution(substitution);
+            left.propagateSubstitution(substitution);
+            right.propagateSubstitution(substitution);
         }
 
         /**
@@ -199,6 +222,7 @@ public sealed abstract class Expression extends ASTNode
          * Expression node.
          */
         public final Expression expression;
+        private Environment lambdaEnv;
 
         /**
          * Constructor for the lambda expression node.
@@ -213,14 +237,26 @@ public sealed abstract class Expression extends ASTNode
             this.expression = (Expression) expression;
         }
 
+        public Environment env() {
+            return lambdaEnv;
+        }
+
         @Override
         public Utils.Pair<Substitution, Type> infer(Environment env) {
             Type.Variable paramTypeVar = InferenceEngine.newTypeVariable();
-            Utils.Pair<Substitution, Type> bodyInference = expression
-                    .infer(env.bind(paramId, new Scheme(Collections.emptySet(), paramTypeVar)));
+            Environment newEnv = new Environment(env);
+            newEnv.bind(paramId, new Scheme(Collections.emptySet(), paramTypeVar));
+            lambdaEnv = newEnv;
+            Utils.Pair<Substitution, Type> bodyInference = expression.infer(newEnv);
             type = new Type.FunctionApplication(TypeFunction.ARROW,
                     List.of(paramTypeVar.applySubstitution(bodyInference.fst), bodyInference.snd));
             return bodyInference.setSnd(type);
+        }
+
+        @Override
+        protected void propagateSubstitution(Substitution substitution) {
+            type = type.applySubstitution(substitution);
+            expression.propagateSubstitution(substitution);
         }
 
         /**
@@ -248,6 +284,7 @@ public sealed abstract class Expression extends ASTNode
          * Expression node.
          */
         public final Expression expression;
+        private Environment letEnv;
 
         /**
          * Constructor for the let expression node.
@@ -262,37 +299,50 @@ public sealed abstract class Expression extends ASTNode
             this.expression = (Expression) expression;
         }
 
+        public Environment env() {
+            return letEnv;
+        }
+
         @Override
         public Utils.Pair<Substitution, Type> infer(Environment env) {
             Environment newEnv = new Environment(env);
-            for (Declaration decl : localDeclarations.declarations) {
-                if (newEnv.bindingOf(decl.id) != null)
-                    InferenceEngine.reportError(decl.inputPosition,
-                            String.format("variable '%s' rebound", decl.id));
-                else
-                    newEnv.bind(decl.id, new Scheme(Collections.emptySet(), InferenceEngine.newTypeVariable()));
-            }
+            for (Declaration decl : localDeclarations.declarations)
+                newEnv.bind(decl.id, new Scheme(Collections.emptySet(), InferenceEngine.newTypeVariable()));
             Substitution subst = Substitution.EMPTY;
             for (Declaration decl : localDeclarations.declarations) {
                 Utils.Pair<Substitution, Type> declInference = decl.expression.infer(newEnv);
                 try {
-                    subst = subst.compose(newEnv.bindingOf(decl.id).type
-                            .applySubstitution(declInference.fst)
-                            .unify(declInference.snd));
-                    subst = subst.compose(declInference.fst);
-                    newEnv = newEnv.applySubstitution(subst)
-                            .bind(decl.id, declInference.snd.generalize(newEnv));
-                    decl.expression.type = newEnv.bindingOf(decl.id).type;
-                    decl.checkScheme(newEnv.bindingOf(decl.id));
+                    subst = subst.compose(declInference.fst)
+                            .compose(newEnv.bindingOf(decl.id).type
+                                    .applySubstitution(subst)
+                                    .unify(declInference.snd));
+                    decl.expression.type = declInference.snd.applySubstitution(subst);
+                    newEnv = newEnv.applySubstitution(subst);
                 } catch (TypeException e) {
                     InferenceEngine.reportError(decl.inputPosition, e.getMessage());
                     decl.expression.type = Type.Error.INSTANCE;
                 }
             }
+            for (Declaration decl : localDeclarations.declarations) {
+                decl.expression.propagateSubstitution(subst);
+                Scheme expectedScheme = decl.expression.type.generalize(env);
+                decl.checkScheme(expectedScheme, env);
+                newEnv.bind(decl.id, decl.scheme());
+            }
+            letEnv = newEnv;
             Utils.Pair<Substitution, Type> exprInference = expression.infer(newEnv);
             subst = subst.compose(exprInference.fst);
             type = exprInference.snd.applySubstitution(subst);
+            propagateSubstitution(subst);
             return new Utils.Pair<>(subst, type);
+        }
+
+        @Override
+        protected void propagateSubstitution(Substitution substitution) {
+            type = type.applySubstitution(substitution);
+            localDeclarations.declarations
+                    .forEach(decl -> decl.expression.propagateSubstitution(substitution));
+            expression.propagateSubstitution(substitution);
         }
 
         /**
@@ -353,6 +403,7 @@ public sealed abstract class Expression extends ASTNode
                         .applySubstitution(elseInference.fst)
                         .unify(elseInference.snd);
                 type = thenInference.snd.applySubstitution(thenElseSubstitution);
+                propagateSubstitution(thenElseSubstitution);
                 return new Utils.Pair<>(conditionInference.fst
                         .compose(thenInference.fst)
                         .compose(elseInference.fst)
@@ -367,6 +418,14 @@ public sealed abstract class Expression extends ASTNode
                         .compose(elseInference.fst),
                         type);
             }
+        }
+
+        @Override
+        protected void propagateSubstitution(Substitution substitution) {
+            type = type.applySubstitution(substitution);
+            condition.propagateSubstitution(substitution);
+            thenBranch.propagateSubstitution(substitution);
+            elseBranch.propagateSubstitution(substitution);
         }
 
         /**

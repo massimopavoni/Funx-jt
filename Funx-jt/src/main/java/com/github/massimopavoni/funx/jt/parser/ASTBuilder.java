@@ -24,6 +24,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     private final String fileName;
     private final Deque<Type> currentDeclarationTypes = new ArrayDeque<>();
+    private final Map<String, Long> declarationTypeVariables = new HashMap<>();
     private long declarationTypeVariable = 0;
 
     /**
@@ -169,6 +170,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
         String typeId = null;
         Scheme scheme = null;
         if (ctx.declarationType() != null) {
+            declarationTypeVariables.clear();
             FunxParser.DeclarationTypeContext declarationTypeContext = ctx.declarationType();
             typeId = declarationTypeContext.id.getText();
             visit(declarationTypeContext);
@@ -237,7 +239,12 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitTypeVar(FunxParser.TypeVarContext ctx) {
-        currentDeclarationTypes.add(new Type.Variable(declarationTypeVariable++));
+        Long typeVariable = declarationTypeVariables.get(ctx.VARID().getText());
+        if (typeVariable == null) {
+            typeVariable = declarationTypeVariable++;
+            declarationTypeVariables.put(ctx.VARID().getText(), typeVariable);
+        }
+        currentDeclarationTypes.add(new Type.Variable(typeVariable));
         return null;
     }
 

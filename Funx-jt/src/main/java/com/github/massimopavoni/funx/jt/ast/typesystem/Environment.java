@@ -13,18 +13,16 @@ public final class Environment implements Types<Environment> {
         variableSchemes = new HashMap<>();
     }
 
-    public Environment(Environment environment) {
-        variableSchemes = new HashMap<>(environment.variableSchemes);
+    public Environment(Environment env) {
+        variableSchemes = new HashMap<>(env.variableSchemes);
     }
 
     public Scheme bindingOf(String variable) {
         return variableSchemes.get(variable);
     }
 
-    public Environment bind(String variable, Scheme scheme) {
-        Environment newEnv = new Environment(this);
-        newEnv.variableSchemes.put(variable, scheme);
-        return newEnv;
+    public void bind(String variable, Scheme scheme) {
+        variableSchemes.put(variable, scheme);
     }
 
     @Override
