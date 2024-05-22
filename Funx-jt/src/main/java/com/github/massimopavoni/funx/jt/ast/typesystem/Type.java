@@ -8,8 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public sealed abstract class Type implements Types<Type>
-        permits Type.Error, Type.Boring, Type.Variable, Type.FunctionApplication {
+public abstract sealed class Type implements Types<Type> {
     public Scheme generalize(Environment env) {
         return new Scheme(Sets.difference(freeVariables(), env.freeVariables()), this);
     }
@@ -127,7 +126,7 @@ public sealed abstract class Type implements Types<Type>
 
         @Override
         public Set<Long> freeVariables() {
-            return ImmutableSet.of(id);
+            return Set.of(id);
         }
 
         @Override
@@ -176,7 +175,7 @@ public sealed abstract class Type implements Types<Type>
             return switch (other) {
                 case Error ignored -> Substitution.EMPTY;
                 case Boring ignored -> Substitution.EMPTY;
-                case Variable var -> var.bind(this);
+                case Variable variable -> variable.bind(this);
                 case FunctionApplication fun -> {
                     if (function != fun.function || arguments.size() != fun.arguments.size())
                         throw new TypeException(this, fun);
@@ -225,11 +224,11 @@ public sealed abstract class Type implements Types<Type>
         public String toString() {
             if (function == TypeFunction.ARROW)
                 return String.format("(%s %s %s)",
-                        arguments.getFirst(), function.name, arguments.get(1));
+                        arguments.getFirst(), function.id, arguments.get(1));
             if (arguments.isEmpty())
-                return function.name;
+                return function.id;
             StringBuilder sb = new StringBuilder("(");
-            sb.append(function.name);
+            sb.append(function.id);
             arguments.forEach(a -> sb.append(" ").append(a));
             return sb.append(")").toString();
         }

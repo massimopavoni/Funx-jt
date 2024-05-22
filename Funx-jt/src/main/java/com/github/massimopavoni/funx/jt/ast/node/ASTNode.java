@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Base class for every node in the AST.
  */
-public sealed abstract class ASTNode
+public abstract sealed class ASTNode
         permits ASTNode.Module, ASTNode.Declarations, Declaration, Expression {
     /**
      * Position of the AST node in the input source code.
@@ -86,7 +86,7 @@ public sealed abstract class ASTNode
         /**
          * List of declarations.
          */
-        public final List<Declaration> declarations;
+        public final List<Declaration> declarationList;
 
         /**
          * Constructor for the Declarations node.
@@ -96,7 +96,7 @@ public sealed abstract class ASTNode
          */
         public Declarations(InputPosition inputPosition, List<ASTNode> declarationList) {
             super(inputPosition);
-            this.declarations = declarationList.stream()
+            this.declarationList = declarationList.stream()
                     .map(Declaration.class::cast)
                     .toList();
         }

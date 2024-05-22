@@ -70,9 +70,9 @@ public enum PreludeFunction {
      */
     public final String symbol;
     /**
-     * Prelude function name.
+     * Prelude function id.
      */
-    public final String name;
+    public final String id;
     /**
      * Prelude function scheme.
      */
@@ -83,24 +83,14 @@ public enum PreludeFunction {
      * Constructor for the Prelude function enum.
      *
      * @param symbol function symbol
-     * @param name   function name
+     * @param id   function id
      * @param scheme function scheme
      */
-    PreludeFunction(String symbol, String name, Scheme scheme, boolean nativeJava) {
+    PreludeFunction(String symbol, String id, Scheme scheme, boolean nativeJava) {
         this.symbol = symbol;
-        this.name = name;
+        this.id = id;
         this.scheme = scheme;
         this.nativeJava = nativeJava;
-    }
-
-    /**
-     * Get the Prelude function enum from the function name.
-     *
-     * @param name function name
-     * @return Prelude function enum
-     */
-    public static PreludeFunction fromName(String name) {
-        return Utils.enumFromField(PreludeFunction.class, f -> f.name.equals(name));
     }
 
     /**

@@ -4,8 +4,6 @@ import com.github.massimopavoni.funx.jt.ast.InputPosition;
 import com.github.massimopavoni.funx.jt.ast.typesystem.*;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
 
-import java.util.Collections;
-
 /**
  * Declaration node class.
  */

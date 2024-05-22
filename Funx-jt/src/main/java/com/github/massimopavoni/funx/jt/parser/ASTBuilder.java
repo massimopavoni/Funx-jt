@@ -85,7 +85,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
                         position,
                         new Expression.Variable(
                                 position,
-                                PreludeFunction.fromSymbol(symbol).name),
+                                PreludeFunction.fromSymbol(symbol).id),
                         left),
                 right);
     }
@@ -258,7 +258,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitNamedType(FunxParser.NamedTypeContext ctx) {
         currentDeclarationTypes.add(new Type.FunctionApplication(
-                TypeFunction.fromName(ctx.TYPE().getText()),
+                TypeFunction.fromId(ctx.TYPE().getText()),
                 Collections.emptyList()));
         return null;
     }
@@ -351,7 +351,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
         return new Expression.Application(position,
                 new Expression.Variable(
                         position,
-                        PreludeFunction.NOT.name),
+                        PreludeFunction.NOT.id),
                 visit(ctx.expression()));
     }
 

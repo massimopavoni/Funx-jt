@@ -1,6 +1,6 @@
 main = weirdEquals 17 17
 
 weirdEquals x y = let
-even a b c = a == b && odd a b (c - 1)
-odd a b c = a == b && even a b (c - 1)
+even a b c = if c == 0 then a == b else odd a b (c - 1) fi
+odd a b c = if c == 0 then a == b else even a b (c - 1) fi
 in even x y 1000

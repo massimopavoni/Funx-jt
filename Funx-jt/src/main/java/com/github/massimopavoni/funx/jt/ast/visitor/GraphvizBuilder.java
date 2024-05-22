@@ -108,7 +108,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     public String visitDeclarations(ASTNode.Declarations declarations) {
         return toGraphvizDefault(ASTNode.Declarations.class.getSimpleName(),
                 null,
-                declarations.declarations);
+                declarations.declarationList);
     }
 
     /**

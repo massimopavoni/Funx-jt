@@ -4,7 +4,6 @@ import com.github.massimopavoni.funx.jt.ast.InputPosition;
 import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.node.Declaration;
 import com.github.massimopavoni.funx.jt.ast.node.Expression;
-import com.github.massimopavoni.funx.jt.ast.typesystem.InferenceEngine;
 import com.github.massimopavoni.funx.jt.parser.ASTBuilder;
 
 import java.util.List;
@@ -16,7 +15,7 @@ import java.util.List;
  *            operations with no return type.
  */
 public abstract sealed class ASTVisitor<T>
-    permits JavaBuilder, GraphvizBuilder {
+        permits JavaBuilder, GraphvizBuilder {
     /**
      * Error reporter for the AST visitor.
      */

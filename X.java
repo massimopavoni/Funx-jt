@@ -16,22 +16,26 @@ public class X {
     return (x ->
         (y ->
             (new Let<>() {
-                  private <t17> Function<t17, Function<t17, Function<Long, Boolean>>> even() {
+                  private <t20> Function<t20, Function<t20, Function<Long, Boolean>>> even() {
                     return (a ->
                         (b ->
                             (c ->
-                                ((equalsEquals().apply(a).apply(b))
-                                    ? (odd.apply(a).apply(b).apply(subtract.apply(c).apply(1L)))
-                                    : (false)))));
+                                ((equalsEquals().apply(c).apply(0L))
+                                    ? (equalsEquals().apply(a).apply(b))
+                                    : (odd.apply(a)
+                                        .apply(b)
+                                        .apply(subtract.apply(c).apply(1L)))))));
                   }
 
-                  private <t17> Function<t17, Function<t17, Function<Long, Boolean>>> odd() {
+                  private <t20> Function<t20, Function<t20, Function<Long, Boolean>>> odd() {
                     return (a ->
                         (b ->
                             (c ->
-                                ((equalsEquals().apply(a).apply(b))
-                                    ? (even.apply(a).apply(b).apply(subtract.apply(c).apply(1L)))
-                                    : (false)))));
+                                ((equalsEquals().apply(c).apply(0L))
+                                    ? (equalsEquals().apply(a).apply(b))
+                                    : (even.apply(a)
+                                        .apply(b)
+                                        .apply(subtract.apply(c).apply(1L)))))));
                   }
 
                   @Override

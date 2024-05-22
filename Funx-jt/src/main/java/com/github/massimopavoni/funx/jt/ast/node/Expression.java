@@ -13,9 +13,7 @@ import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.FunctionAppli
 /**
  * Base class for expression nodes.
  */
-public sealed abstract class Expression extends ASTNode
-        permits Expression.Constant, Expression.Variable, Expression.Application,
-        Expression.Lambda, Expression.Let, Expression.If {
+public abstract sealed class Expression extends ASTNode {
     protected Type type;
 
     /**
@@ -306,10 +304,10 @@ public sealed abstract class Expression extends ASTNode
         @Override
         public Utils.Pair<Substitution, Type> infer(Environment env) {
             Environment newEnv = new Environment(env);
-            for (Declaration decl : localDeclarations.declarations)
+            for (Declaration decl : localDeclarations.declarationList)
                 newEnv.bind(decl.id, new Scheme(Collections.emptySet(), InferenceEngine.newTypeVariable()));
             Substitution subst = Substitution.EMPTY;
-            for (Declaration decl : localDeclarations.declarations) {
+            for (Declaration decl : localDeclarations.declarationList) {
                 Utils.Pair<Substitution, Type> declInference = decl.expression.infer(newEnv);
                 try {
                     subst = subst.compose(declInference.fst)
@@ -323,7 +321,7 @@ public sealed abstract class Expression extends ASTNode
                     decl.expression.type = Type.Error.INSTANCE;
                 }
             }
-            for (Declaration decl : localDeclarations.declarations) {
+            for (Declaration decl : localDeclarations.declarationList) {
                 decl.expression.propagateSubstitution(subst);
                 Scheme expectedScheme = decl.expression.type.generalize(env);
                 decl.checkScheme(expectedScheme, env);
@@ -340,7 +338,7 @@ public sealed abstract class Expression extends ASTNode
         @Override
         protected void propagateSubstitution(Substitution substitution) {
             type = type.applySubstitution(substitution);
-            localDeclarations.declarations
+            localDeclarations.declarationList
                     .forEach(decl -> decl.expression.propagateSubstitution(substitution));
             expression.propagateSubstitution(substitution);
         }

@@ -43,7 +43,7 @@ public final class InferenceEngine {
                 .filter(module.name.equals("FunxPrelude")
                         ? fun -> fun.nativeJava
                         : fun -> true)
-                .forEach(fun -> env.bind(fun.name, fun.scheme));
+                .forEach(fun -> env.bind(fun.id, fun.scheme));
         module.let.infer(env);
     }
 }

@@ -130,7 +130,7 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      */
     @Override
     public Void visitDeclarations(ASTNode.Declarations declarations) {
-        return visit(declarations.declarations);
+        return visit(declarations.declarationList);
     }
 
     /**
@@ -189,7 +189,7 @@ public final class JavaBuilder extends ASTVisitor<Void> {
 
     private String typeStringOf(Type type) {
         return switch (type) {
-            case Type.Variable var -> var.toString();
+            case Type.Variable variable -> variable.toString();
             case Type.FunctionApplication fun -> {
                 String functionName = fun.function.typeClass.getSimpleName();
                 if (fun.function.arity > 0)
