@@ -100,6 +100,7 @@ Multiply: '*';
 Subtract: '-';
 
 // Other symbols
+Dollar: '$';
 Dot: '.';
 Backslash: '\\';
 Colon: ':';

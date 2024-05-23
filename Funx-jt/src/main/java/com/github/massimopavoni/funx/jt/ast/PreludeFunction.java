@@ -2,7 +2,11 @@ package com.github.massimopavoni.funx.jt.ast;
 
 import com.github.massimopavoni.funx.jt.ast.typesystem.Scheme;
 
+import java.util.Set;
+
 import static com.github.massimopavoni.funx.jt.ast.typesystem.Scheme.*;
+import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.FunctionApplication.arrowOf;
+import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.Variable.*;
 
 /**
  * Enum for symbols and corresponding Prelude functions.
@@ -63,7 +67,31 @@ public enum PreludeFunction {
     /**
      * Strict logical or.
      */
-    OR("||", "or", BOOLEAN_BINARY, false);
+    OR("||", "or", BOOLEAN_BINARY, false),
+    /**
+     * Identity function.
+     */
+    ID("id", "id",
+            new Scheme(Set.of(0L),
+                    arrowOf(ZERO, ZERO)), false),
+    /**
+     * Right associative function application.
+     */
+    APPLY("$", "apply",
+            new Scheme(Set.of(0L, 1L),
+                    arrowOf(arrowOf(ZERO, ONE), ZERO, ONE)), false),
+    /**
+     * Function composition.
+     */
+    COMPOSE(".", "compose",
+            new Scheme(Set.of(0L, 1L, 2L),
+                    arrowOf(arrowOf(ONE, TWO), arrowOf(ZERO, ONE), ZERO, TWO)), false),
+    /**
+     * Function arguments flip.
+     */
+    FLIP("flip", "flip",
+            new Scheme(Set.of(0L, 1L, 2L),
+                    arrowOf(arrowOf(ZERO, ONE, TWO), ONE, ZERO, TWO)), false);
 
     /**
      * Prelude function symbol.
@@ -83,7 +111,7 @@ public enum PreludeFunction {
      * Constructor for the Prelude function enum.
      *
      * @param symbol function symbol
-     * @param id   function id
+     * @param id     function id
      * @param scheme function scheme
      */
     PreludeFunction(String symbol, String id, Scheme scheme, boolean nativeJava) {

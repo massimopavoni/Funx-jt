@@ -12,11 +12,11 @@ public class X {
     System.out.println(weirdEquals().apply(17L).apply(17L));
   }
 
-  public static <t2> Function<t2, Function<t2, Boolean>> weirdEquals() {
+  public static <t3> Function<t3, Function<t3, Boolean>> weirdEquals() {
     return (x ->
         (y ->
             (new Let<>() {
-                  private <t20> Function<t20, Function<t20, Function<Long, Boolean>>> even() {
+                  private <t21> Function<t21, Function<t21, Function<Long, Boolean>>> even() {
                     return (a ->
                         (b ->
                             (c ->
@@ -27,7 +27,7 @@ public class X {
                                         .apply(subtract.apply(c).apply(1L)))))));
                   }
 
-                  private <t20> Function<t20, Function<t20, Function<Long, Boolean>>> odd() {
+                  private <t21> Function<t21, Function<t21, Function<Long, Boolean>>> odd() {
                     return (a ->
                         (b ->
                             (c ->
@@ -44,5 +44,11 @@ public class X {
                   }
                 })
                 ._eval()));
+  }
+
+  public static Function<Boolean, Boolean> multipleNot;
+
+  static {
+    multipleNot = (b -> compose().apply(compose().apply(not).apply(not)).apply(not).apply(b));
   }
 }

@@ -137,6 +137,20 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitAndExpression(FunxParser.AndExpressionContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code composeExpression}
+	 * labeled alternative in {@link FunxParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitComposeExpression(FunxParser.ComposeExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code rightAppExpression}
+	 * labeled alternative in {@link FunxParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRightAppExpression(FunxParser.RightAppExpressionContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code compExpression}
 	 * labeled alternative in {@link FunxParser#expression}.
 	 * @param ctx the parse tree

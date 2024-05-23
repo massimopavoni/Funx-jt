@@ -5,9 +5,8 @@ not : Bool -> Bool
 not x = if x then False else True fi
 
 // Binary operators
-
 // ----------------------------------------------------------------
-// These result in strict evaluation when transpiled to Java, use with caution
+// These two result in strict evaluation when transpiled to Java, use with caution
 
 and : Bool -> Bool -> Bool
 and x y = if x then y else False fi
@@ -16,3 +15,16 @@ or : Bool -> Bool -> Bool
 or x y = if x then True else y fi
 
 // ----------------------------------------------------------------
+
+// Higher order functions
+id : a -> a
+id x = x
+
+apply : (a -> b) -> a -> b
+apply f x = f x
+
+compose : (b -> c) -> (a -> b) -> a -> c
+compose f g x = f (g x)
+
+flip : (a -> b -> c) -> b -> a -> c
+flip f x y = f y x

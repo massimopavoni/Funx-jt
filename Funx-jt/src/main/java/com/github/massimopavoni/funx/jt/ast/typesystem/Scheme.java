@@ -4,36 +4,23 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.FunctionApplication.BOOLEAN_TYPE;
-import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.FunctionApplication.INTEGER_TYPE;
+import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.FunctionApplication.*;
 import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.Variable.ZERO;
-import static com.github.massimopavoni.funx.jt.ast.typesystem.TypeFunction.ARROW;
 
 public final class Scheme implements Types<Scheme> {
     public static final Scheme BOOLEAN_UNARY = new Scheme(Collections.emptySet(),
-            new Type.FunctionApplication(ARROW,
-                    List.of(BOOLEAN_TYPE, new Type.FunctionApplication(ARROW,
-                            List.of(BOOLEAN_TYPE, BOOLEAN_TYPE)))));
+            arrowOf(BOOLEAN_TYPE, BOOLEAN_TYPE));
     public static final Scheme ARITHMETIC_BINARY = new Scheme(Collections.emptySet(),
-            new Type.FunctionApplication(ARROW,
-                    List.of(INTEGER_TYPE, new Type.FunctionApplication(ARROW,
-                            List.of(INTEGER_TYPE, INTEGER_TYPE)))));
+            arrowOf(INTEGER_TYPE, INTEGER_TYPE, INTEGER_TYPE));
     public static final Scheme COMPARISON_BINARY = new Scheme(Collections.emptySet(),
-            new Type.FunctionApplication(ARROW,
-                    List.of(INTEGER_TYPE, new Type.FunctionApplication(ARROW,
-                            List.of(INTEGER_TYPE, BOOLEAN_TYPE)))));
+            arrowOf(INTEGER_TYPE, INTEGER_TYPE, BOOLEAN_TYPE));
     public static final Scheme EQUALITY_BINARY = new Scheme(Set.of(ZERO.id),
-            new Type.FunctionApplication(ARROW,
-                    List.of(ZERO, new Type.FunctionApplication(ARROW,
-                            List.of(ZERO, BOOLEAN_TYPE)))));
+            arrowOf(ZERO, ZERO, BOOLEAN_TYPE));
     public static final Scheme BOOLEAN_BINARY = new Scheme(Collections.emptySet(),
-            new Type.FunctionApplication(ARROW,
-                    List.of(BOOLEAN_TYPE, new Type.FunctionApplication(ARROW,
-                            List.of(BOOLEAN_TYPE, BOOLEAN_TYPE)))));
+            arrowOf(BOOLEAN_TYPE, BOOLEAN_TYPE, BOOLEAN_TYPE));
 
     public final Set<Long> variables;
     public final Type type;

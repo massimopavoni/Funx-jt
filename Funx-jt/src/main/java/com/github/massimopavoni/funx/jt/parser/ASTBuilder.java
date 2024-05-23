@@ -339,20 +339,19 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     }
 
     /**
-     * Visit a parse tree produced by the {@code notExpression}
+     * Visit a parse tree produced by the {@code composeExpression}
      * labeled alternative in {@link FunxParser#expression()}.
      *
      * @param ctx the parse tree
      * @return visitor result
      */
     @Override
-    public ASTNode visitNotExpression(FunxParser.NotExpressionContext ctx) {
-        InputPosition position = getInputPosition(ctx);
-        return new Expression.Application(position,
-                new Expression.Variable(
-                        position,
-                        PreludeFunction.NOT.id),
-                visit(ctx.expression()));
+    public ASTNode visitComposeExpression(FunxParser.ComposeExpressionContext ctx) {
+        return binarySymbolApplication(
+                getInputPosition(ctx),
+                Utils.fromLexerToken(ctx.bop.getType()),
+                visit(ctx.expression(0)),
+                visit(ctx.expression(1)));
     }
 
     /**
@@ -420,6 +419,23 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
     }
 
     /**
+     * Visit a parse tree produced by the {@code notExpression}
+     * labeled alternative in {@link FunxParser#expression()}.
+     *
+     * @param ctx the parse tree
+     * @return visitor result
+     */
+    @Override
+    public ASTNode visitNotExpression(FunxParser.NotExpressionContext ctx) {
+        InputPosition position = getInputPosition(ctx);
+        return new Expression.Application(position,
+                new Expression.Variable(
+                        position,
+                        PreludeFunction.NOT.id),
+                visit(ctx.expression()));
+    }
+
+    /**
      * Visit a parse tree produced by the {@code andExpression}
      * labeled alternative in {@link FunxParser#expression()}.
      *
@@ -450,6 +466,14 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
                 getInputPosition(ctx),
                 visit(ctx.expression(0)),
                 new Expression.Constant(InputPosition.UNKNOWN, true),
+                visit(ctx.expression(1)));
+    }
+
+    @Override
+    public ASTNode visitRightAppExpression(FunxParser.RightAppExpressionContext ctx) {
+        return new Expression.Application(
+                getInputPosition(ctx),
+                visit(ctx.expression(0)),
                 visit(ctx.expression(1)));
     }
 

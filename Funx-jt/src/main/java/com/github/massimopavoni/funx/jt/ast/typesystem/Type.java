@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -104,6 +105,8 @@ public abstract sealed class Type implements Types<Type> {
 
     public static final class Variable extends Type {
         public static final Variable ZERO = new Variable(0L);
+        public static final Variable ONE = new Variable(1L);
+        public static final Variable TWO = new Variable(2L);
 
         public final long id;
 
@@ -168,6 +171,15 @@ public abstract sealed class Type implements Types<Type> {
         public FunctionApplication(TypeFunction function, List<Type> arguments) {
             this.function = function;
             this.arguments = arguments;
+        }
+
+        public static FunctionApplication arrowOf(Type... args) {
+            if (args.length < 2)
+                throw new IllegalArgumentException("arrow constructor requires at least 2 arguments");
+            if (args.length == 2)
+                return new FunctionApplication(TypeFunction.ARROW, List.of(args));
+            return new FunctionApplication(TypeFunction.ARROW,
+                    List.of(args[0], arrowOf(Arrays.copyOfRange(args, 1, args.length))));
         }
 
         @Override

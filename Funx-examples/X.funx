@@ -4,3 +4,5 @@ weirdEquals x y = let
 even a b c = if c == 0 then a == b else odd a b (c - 1) fi
 odd a b c = if c == 0 then a == b else even a b (c - 1) fi
 in even x y 1000
+
+multipleNot b = (not . not) . not $ b

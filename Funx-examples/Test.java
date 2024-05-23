@@ -9,27 +9,18 @@ public class Test {
   }
 
   public static void main(String[] args) {
-    System.out.println(a.apply(13L));
+    System.out.println(even.apply(13L));
   }
 
   public static Function<Long, Long> factorial;
 
-  public static <t13> Function<t13, t13> id() {
-    return (g -> g);
-  }
-
-  public static <t18>
-      Function<Function<Boolean, t18>, Function<Function<Boolean, Boolean>, Function<Boolean, t18>>>
+  public static <t14>
+      Function<Function<Boolean, t14>, Function<Function<Boolean, Boolean>, Function<Boolean, t14>>>
           boolCompose() {
-    return compose();
+    return id().apply(compose());
   }
 
-  public static <t17, t18, t16>
-      Function<Function<t17, t18>, Function<Function<t16, t17>, Function<t16, t18>>> compose() {
-    return (f -> (g -> (x -> f.apply(g.apply(x)))));
-  }
-
-  public static Function<Long, Boolean> a;
+  public static Function<Long, Boolean> even;
 
   static {
     factorial =
@@ -38,15 +29,15 @@ public class Test {
                 ? (1L)
                 : (multiply.apply(n).apply(factorial.apply(subtract.apply(n).apply(1L))))));
 
-    a =
+    even =
         (x ->
             (new Let<>() {
                   private Function<Long, Boolean> even;
 
                   private Function<Long, Boolean> odd;
 
-                  private <t40, t41, t39>
-                      Function<Function<t40, t41>, Function<Function<t39, t40>, Function<t39, t41>>>
+                  private <t37, t38, t36>
+                      Function<Function<t37, t38>, Function<Function<t36, t37>, Function<t36, t38>>>
                           compose() {
                     return (f -> (g -> (x -> f.apply(g.apply(x)))));
                   }
