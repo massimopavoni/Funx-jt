@@ -1,9 +1,9 @@
 package com.github.massimopavoni.funx.jt.ast.visitor;
 
+import com.github.massimopavoni.funx.jt.ast.PreludeFunction;
 import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.node.Declaration;
 import com.github.massimopavoni.funx.jt.ast.node.Expression;
-import com.github.massimopavoni.funx.jt.ast.typesystem.Environment;
 import com.github.massimopavoni.funx.jt.ast.typesystem.InferenceException;
 import com.github.massimopavoni.funx.jt.ast.typesystem.Scheme;
 import com.github.massimopavoni.funx.jt.ast.typesystem.Type;
@@ -12,8 +12,7 @@ import com.github.massimopavoni.funx.lib.JavaPrelude;
 import com.google.googlejavaformat.java.Formatter;
 import com.google.googlejavaformat.java.FormatterException;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -31,11 +30,11 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     private final Formatter formatter;
     private final Map<String, Expression> monomorphicTopLevelDeclarations = new LinkedHashMap<>();
     private final Map<String, Expression> monomorphicLetDeclarations = new LinkedHashMap<>();
+    private final Deque<Map<String, Scheme>> scopes = new ArrayDeque<>();
     /**
      * Flag to indicate if the current declarations are at top level.
      */
     private boolean currentlyTopLevel = true;
-    private Environment currentEnv;
 
     /**
      * Constructor for the Java builder.
@@ -45,6 +44,18 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     public JavaBuilder(StringBuilder builder) {
         this.builder = builder;
         formatter = new Formatter();
+    }
+
+    private void addToScope(List<Declaration> declarations) {
+        Map<String, Scheme> scope = new HashMap<>(scopes.getFirst());
+        declarations.forEach(declaration -> scope.put(declaration.id, declaration.scheme()));
+        scopes.push(scope);
+    }
+
+    private void addToScope(String id, Scheme scheme) {
+        Map<String, Scheme> scope = new HashMap<>(scopes.getFirst());
+        scope.put(id, scheme);
+        scopes.push(scope);
     }
 
     /**
@@ -95,30 +106,34 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      */
     @Override
     public Void visitModule(ASTNode.Module module) {
+        scopes.push(Arrays.stream(PreludeFunction.values())
+                .collect(Collectors.toMap(pf -> pf.id, pf -> pf.scheme)));
+        addToScope(module.let.localDeclarations.declarationList);
         builder.append(module.packageName.isEmpty()
                         ? ""
                         : String.format("package %s;%n", module.packageName.toLowerCase()))
                 .append("\n\nimport ").append(Function.class.getName())
+                .append(";\n\nimport ").append(JavaPrelude.class.getName())
                 .append(";\n\nimport static ").append(JavaPrelude.class.getName())
                 .append(".*;\nimport static ").append(FunxPrelude.class.getName())
                 .append(".*;\n\npublic class ").append(module.name).append(" {\n")
                 .append("private ").append(module.name)
                 .append("() {\n// Private constructor to prevent instantiation\n}\n\n");
-        currentEnv = module.let.env();
         if (module.let.expression.type() != Type.Boring.INSTANCE)
             visitMain(module.let.expression);
-        visit(module.let.localDeclarations);
+        module.let.localDeclarations.accept(this);
         if (!monomorphicTopLevelDeclarations.isEmpty()) {
             builder.append("static {\n");
             monomorphicTopLevelDeclarations.forEach((id, expression) -> {
                 builder.append(id).append(" = ");
-                visit(expression);
+                expression.accept(this);
                 appendSemiColon();
                 appendNewline();
             });
             appendCloseBrace();
         }
         appendCloseBrace();
+        scopes.pop();
         return null;
     }
 
@@ -144,7 +159,7 @@ public final class JavaBuilder extends ASTVisitor<Void> {
         builder.append("""
                 public static void main(String[] args) {
                 System.out.println(""");
-        visit(main);
+        main.accept(this);
         appendCloseParen();
         appendSemiColon();
         appendCloseBrace();
@@ -170,7 +185,7 @@ public final class JavaBuilder extends ASTVisitor<Void> {
         } else {
             builder.append(scheme)
                     .append(" ").append(declaration.id).append("() {\nreturn ");
-            visit(declaration.expression);
+            declaration.expression.accept(this);
             appendSemiColon();
             appendCloseBrace();
         }
@@ -213,12 +228,12 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      */
     @Override
     public Void visitLambda(Expression.Lambda lambda) {
-        Environment previousEnv = currentEnv;
-        currentEnv = lambda.env();
+        addToScope(lambda.paramId, new Scheme(Collections.emptySet(),
+                ((Type.FunctionApplication) lambda.type()).arguments.getFirst()));
         builder.append("(").append(lambda.paramId).append(" -> ");
-        visit(lambda.expression);
+        lambda.expression.accept(this);
         appendCloseParen();
-        currentEnv = previousEnv;
+        scopes.pop();
         return null;
     }
 
@@ -231,10 +246,9 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     @Override
     public Void visitLet(Expression.Let let) {
         currentlyTopLevel = !currentlyTopLevel;
-        Environment previousEnv = currentEnv;
-        currentEnv = let.env();
+        addToScope(let.localDeclarations.declarationList);
         builder.append("(new ").append(JavaPrelude.Let.class.getSimpleName()).append("<>() {\n");
-        visit(let.localDeclarations);
+        let.localDeclarations.accept(this);
         builder.append("""
                         @Override
                         public\s""")
@@ -243,19 +257,19 @@ public final class JavaBuilder extends ASTVisitor<Void> {
         if (!monomorphicLetDeclarations.isEmpty()) {
             monomorphicLetDeclarations.forEach((id, expression) -> {
                 builder.append(id).append(" = ");
-                visit(expression);
+                expression.accept(this);
                 appendSemiColon();
                 appendNewline();
             });
             monomorphicLetDeclarations.clear();
         }
         builder.append("return ");
-        visit(let.expression);
+        let.expression.accept(this);
         appendSemiColon();
         appendCloseBrace();
         builder.append("})._eval()");
+        scopes.pop();
         currentlyTopLevel = !currentlyTopLevel;
-        currentEnv = previousEnv;
         return null;
     }
 
@@ -268,11 +282,11 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     @Override
     public Void visitIf(Expression.If ifE) {
         builder.append("((");
-        visit(ifE.condition);
+        ifE.condition.accept(this);
         builder.append(") ? (");
-        visit(ifE.thenBranch);
+        ifE.thenBranch.accept(this);
         builder.append(") : (");
-        visit(ifE.elseBranch);
+        ifE.elseBranch.accept(this);
         builder.append("))");
         return null;
     }
@@ -285,9 +299,9 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      */
     @Override
     public Void visitApplication(Expression.Application application) {
-        visit(application.left);
+        application.left.accept(this);
         builder.append(".apply(");
-        visit(application.right);
+        application.right.accept(this);
         builder.append(")");
         return null;
     }
@@ -314,9 +328,13 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      */
     @Override
     public Void visitVariable(Expression.Variable variable) {
-        builder.append(variable.id);
-        if (!currentEnv.bindingOf(variable.id).variables.isEmpty())
-            builder.append("()");
+        if (scopes.getFirst().get(variable.id).variables.isEmpty())
+            builder.append(variable.id);
+        else
+            builder.append(JavaPrelude.class.getSimpleName()).append(".<")
+                    .append(typeStringOf(variable.type())).append(">_instantiationCast(")
+                    .append(variable.id)
+                    .append("())");
         return null;
     }
 }

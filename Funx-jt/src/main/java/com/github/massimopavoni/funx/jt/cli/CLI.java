@@ -80,6 +80,14 @@ public class CLI implements Callable<Integer> {
             defaultValue = "false")
     private boolean ast;
     /**
+     * AST inference annotations flag.
+     */
+    @CommandLine.Option(
+            names = {"-I", "--no-inference"},
+            description = "Omit AST type inference annotations",
+            defaultValue = "true")
+    private boolean astInferenceAnnotations;
+    /**
      * Remove .dot file after AST visualization flag.
      */
     @CommandLine.Option(
@@ -127,8 +135,7 @@ public class CLI implements Callable<Integer> {
         fileName = Character.toUpperCase(fileName.charAt(0)) + fileName.substring(1);
         ParseTree tree = getParseTree(filePath.toString());
         ASTNode astRoot = getAST(fileName, tree);
-        // This should never fail
-        if (!(astRoot instanceof ASTNode.Module module))
+        if (!(astRoot instanceof ASTNode.Module module)) // This should never fail
             throw new IllegalASTStateException("root node does not identify a module");
         if (!fileName.equals(module.name))
             throw new IllegalASTStateException("file name does not match module name");
@@ -249,7 +256,7 @@ public class CLI implements Callable<Integer> {
      * @throws CLIException if an error occurs
      */
     private void outputAST(ASTNode astRoot, Path outputPath) throws CLIException {
-        GraphvizBuilder graphvizBuilder = new GraphvizBuilder(new StringBuilder());
+        GraphvizBuilder graphvizBuilder = new GraphvizBuilder(new StringBuilder(), astInferenceAnnotations);
         graphvizBuilder.visit(astRoot);
         try {
             Files.write(outputPath, graphvizBuilder.getBuiltGraphviz().getBytes());

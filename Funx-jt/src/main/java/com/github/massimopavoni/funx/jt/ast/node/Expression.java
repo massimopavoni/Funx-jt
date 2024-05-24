@@ -5,6 +5,7 @@ import com.github.massimopavoni.funx.jt.ast.Utils;
 import com.github.massimopavoni.funx.jt.ast.typesystem.*;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -220,7 +221,6 @@ public abstract sealed class Expression extends ASTNode {
          * Expression node.
          */
         public final Expression expression;
-        private Environment lambdaEnv;
 
         /**
          * Constructor for the lambda expression node.
@@ -235,16 +235,11 @@ public abstract sealed class Expression extends ASTNode {
             this.expression = (Expression) expression;
         }
 
-        public Environment env() {
-            return lambdaEnv;
-        }
-
         @Override
         public Utils.Pair<Substitution, Type> infer(Environment env) {
             Type.Variable paramTypeVar = InferenceEngine.newTypeVariable();
             Environment newEnv = new Environment(env);
             newEnv.bind(paramId, new Scheme(Collections.emptySet(), paramTypeVar));
-            lambdaEnv = newEnv;
             Utils.Pair<Substitution, Type> bodyInference = expression.infer(newEnv);
             type = new Type.FunctionApplication(TypeFunction.ARROW,
                     List.of(paramTypeVar.applySubstitution(bodyInference.fst), bodyInference.snd));
@@ -282,7 +277,6 @@ public abstract sealed class Expression extends ASTNode {
          * Expression node.
          */
         public final Expression expression;
-        private Environment letEnv;
 
         /**
          * Constructor for the let expression node.
@@ -295,10 +289,6 @@ public abstract sealed class Expression extends ASTNode {
             super(inputPosition);
             this.localDeclarations = (Declarations) localDeclarations;
             this.expression = (Expression) expression;
-        }
-
-        public Environment env() {
-            return letEnv;
         }
 
         @Override
@@ -327,7 +317,6 @@ public abstract sealed class Expression extends ASTNode {
                 decl.checkScheme(expectedScheme, env);
                 newEnv.bind(decl.id, decl.scheme());
             }
-            letEnv = newEnv;
             Utils.Pair<Substitution, Type> exprInference = expression.infer(newEnv);
             subst = subst.compose(exprInference.fst);
             type = exprInference.snd.applySubstitution(subst);

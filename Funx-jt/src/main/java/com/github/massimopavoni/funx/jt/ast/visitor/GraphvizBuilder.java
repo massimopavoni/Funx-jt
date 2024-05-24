@@ -19,6 +19,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      * Graphviz code string builder.
      */
     private final StringBuilder builder;
+    private final boolean inferenceAnnotations;
     /**
      * Internal counter to get identifiers for AST nodes,
      * used instead of the hash code to avoid collisions and a resulting weird looking graph.
@@ -30,8 +31,9 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      *
      * @param builder Graphviz code string builder
      */
-    public GraphvizBuilder(StringBuilder builder) {
+    public GraphvizBuilder(StringBuilder builder, boolean inferenceAnnotations) {
         this.builder = builder;
+        this.inferenceAnnotations = inferenceAnnotations;
     }
 
     /**
@@ -64,7 +66,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     private String toGraphvizDefault(String label, String scheme, List<? extends ASTNode> children) {
         String nodeId = getNodeId();
         builder.append(nodeId).append(" [label=\"").append(label);
-        if (scheme != null)
+        if (inferenceAnnotations && scheme != null)
             builder.append(" : ").append(scheme);
         builder.append("\"];\n");
         children.forEach(c ->

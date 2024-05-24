@@ -11,5 +11,4 @@ boolCompose = id compose
 even x = let
 even a = a == 0 || odd (a - 1)
 odd a = a != 0 && even (a - 1)
-compose f g x = f (g x)
 in (and True) . (or False) $ even x

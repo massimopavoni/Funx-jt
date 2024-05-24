@@ -35,4 +35,11 @@ public class JavaPrelude {
     public interface Let<T> {
         T _eval();
     }
+
+    // Cast method for polymorphic functions instantiation
+    // (essentially a bypass for the overly aggressive type erasure in Java)
+    @SuppressWarnings("rawtypes, unchecked")
+    public static <T extends Function> T _instantiationCast(Function f) {
+        return (T) f;
+    }
 }
