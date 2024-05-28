@@ -5,7 +5,6 @@ import com.github.massimopavoni.funx.jt.ast.Utils;
 import com.github.massimopavoni.funx.jt.ast.typesystem.*;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -14,7 +13,7 @@ import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.FunctionAppli
 /**
  * Base class for expression nodes.
  */
-public abstract sealed class Expression extends ASTNode {
+public abstract sealed class Expression extends ASTNode implements Inferable {
     protected Type type;
 
     /**
@@ -32,8 +31,6 @@ public abstract sealed class Expression extends ASTNode {
     public Type type() {
         return type;
     }
-
-    public abstract Utils.Pair<Substitution, Type> infer(Environment env);
 
     /**
      * Constant expression class.
@@ -117,7 +114,7 @@ public abstract sealed class Expression extends ASTNode {
                         String.format("unbound variable '%s'", id));
                 type = Type.Error.INSTANCE;
             } else
-                type = binding.instantiate();
+                type = binding.instantiate().snd;
             return new Utils.Pair<>(Substitution.EMPTY, type);
         }
 
@@ -237,12 +234,16 @@ public abstract sealed class Expression extends ASTNode {
 
         @Override
         public Utils.Pair<Substitution, Type> infer(Environment env) {
+            if (!env.lambdaBind(paramId))
+                InferenceEngine.reportError(inputPosition,
+                        String.format("lambda variable '%s' already bound", paramId));
             Type.Variable paramTypeVar = InferenceEngine.newTypeVariable();
             Environment newEnv = new Environment(env);
             newEnv.bind(paramId, new Scheme(Collections.emptySet(), paramTypeVar));
             Utils.Pair<Substitution, Type> bodyInference = expression.infer(newEnv);
             type = new Type.FunctionApplication(TypeFunction.ARROW,
                     List.of(paramTypeVar.applySubstitution(bodyInference.fst), bodyInference.snd));
+            env.lambdaFree(paramId);
             return bodyInference.setSnd(type);
         }
 
@@ -327,8 +328,6 @@ public abstract sealed class Expression extends ASTNode {
         @Override
         protected void propagateSubstitution(Substitution substitution) {
             type = type.applySubstitution(substitution);
-            localDeclarations.declarationList
-                    .forEach(decl -> decl.expression.propagateSubstitution(substitution));
             expression.propagateSubstitution(substitution);
         }
 

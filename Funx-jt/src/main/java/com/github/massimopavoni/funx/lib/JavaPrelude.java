@@ -22,11 +22,11 @@ public class JavaPrelude {
 
     public static Function<Long, Function<Long, Boolean>> lessThanEquals = x -> y -> x <= y;
 
-    public static <A> Function<A, Function<A, Boolean>> equalsEquals() {
+    public static <a> Function<a, Function<a, Boolean>> equalsEquals() {
         return x -> x::equals;
     }
 
-    public static <A> Function<A, Function<A, Boolean>> notEquals() {
+    public static <a> Function<a, Function<a, Boolean>> notEquals() {
         return x -> y -> !x.equals(y);
     }
 

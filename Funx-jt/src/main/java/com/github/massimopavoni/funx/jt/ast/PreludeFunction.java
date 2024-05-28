@@ -85,7 +85,7 @@ public enum PreludeFunction {
      */
     COMPOSE(".", "compose",
             new Scheme(Set.of(0L, 1L, 2L),
-                    arrowOf(arrowOf(ONE, TWO), arrowOf(ZERO, ONE), ZERO, TWO)), false),
+                    arrowOf(arrowOf(ZERO, ONE), arrowOf(TWO, ZERO), TWO, ONE)), false),
     /**
      * Function arguments flip.
      */

@@ -1,6 +1,5 @@
 package com.github.massimopavoni.funx.jt.ast.visitor;
 
-import com.github.massimopavoni.funx.jt.ast.InputPosition;
 import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.node.Declaration;
 import com.github.massimopavoni.funx.jt.ast.node.Expression;
@@ -17,34 +16,10 @@ import java.util.List;
 public abstract sealed class ASTVisitor<T>
         permits JavaBuilder, GraphvizBuilder {
     /**
-     * Error reporter for the AST visitor.
-     */
-    private final ASTErrorReporter errorReporter = new ASTErrorReporter();
-
-    /**
      * Constructor for the AST visitor.
      */
     protected ASTVisitor() {
         // Empty constructor
-    }
-
-    /**
-     * Retrieve the number of errors found.
-     *
-     * @return number of errors
-     */
-    public int getErrorsCount() {
-        return errorReporter.getErrorsCount();
-    }
-
-    /**
-     * Report an error using the AST reporter instance.
-     *
-     * @param position error position
-     * @param message  error message
-     */
-    void reportError(InputPosition position, String message) {
-        errorReporter.reportError(String.format("%s %s", position, message));
     }
 
     /**
@@ -66,7 +41,7 @@ public abstract sealed class ASTVisitor<T>
     public T visit(List<? extends ASTNode> nodes) {
         T result = defaultResult();
         for (ASTNode node : nodes)
-            result = aggregateResult(result, node.accept(this));
+            result = aggregateResult(result, visit(node));
         return result;
     }
 

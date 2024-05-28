@@ -1,12 +1,21 @@
+main = f
+
 f : Bool
 f = let
-h : Int
-h = 10 + 20
-g : Int -> Int
-g x = h * x
+  againEquals : a -> a -> Bool
+  againEquals = equalsEquals
+
+  g : Int -> Int
+  g x = 15 + l x
+    with
+      l y = if againEquals y y then 0 else 1 fi
+    out
+
 in 1 + (let
-test : Bool
-test = False
-nonTest : Bool
-nonTest = True
-in if test && nonTest then 2 else 3 fi) == 4
+  test : Bool
+  test = False
+
+  nonTest : Bool
+  nonTest = True
+
+in if test && nonTest then g 2 else g 1 fi) == 16

@@ -256,8 +256,10 @@ public class CLI implements Callable<Integer> {
      * @throws CLIException if an error occurs
      */
     private void outputAST(ASTNode astRoot, Path outputPath) throws CLIException {
+        InferenceEngine.setFancyTypes(astInferenceAnnotations);
         GraphvizBuilder graphvizBuilder = new GraphvizBuilder(new StringBuilder(), astInferenceAnnotations);
         graphvizBuilder.visit(astRoot);
+        InferenceEngine.setFancyTypes(false);
         try {
             Files.write(outputPath, graphvizBuilder.getBuiltGraphviz().getBytes());
             ProcessBuilder pb = new ProcessBuilder("dot", "-Tpng", outputPath.toString(), "-o",

@@ -2,6 +2,8 @@ package com.github.massimopavoni.funx.jt.ast.node;
 
 import com.github.massimopavoni.funx.jt.ast.InputPosition;
 import com.github.massimopavoni.funx.jt.ast.typesystem.*;
+import com.github.massimopavoni.funx.jt.ast.typesystem.Scheme;
+import com.github.massimopavoni.funx.jt.ast.typesystem.TypeException;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
 
 /**
@@ -53,10 +55,10 @@ public final class Declaration extends ASTNode {
                         String.format("type identifier '%s' does not match declaration identifier '%s'",
                                 typeId, id));
             try {
-                if (expectedScheme.type.applySubstitution(expectedScheme.type.unify(scheme.type))
-                        .equals(scheme.type)) {
-                    Substitution unification = scheme.type.unify(expectedScheme.type);
-                    scheme = scheme.type.applySubstitution(unification).generalize(env);
+                Substitution unification = expectedScheme.type.unify(scheme.type);
+                Type expectedType = expectedScheme.type.applySubstitution(unification);
+                if (expectedType.equals(scheme.type)) {
+                    scheme = expectedType.generalize(env);
                     expression.propagateSubstitution(unification);
                 } else
                     InferenceEngine.reportError(inputPosition,

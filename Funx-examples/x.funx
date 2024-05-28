@@ -7,10 +7,10 @@ in even x y 1000
 
 multipleNot b = not . (not . not) . not $ b
 
-lambdaBool b = False || (\b -> not b) True || False || b
+lambdaBool b = False || (\t -> not t) True || False || b
 
 even x = x == 0 || odd (x - 1)
 with
-odd x = x != 0 && even (x - 1)
+odd y = y != 0 && even (y - 1)
 out
 

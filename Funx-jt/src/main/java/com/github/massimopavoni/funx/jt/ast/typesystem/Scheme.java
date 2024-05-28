@@ -1,10 +1,10 @@
 package com.github.massimopavoni.funx.jt.ast.typesystem;
 
+import com.github.massimopavoni.funx.jt.ast.Utils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.FunctionApplication.*;
@@ -24,17 +24,22 @@ public final class Scheme implements Types<Scheme> {
 
     public final Set<Long> variables;
     public final Type type;
+    public final Set<Long> orderedVariables;
     private final Set<Long> freeVariables;
 
     public Scheme(Set<Long> variables, Type type) {
         this.variables = variables;
+        orderedVariables = variables.stream()
+                .sorted()
+                .collect(Collectors.toCollection(LinkedHashSet::new));
         this.type = type;
         freeVariables = Sets.difference(type.freeVariables(), variables);
     }
 
-    public Type instantiate() {
-        return type.applySubstitution(new Substitution(variables.stream()
-                .collect(ImmutableMap.toImmutableMap(v -> v, v -> InferenceEngine.newTypeVariable()))));
+    public Utils.Pair<Substitution, Type> instantiate() {
+        Substitution instantiation = new Substitution(variables.stream()
+                .collect(ImmutableMap.toImmutableMap(v -> v, v -> InferenceEngine.newTypeVariable())));
+        return new Utils.Pair<>(instantiation, type.applySubstitution(instantiation));
     }
 
     @Override
@@ -45,17 +50,6 @@ public final class Scheme implements Types<Scheme> {
     @Override
     public Scheme applySubstitution(Substitution substitution) {
         return new Scheme(variables, type.applySubstitution(substitution.exclude(variables)));
-    }
-
-    @Override
-    public String toString() {
-        if (variables.isEmpty())
-            return type.toString();
-        return String.format("forall %s. %s",
-                variables.stream()
-                        .map(v -> "t" + v)
-                        .collect(Collectors.joining(" ")),
-                type);
     }
 
     @Override
@@ -70,5 +64,14 @@ public final class Scheme implements Types<Scheme> {
     @Override
     public int hashCode() {
         return 31 * variables.hashCode() + type.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s%s",
+                variables.isEmpty() ? "" : "forall " + orderedVariables.stream()
+                        .map(InferenceEngine.fancyTypes() ? Variable::toFancyString : Variable::toString)
+                        .collect(Collectors.joining(" ")) + ". ",
+                type);
     }
 }

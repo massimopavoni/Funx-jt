@@ -65,15 +65,18 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      */
     private String toGraphvizDefault(String label, String scheme, List<? extends ASTNode> children) {
         String nodeId = getNodeId();
-        builder.append(nodeId).append(" [label=\"").append(label);
+        builder.append(nodeId).append(" [label=<").append(label);
         if (inferenceAnnotations && scheme != null)
-            builder.append(" : ").append(scheme);
-        builder.append("\"];\n");
+            builder.append(" : ")
+                    .append("<I>")
+                    .append(scheme.replace("->", "&#8594;"))
+                    .append("</I>");
+        builder.append(">];\n");
         children.forEach(c ->
                 builder.append(
                         String.format("%s -> %s;%n",
                                 nodeId,
-                                c.accept(this))));
+                                visit(c))));
         return nodeId;
     }
 

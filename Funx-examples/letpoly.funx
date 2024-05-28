@@ -1,0 +1,8 @@
+main = equals 1 2
+
+equals : a -> a -> Bool
+equals = let
+anotherEquals : a -> a -> Bool
+anotherEquals x y = x == y
+in anotherEquals
+

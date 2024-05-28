@@ -9,13 +9,18 @@ import java.util.Arrays;
 
 public final class InferenceEngine {
     private static final ASTErrorReporter errorReporter = new ASTErrorReporter();
-    private static long variableCounter = 0;
+    private static boolean fancyTypes = false;
+    private static long typeVariablesCounter = 0;
 
     private InferenceEngine() {
     }
 
-    public static Type.Variable newTypeVariable() {
-        return new Type.Variable(variableCounter++);
+    public static void setFancyTypes(boolean fancyTypes) {
+        InferenceEngine.fancyTypes = fancyTypes;
+    }
+
+    public static boolean fancyTypes() {
+        return fancyTypes;
     }
 
     /**
@@ -35,6 +40,10 @@ public final class InferenceEngine {
      */
     public static void reportError(InputPosition position, String message) {
         errorReporter.reportError(String.format("%s %s", position, message));
+    }
+
+    public static Type.Variable newTypeVariable() {
+        return new Type.Variable(typeVariablesCounter++);
     }
 
     public static void inferModuleTypes(ASTNode.Module module) {

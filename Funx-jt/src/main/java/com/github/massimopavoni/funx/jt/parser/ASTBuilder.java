@@ -6,6 +6,7 @@ import com.github.massimopavoni.funx.jt.ast.Utils;
 import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.node.Declaration;
 import com.github.massimopavoni.funx.jt.ast.node.Expression;
+import com.github.massimopavoni.funx.jt.ast.typesystem.InferenceEngine;
 import com.github.massimopavoni.funx.jt.ast.typesystem.Scheme;
 import com.github.massimopavoni.funx.jt.ast.typesystem.Type;
 import com.github.massimopavoni.funx.jt.ast.typesystem.TypeFunction;
@@ -24,8 +25,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     private final String fileName;
     private final Deque<Type> currentDeclarationTypes = new ArrayDeque<>();
-    private final Map<String, Long> declarationTypeVariables = new HashMap<>();
-    private long declarationTypeVariable = 0;
+    private final Map<String, Type.Variable> declarationTypeVariables = new HashMap<>();
 
     /**
      * Constructor for the AST builder.
@@ -56,7 +56,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * @param expression expression
      * @return first node of the lambda chain
      */
-    private ASTNode createLambdaChain(InputPosition position, List<String> params, ASTNode expression) {
+    private ASTNode createLambdaChain(InputPosition position, Deque<String> params, ASTNode expression) {
         if (params.size() == 1)
             return new Expression.Lambda(
                     position,
@@ -64,7 +64,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
                     expression);
         return new Expression.Lambda(
                 position,
-                params.removeFirst(),
+                params.pop(),
                 createLambdaChain(position, params, expression));
     }
 
@@ -185,7 +185,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
                         : createLambdaChain(position,
                         ctx.lambdaParams().VARID().stream()
                                 .map(ParseTree::getText)
-                                .collect(Collectors.toCollection(ArrayList::new)), statement));
+                                .collect(Collectors.toCollection(ArrayDeque::new)), statement));
     }
 
     /**
@@ -196,7 +196,6 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitDeclarationType(FunxParser.DeclarationTypeContext ctx) {
-        declarationTypeVariable = 0;
         return visit(ctx.typeElems());
     }
 
@@ -239,12 +238,12 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      */
     @Override
     public ASTNode visitTypeVar(FunxParser.TypeVarContext ctx) {
-        Long typeVariable = declarationTypeVariables.get(ctx.VARID().getText());
+        Type.Variable typeVariable = declarationTypeVariables.get(ctx.VARID().getText());
         if (typeVariable == null) {
-            typeVariable = declarationTypeVariable++;
+            typeVariable = InferenceEngine.newTypeVariable();
             declarationTypeVariables.put(ctx.VARID().getText(), typeVariable);
         }
-        currentDeclarationTypes.add(new Type.Variable(typeVariable));
+        currentDeclarationTypes.add(typeVariable);
         return null;
     }
 
@@ -527,7 +526,7 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
                 getInputPosition(ctx),
                 ctx.lambdaParams().VARID().stream()
                         .map(ParseTree::getText)
-                        .toList(), visit(ctx.statement()));
+                        .collect(Collectors.toCollection(ArrayDeque::new)), visit(ctx.statement()));
     }
 
     /**

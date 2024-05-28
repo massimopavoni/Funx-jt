@@ -4,10 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public abstract sealed class Type implements Types<Type> {
     public Scheme generalize(Environment env) {
@@ -114,6 +112,14 @@ public abstract sealed class Type implements Types<Type> {
             this.id = id;
         }
 
+        public static String toString(long id) {
+            return id < 26 ? Character.toString((char) ('a' + id)) : "t" + id;
+        }
+
+        public static String toFancyString(long id) {
+            return id < 24 ? Character.toString((char) (945 + id)) : "t" + id;
+        }
+
         @Override
         public Substitution unify(Type other) throws TypeException {
             return bind(other);
@@ -155,7 +161,7 @@ public abstract sealed class Type implements Types<Type> {
 
         @Override
         public String toString() {
-            return "t" + id;
+            return InferenceEngine.fancyTypes() ? toFancyString(id) : toString(id);
         }
     }
 
@@ -234,15 +240,20 @@ public abstract sealed class Type implements Types<Type> {
 
         @Override
         public String toString() {
-            if (function == TypeFunction.ARROW)
-                return String.format("(%s %s %s)",
-                        arguments.getFirst(), function.id, arguments.get(1));
+            if (function == TypeFunction.ARROW) {
+                Type input = arguments.getFirst();
+                return String.format("%s %s %s",
+                        input instanceof FunctionApplication fa && fa.function == TypeFunction.ARROW
+                                ? "(" + input + ")"
+                                : input,
+                        function.id, arguments.get(1));
+            }
             if (arguments.isEmpty())
                 return function.id;
-            StringBuilder sb = new StringBuilder("(");
-            sb.append(function.id);
-            arguments.forEach(a -> sb.append(" ").append(a));
-            return sb.append(")").toString();
+            return String.format("%s %s", function.id,
+                    arguments.stream()
+                            .map(Type::toString)
+                            .collect(Collectors.joining(" ")));
         }
     }
 }

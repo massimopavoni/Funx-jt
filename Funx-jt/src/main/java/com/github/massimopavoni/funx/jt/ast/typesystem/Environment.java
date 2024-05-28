@@ -2,19 +2,20 @@ package com.github.massimopavoni.funx.jt.ast.typesystem;
 
 import com.google.common.collect.ImmutableSet;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public final class Environment implements Types<Environment> {
     private final Map<String, Scheme> variableSchemes;
+    private final Set<String> lambdaParams;
 
     public Environment() {
         variableSchemes = new HashMap<>();
+        lambdaParams = new HashSet<>();
     }
 
     public Environment(Environment env) {
         variableSchemes = new HashMap<>(env.variableSchemes);
+        lambdaParams = new HashSet<>(env.lambdaParams);
     }
 
     public Scheme bindingOf(String variable) {
@@ -23,6 +24,14 @@ public final class Environment implements Types<Environment> {
 
     public void bind(String variable, Scheme scheme) {
         variableSchemes.put(variable, scheme);
+    }
+
+    public boolean lambdaBind(String paramId) {
+        return lambdaParams.add(paramId);
+    }
+
+    public void lambdaFree(String paramId) {
+        lambdaParams.remove(paramId);
     }
 
     @Override
