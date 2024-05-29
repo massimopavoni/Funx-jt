@@ -236,8 +236,10 @@ public final class JavaBuilder extends ASTVisitor<Void> {
         addToScope(lambda.paramId, new Scheme(Collections.emptySet(),
                 ((Type.FunctionApplication) lambda.type()).arguments.getFirst()), null);
         builder.append("(");
-        if (wildCast)
+        if (wildCast) {
             builder.append("(").append(typeStringOf(lambda.type())).append(") ");
+            wildCast = false;
+        }
         builder.append(lambda.paramId).append(" -> ");
         visit(lambda.expression);
         appendCloseParen();
@@ -255,8 +257,10 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     public Void visitLet(Expression.Let let) {
         currentlyTopLevel = false;
         addToScope(let.localDeclarations.declarationList, "this");
-        if (wildCast)
+        if (wildCast) {
             builder.append("(").append(typeStringOf(let.type())).append(") ");
+            wildCast = false;
+        }
         builder.append("(new ").append(JavaPrelude.Let.class.getSimpleName()).append("<>() {\n");
         monomorphicLetDeclarationsQueue.push(new LinkedHashMap<>());
         visit(let.localDeclarations);
@@ -313,14 +317,12 @@ public final class JavaBuilder extends ASTVisitor<Void> {
         if (application.left instanceof Expression.Lambda || application.left instanceof Expression.Let) {
             wildCast = true;
             visit(application.left);
-            wildCast = false;
         } else
             visit(application.left);
         builder.append(".apply(");
         if (application.right instanceof Expression.Lambda || application.right instanceof Expression.Let) {
             wildCast = true;
             visit(application.right);
-            wildCast = false;
         } else
             visit(application.right);
         builder.append(")");
