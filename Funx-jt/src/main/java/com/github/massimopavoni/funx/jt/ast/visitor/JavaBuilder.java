@@ -28,13 +28,30 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      * Java code formatter.
      */
     private final Formatter formatter;
+    /**
+     * Map of monomorphic top level declarations,
+     * to initialize them in a static block.
+     */
     private final Map<String, Expression> monomorphicTopLevelDeclarations = new LinkedHashMap<>();
+    /**
+     * Queue of maps of monomorphic let declarations,
+     * to initialize them in their own {@code _eval} method.
+     */
     private final Deque<Map<String, Expression>> monomorphicLetDeclarationsQueue = new ArrayDeque<>();
-    private final List<Map<String, Utils.Pair<Scheme, String>>> scopes = new ArrayList<>();
+    /**
+     * List of scopes, used like a stack but cycled through for lookups.
+     * Each map entry has the variable name as key and a tuple of the scheme and the scope as value,
+     * where the scope is either a Prelude class, the module class, {@code this} for lets or {@code null} for lambdas.
+     */
+    private final List<Map<String, Utils.Tuple<Scheme, String>>> scopes = new ArrayList<>();
     /**
      * Flag to indicate if the current declarations are at top level.
      */
     private boolean currentlyTopLevel = true;
+    /**
+     * Flag to indicate if a cast is needed for a lambda or let expression,
+     * whenever using one in an application ("in the wild").
+     */
     private boolean wildCast = false;
 
     /**
@@ -47,15 +64,28 @@ public final class JavaBuilder extends ASTVisitor<Void> {
         formatter = new Formatter();
     }
 
+    /**
+     * Add a list of declarations to the current scope.
+     *
+     * @param declarations list of declarations
+     * @param scope        scope name
+     */
     private void addToScope(List<Declaration> declarations, String scope) {
         scopes.addFirst(declarations.stream()
                 .collect(ImmutableMap.toImmutableMap(
                         decl -> decl.id,
-                        decl -> new Utils.Pair<>(decl.scheme(), scope))));
+                        decl -> new Utils.Tuple<>(decl.scheme(), scope))));
     }
 
+    /**
+     * Add a single variable to the current scope.
+     *
+     * @param id     variable identifier
+     * @param scheme variable scheme
+     * @param scope  scope name
+     */
     private void addToScope(String id, Scheme scheme, String scope) {
-        scopes.addFirst(Collections.singletonMap(id, new Utils.Pair<>(scheme, scope)));
+        scopes.addFirst(Collections.singletonMap(id, new Utils.Tuple<>(scheme, scope)));
     }
 
     /**
@@ -109,7 +139,7 @@ public final class JavaBuilder extends ASTVisitor<Void> {
         scopes.addFirst(Arrays.stream(PreludeFunction.values())
                 .collect(ImmutableMap.toImmutableMap(
                         pf -> pf.id,
-                        pf -> new Utils.Pair<>(pf.scheme, pf.nativeJava
+                        pf -> new Utils.Tuple<>(pf.scheme, pf.nativeJava
                                 ? JavaPrelude.class.getSimpleName()
                                 : FunxPrelude.class.getSimpleName()))));
         addToScope(module.let.localDeclarations.declarationList, module.name);
@@ -198,6 +228,12 @@ public final class JavaBuilder extends ASTVisitor<Void> {
         return null;
     }
 
+    /**
+     * Get the string representation of a scheme.
+     *
+     * @param scheme scheme
+     * @return string representation
+     */
     private String schemeStringOf(Scheme scheme) {
         String schemeString = "";
         if (!scheme.variables.isEmpty())
@@ -207,6 +243,12 @@ public final class JavaBuilder extends ASTVisitor<Void> {
         return schemeString + typeStringOf(scheme.type);
     }
 
+    /**
+     * Get the string representation of a type.
+     *
+     * @param type type
+     * @return string representation
+     */
     private String typeStringOf(Type type) {
         return switch (type) {
             case Type.Variable variable -> variable.toString();
@@ -221,7 +263,7 @@ public final class JavaBuilder extends ASTVisitor<Void> {
                 else
                     yield functionName;
             }
-            default -> throw new InferenceException("Illegal type for declaration found");
+            default -> throw new InferenceException("Unsupported type for declaration found");
         };
     }
 
@@ -352,23 +394,23 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     @Override
     public Void visitVariable(Expression.Variable variable) {
         int i;
-        Utils.Pair<Scheme, String> variableScheme = null;
+        Utils.Tuple<Scheme, String> variableScheme = null;
         for (i = 0; i < scopes.size(); i++)
             if ((variableScheme = scopes.get(i).get(variable.id)) != null)
                 break;
-        if (Objects.requireNonNull(variableScheme).fst.variables.isEmpty())
+        if (Objects.requireNonNull(variableScheme).fst().variables.isEmpty())
             builder.append(variable.id);
-        else if (variableScheme.snd.equals("this") && i > 0)
+        else if (variableScheme.snd().equals("this") && i > 0)
             builder.append(JavaPrelude.class.getSimpleName()).append(".<")
                     .append(typeStringOf(variable.type())).append(">_instantiationCast(")
                     .append(variable.id)
                     .append("())");
         else {
-            builder.append(variableScheme.snd).append(".<");
+            builder.append(variableScheme.snd()).append(".<");
             try {
-                Utils.Pair<Substitution, Type> instantiation = variableScheme.fst.instantiate();
-                Substitution subst = instantiation.fst.applySubstitution(instantiation.snd.unify(variable.type()));
-                builder.append(variableScheme.fst.orderedVariables.stream()
+                Utils.Tuple<Substitution, Type> instantiation = variableScheme.fst().instantiate();
+                Substitution subst = instantiation.fst().applySubstitution(instantiation.snd().unify(variable.type()));
+                builder.append(variableScheme.fst().orderedVariables.stream()
                                 .map(ov -> subst.variables().contains(ov)
                                         ? typeStringOf(subst.substituteOf(ov))
                                         : Type.Variable.toString(ov))

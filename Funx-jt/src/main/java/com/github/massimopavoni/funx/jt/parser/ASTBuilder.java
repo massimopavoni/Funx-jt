@@ -24,7 +24,15 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
      * Name of the file being parsed.
      */
     private final String fileName;
+    /**
+     * Stack of types for the current declaration,
+     * used to build the declaration type.
+     */
     private final Deque<Type> currentDeclarationTypes = new ArrayDeque<>();
+    /**
+     * Map of type variables for the current declaration,
+     * used for polymorphic type signatures.
+     */
     private final Map<String, Type.Variable> declarationTypeVariables = new HashMap<>();
 
     /**

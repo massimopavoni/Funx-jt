@@ -7,7 +7,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
  */
 public class IllegalParserStateException extends IllegalStateException {
     /**
-     * Constructor for an IllegalParserStateException.
+     * Constructor for the illegal parser state exception.
      *
      * @param message exception message
      */
@@ -16,7 +16,7 @@ public class IllegalParserStateException extends IllegalStateException {
     }
 
     /**
-     * Constructor for an IllegalParserStateException with a parser context.
+     * Constructor for the illegal parser state exception using a parser context.
      *
      * @param ctx      parser context
      * @param expected expected input

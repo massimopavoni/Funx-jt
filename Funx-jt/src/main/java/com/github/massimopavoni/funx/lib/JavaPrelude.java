@@ -2,6 +2,8 @@ package com.github.massimopavoni.funx.lib;
 
 import java.util.function.Function;
 
+import static com.github.massimopavoni.funx.lib.FunxPrelude.not;
+
 public class JavaPrelude {
     // Binary operators
     public static Function<Long, Function<Long, Long>> divide = x -> y -> x / y;
@@ -27,13 +29,7 @@ public class JavaPrelude {
     }
 
     public static <a> Function<a, Function<a, Boolean>> notEquals() {
-        return x -> y -> !x.equals(y);
-    }
-
-    // Let functional interface
-    @FunctionalInterface
-    public interface Let<T> {
-        T _eval();
+        return x -> y -> not.apply(x.equals(y));
     }
 
     // Cast method for polymorphic functions instantiation
@@ -41,5 +37,11 @@ public class JavaPrelude {
     @SuppressWarnings("rawtypes, unchecked")
     public static <T extends Function> T _instantiationCast(Function f) {
         return (T) f;
+    }
+
+    // Let functional interface
+    @FunctionalInterface
+    public interface Let<T> {
+        T _eval();
     }
 }

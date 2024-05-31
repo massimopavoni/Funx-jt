@@ -2,8 +2,6 @@ package com.github.massimopavoni.funx.jt.ast.node;
 
 import com.github.massimopavoni.funx.jt.ast.InputPosition;
 import com.github.massimopavoni.funx.jt.ast.typesystem.*;
-import com.github.massimopavoni.funx.jt.ast.typesystem.Scheme;
-import com.github.massimopavoni.funx.jt.ast.typesystem.TypeException;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
 
 /**
@@ -44,10 +42,21 @@ public final class Declaration extends ASTNode {
         this.expression = (Expression) expression;
     }
 
+    /**
+     * Declaration scheme getter.
+     *
+     * @return declaration scheme
+     */
     public Scheme scheme() {
         return scheme;
     }
 
+    /**
+     * Checks and expected scheme against the actual scheme.
+     *
+     * @param expectedScheme expected scheme
+     * @param env            current environment
+     */
     public void checkScheme(Scheme expectedScheme, Environment env) {
         if (typeId != null) {
             if (!typeId.equals(id))

@@ -7,18 +7,46 @@ import com.github.massimopavoni.funx.jt.ast.visitor.ASTErrorReporter;
 
 import java.util.Arrays;
 
+/**
+ * Type system inference engine static class.
+ */
 public final class InferenceEngine {
+    /**
+     * AST error reporter instance.
+     */
     private static final ASTErrorReporter errorReporter = new ASTErrorReporter();
+    /**
+     * Fancy types flag, switching between latin and greek letters for type variables.
+     */
     private static boolean fancyTypes = false;
+    /**
+     * Counter for new type variables.
+     */
     private static long typeVariablesCounter = 0;
 
+    /**
+     * Static class constructor, private to prevent instantiation.
+     *
+     * @throws IllegalStateException if an attempt to instantiate the class is made
+     */
     private InferenceEngine() {
+        throw new IllegalStateException("Static class cannot be instantiated.");
     }
 
+    /**
+     * Set the fancy types flag.
+     *
+     * @param fancyTypes new flag value
+     */
     public static void setFancyTypes(boolean fancyTypes) {
         InferenceEngine.fancyTypes = fancyTypes;
     }
 
+    /**
+     * Fancy types flag getter.
+     *
+     * @return fancy types flag
+     */
     public static boolean fancyTypes() {
         return fancyTypes;
     }
@@ -33,7 +61,7 @@ public final class InferenceEngine {
     }
 
     /**
-     * Report an error using the AST reporter instance.
+     * Report an error using the AST error reporter instance.
      *
      * @param position error position
      * @param message  error message
@@ -42,10 +70,20 @@ public final class InferenceEngine {
         errorReporter.reportError(String.format("%s %s", position, message));
     }
 
+    /**
+     * Create a new type variable using the global counter.
+     *
+     * @return new type variable
+     */
     public static Type.Variable newTypeVariable() {
         return new Type.Variable(typeVariablesCounter++);
     }
 
+    /**
+     * Type inference entry point for a module node.
+     *
+     * @param module module node
+     */
     public static void inferModuleTypes(ASTNode.Module module) {
         Environment env = new Environment();
         Arrays.stream(PreludeFunction.values())

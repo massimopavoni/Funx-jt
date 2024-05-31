@@ -44,21 +44,33 @@ public final class Utils {
         return FunxLexer.VOCABULARY.getLiteralName(token).replace("'", "");
     }
 
-    public static final class Pair<A, B> {
-        public final A fst;
-        public final B snd;
-
-        public Pair(A fst, B snd) {
-            this.fst = fst;
-            this.snd = snd;
+    /**
+     * Tuple record class.
+     *
+     * @param fst first element
+     * @param snd second element
+     * @param <A> first element type
+     * @param <B> second element type
+     */
+    public record Tuple<A, B>(A fst, B snd) {
+        /**
+         * Change the first element of the tuple.
+         *
+         * @param fst new first element
+         * @return new tuple with the first element changed
+         */
+        public Tuple<A, B> setFst(A fst) {
+            return new Tuple<>(fst, snd);
         }
 
-        public Pair<A,B> setFst(A fst) {
-            return new Pair<>(fst, snd);
-        }
-
-        public Pair<A,B> setSnd(B snd) {
-            return new Pair<>(fst, snd);
+        /**
+         * Change the second element of the tuple.
+         *
+         * @param snd new second element
+         * @return new tuple with the second element changed
+         */
+        public Tuple<A, B> setSnd(B snd) {
+            return new Tuple<>(fst, snd);
         }
     }
 }

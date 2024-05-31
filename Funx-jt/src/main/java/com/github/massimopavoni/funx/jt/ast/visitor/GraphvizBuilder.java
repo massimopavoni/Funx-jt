@@ -19,6 +19,9 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      * Graphviz code string builder.
      */
     private final StringBuilder builder;
+    /**
+     * Inference annotations printing flag.
+     */
     private final boolean inferenceAnnotations;
     /**
      * Internal counter to get identifiers for AST nodes,
@@ -29,7 +32,8 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     /**
      * Constructor for the Graphviz builder.
      *
-     * @param builder Graphviz code string builder
+     * @param builder              Graphviz code string builder
+     * @param inferenceAnnotations inference annotations printing flag
      */
     public GraphvizBuilder(StringBuilder builder, boolean inferenceAnnotations) {
         this.builder = builder;
@@ -60,6 +64,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
      * (We don't use the ASTVisitor visit method with node results aggregation within this very custom visitor).
      *
      * @param label    node label
+     * @param scheme   node scheme (optional)
      * @param children list of children nodes
      * @return node identifier
      */

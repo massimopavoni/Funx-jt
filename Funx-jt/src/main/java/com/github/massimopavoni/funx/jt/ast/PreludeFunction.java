@@ -9,7 +9,7 @@ import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.FunctionAppli
 import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.Variable.*;
 
 /**
- * Enum for symbols and corresponding Prelude functions.
+ * Enum for Prelude functions.
  */
 public enum PreludeFunction {
     /**
@@ -98,21 +98,25 @@ public enum PreludeFunction {
      */
     public final String symbol;
     /**
-     * Prelude function id.
+     * Prelude function identifier.
      */
     public final String id;
     /**
      * Prelude function scheme.
      */
     public final Scheme scheme;
+    /**
+     * Prelude function flag for native Java implementations.
+     */
     public final boolean nativeJava;
 
     /**
      * Constructor for the Prelude function enum.
      *
-     * @param symbol function symbol
-     * @param id     function id
-     * @param scheme function scheme
+     * @param symbol     function symbol
+     * @param id         function identifier
+     * @param scheme     function scheme
+     * @param nativeJava native Java implementation flag
      */
     PreludeFunction(String symbol, String id, Scheme scheme, boolean nativeJava) {
         this.symbol = symbol;

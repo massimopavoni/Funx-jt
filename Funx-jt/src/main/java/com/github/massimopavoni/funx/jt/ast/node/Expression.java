@@ -6,7 +6,9 @@ import com.github.massimopavoni.funx.jt.ast.typesystem.*;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.FunctionApplication.BOOLEAN_TYPE;
 
@@ -14,6 +16,9 @@ import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.FunctionAppli
  * Base class for expression nodes.
  */
 public abstract sealed class Expression extends ASTNode implements Inferable {
+    /**
+     * Expression node inferred type.
+     */
     protected Type type;
 
     /**
@@ -26,8 +31,18 @@ public abstract sealed class Expression extends ASTNode implements Inferable {
         super(inputPosition);
     }
 
+    /**
+     * Propagate a substitution within the expression.
+     *
+     * @param substitution substitution to propagate
+     */
     protected abstract void propagateSubstitution(Substitution substitution);
 
+    /**
+     * Inferred type getter.
+     *
+     * @return inferred type
+     */
     public Type type() {
         return type;
     }
@@ -52,11 +67,17 @@ public abstract sealed class Expression extends ASTNode implements Inferable {
             this.value = value;
         }
 
+        /**
+         * Inference method for constant expressions.
+         *
+         * @param env current environment
+         * @return tuple of potential substitution and inferred type
+         */
         @Override
-        public Utils.Pair<Substitution, Type> infer(Environment env) {
+        public Utils.Tuple<Substitution, Type> infer(Environment env) {
             if (value == null) {
                 type = Type.Boring.INSTANCE;
-                return new Utils.Pair<>(Substitution.EMPTY, type);
+                return new Utils.Tuple<>(Substitution.EMPTY, type);
             }
             TypeFunction typeFunction = TypeFunction.fromClass(value.getClass());
             if (typeFunction == null) {
@@ -65,9 +86,14 @@ public abstract sealed class Expression extends ASTNode implements Inferable {
                 type = Type.Error.INSTANCE;
             } else
                 type = new Type.FunctionApplication(typeFunction, Collections.emptyList());
-            return new Utils.Pair<>(Substitution.EMPTY, type);
+            return new Utils.Tuple<>(Substitution.EMPTY, type);
         }
 
+        /**
+         * Propagate a substitution within the constant.
+         *
+         * @param substitution substitution to propagate
+         */
         @Override
         protected void propagateSubstitution(Substitution substitution) {
             // Do nothing
@@ -106,18 +132,29 @@ public abstract sealed class Expression extends ASTNode implements Inferable {
             this.id = id;
         }
 
+        /**
+         * Inference method for variable expressions.
+         *
+         * @param env current environment
+         * @return tuple of potential substitution and inferred type
+         */
         @Override
-        public Utils.Pair<Substitution, Type> infer(Environment env) {
+        public Utils.Tuple<Substitution, Type> infer(Environment env) {
             Scheme binding = env.bindingOf(id);
             if (binding == null) {
                 InferenceEngine.reportError(inputPosition,
                         String.format("unbound variable '%s'", id));
                 type = Type.Error.INSTANCE;
             } else
-                type = binding.instantiate().snd;
-            return new Utils.Pair<>(Substitution.EMPTY, type);
+                type = binding.instantiate().snd();
+            return new Utils.Tuple<>(Substitution.EMPTY, type);
         }
 
+        /**
+         * Propagate a substitution within the variable.
+         *
+         * @param substitution substitution to propagate
+         */
         @Override
         protected void propagateSubstitution(Substitution substitution) {
             type = type.applySubstitution(substitution);
@@ -162,30 +199,41 @@ public abstract sealed class Expression extends ASTNode implements Inferable {
             this.right = (Expression) right;
         }
 
+        /**
+         * Inference method for application expressions.
+         *
+         * @param env current environment
+         * @return tuple of potential substitution and inferred type
+         */
         @Override
-        public Utils.Pair<Substitution, Type> infer(Environment env) {
-            Utils.Pair<Substitution, Type> leftInference = left.infer(env);
-            Utils.Pair<Substitution, Type> rightInference =
-                    right.infer(env.applySubstitution(leftInference.fst));
+        public Utils.Tuple<Substitution, Type> infer(Environment env) {
+            Utils.Tuple<Substitution, Type> leftInference = left.infer(env);
+            Utils.Tuple<Substitution, Type> rightInference =
+                    right.infer(env.applySubstitution(leftInference.fst()));
             Type.Variable funTypeVar = InferenceEngine.newTypeVariable();
-            Substitution subst = leftInference.fst
-                    .compose(rightInference.fst);
+            Substitution subst = leftInference.fst()
+                    .compose(rightInference.fst());
             try {
-                Substitution applicationSubstitution = leftInference.snd
-                        .applySubstitution(rightInference.fst)
+                Substitution applicationSubstitution = leftInference.snd()
+                        .applySubstitution(rightInference.fst())
                         .unify(new Type.FunctionApplication(TypeFunction.ARROW,
-                                List.of(rightInference.snd, funTypeVar)));
+                                List.of(rightInference.snd(), funTypeVar)));
                 type = funTypeVar.applySubstitution(applicationSubstitution);
                 left.propagateSubstitution(applicationSubstitution);
                 right.propagateSubstitution(applicationSubstitution);
-                return new Utils.Pair<>(subst.compose(applicationSubstitution), type);
+                return new Utils.Tuple<>(subst.compose(applicationSubstitution), type);
             } catch (TypeException e) {
                 InferenceEngine.reportError(inputPosition, e.getMessage());
                 type = Type.Error.INSTANCE;
-                return new Utils.Pair<>(subst, type);
+                return new Utils.Tuple<>(subst, type);
             }
         }
 
+        /**
+         * Propagate a substitution within the application.
+         *
+         * @param substitution substitution to propagate
+         */
         @Override
         protected void propagateSubstitution(Substitution substitution) {
             type = type.applySubstitution(substitution);
@@ -232,21 +280,32 @@ public abstract sealed class Expression extends ASTNode implements Inferable {
             this.expression = (Expression) expression;
         }
 
+        /**
+         * Inference method for lambda expressions.
+         *
+         * @param env current environment
+         * @return tuple of potential substitution and inferred type
+         */
         @Override
-        public Utils.Pair<Substitution, Type> infer(Environment env) {
+        public Utils.Tuple<Substitution, Type> infer(Environment env) {
             if (!env.lambdaBind(paramId))
                 InferenceEngine.reportError(inputPosition,
                         String.format("lambda variable '%s' already bound", paramId));
             Type.Variable paramTypeVar = InferenceEngine.newTypeVariable();
             Environment newEnv = new Environment(env);
             newEnv.bind(paramId, new Scheme(Collections.emptySet(), paramTypeVar));
-            Utils.Pair<Substitution, Type> bodyInference = expression.infer(newEnv);
+            Utils.Tuple<Substitution, Type> bodyInference = expression.infer(newEnv);
             type = new Type.FunctionApplication(TypeFunction.ARROW,
-                    List.of(paramTypeVar.applySubstitution(bodyInference.fst), bodyInference.snd));
+                    List.of(paramTypeVar.applySubstitution(bodyInference.fst()), bodyInference.snd()));
             env.lambdaFree(paramId);
             return bodyInference.setSnd(type);
         }
 
+        /**
+         * Propagate a substitution within the lambda.
+         *
+         * @param substitution substitution to propagate
+         */
         @Override
         protected void propagateSubstitution(Substitution substitution) {
             type = type.applySubstitution(substitution);
@@ -292,20 +351,35 @@ public abstract sealed class Expression extends ASTNode implements Inferable {
             this.expression = (Expression) expression;
         }
 
+        /**
+         * Inference method for let expressions.
+         *
+         * @param env current environment
+         * @return tuple of potential substitution and inferred type
+         */
         @Override
-        public Utils.Pair<Substitution, Type> infer(Environment env) {
+        public Utils.Tuple<Substitution, Type> infer(Environment env) {
+            Map<String, InputPosition> declarationPositions = new HashMap<>();
             Environment newEnv = new Environment(env);
-            for (Declaration decl : localDeclarations.declarationList)
-                newEnv.bind(decl.id, new Scheme(Collections.emptySet(), InferenceEngine.newTypeVariable()));
+            for (Declaration decl : localDeclarations.declarationList) {
+                if (declarationPositions.containsKey(decl.id))
+                    InferenceEngine.reportError(decl.inputPosition,
+                            String.format("variable '%s' already declared at %s",
+                                    decl.id, declarationPositions.get(decl.id)));
+                else {
+                    declarationPositions.put(decl.id, decl.inputPosition);
+                    newEnv.bind(decl.id, new Scheme(Collections.emptySet(), InferenceEngine.newTypeVariable()));
+                }
+            }
             Substitution subst = Substitution.EMPTY;
             for (Declaration decl : localDeclarations.declarationList) {
-                Utils.Pair<Substitution, Type> declInference = decl.expression.infer(newEnv);
+                Utils.Tuple<Substitution, Type> declInference = decl.expression.infer(newEnv);
                 try {
-                    subst = subst.compose(declInference.fst)
+                    subst = subst.compose(declInference.fst())
                             .compose(newEnv.bindingOf(decl.id).type
                                     .applySubstitution(subst)
-                                    .unify(declInference.snd));
-                    decl.expression.type = declInference.snd.applySubstitution(subst);
+                                    .unify(declInference.snd()));
+                    decl.expression.type = declInference.snd().applySubstitution(subst);
                     newEnv = newEnv.applySubstitution(subst);
                 } catch (TypeException e) {
                     InferenceEngine.reportError(decl.inputPosition, e.getMessage());
@@ -318,13 +392,18 @@ public abstract sealed class Expression extends ASTNode implements Inferable {
                 decl.checkScheme(expectedScheme, env);
                 newEnv.bind(decl.id, decl.scheme());
             }
-            Utils.Pair<Substitution, Type> exprInference = expression.infer(newEnv);
-            subst = subst.compose(exprInference.fst);
-            type = exprInference.snd.applySubstitution(subst);
+            Utils.Tuple<Substitution, Type> exprInference = expression.infer(newEnv);
+            subst = subst.compose(exprInference.fst());
+            type = exprInference.snd().applySubstitution(subst);
             propagateSubstitution(subst);
-            return new Utils.Pair<>(subst, type);
+            return new Utils.Tuple<>(subst, type);
         }
 
+        /**
+         * Propagate a substitution within the let.
+         *
+         * @param substitution substitution to propagate
+         */
         @Override
         protected void propagateSubstitution(Substitution substitution) {
             type = type.applySubstitution(substitution);
@@ -376,36 +455,47 @@ public abstract sealed class Expression extends ASTNode implements Inferable {
             this.elseBranch = (Expression) elseBranch;
         }
 
+        /**
+         * Inference method for if expressions.
+         *
+         * @param env current environment
+         * @return tuple of potential substitution and inferred type
+         */
         @Override
-        public Utils.Pair<Substitution, Type> infer(Environment env) {
-            Utils.Pair<Substitution, Type> conditionInference = condition.infer(env);
-            Environment newEnv = env.applySubstitution(conditionInference.fst);
-            Utils.Pair<Substitution, Type> thenInference = thenBranch.infer(newEnv);
-            Utils.Pair<Substitution, Type> elseInference =
-                    elseBranch.infer(newEnv.applySubstitution(thenInference.fst));
+        public Utils.Tuple<Substitution, Type> infer(Environment env) {
+            Utils.Tuple<Substitution, Type> conditionInference = condition.infer(env);
+            Environment newEnv = env.applySubstitution(conditionInference.fst());
+            Utils.Tuple<Substitution, Type> thenInference = thenBranch.infer(newEnv);
+            Utils.Tuple<Substitution, Type> elseInference =
+                    elseBranch.infer(newEnv.applySubstitution(thenInference.fst()));
             try {
-                Substitution conditionSubstitution = conditionInference.snd.unify(BOOLEAN_TYPE);
-                Substitution thenElseSubstitution = thenInference.snd
-                        .applySubstitution(elseInference.fst)
-                        .unify(elseInference.snd);
-                type = thenInference.snd.applySubstitution(thenElseSubstitution);
+                Substitution conditionSubstitution = conditionInference.snd().unify(BOOLEAN_TYPE);
+                Substitution thenElseSubstitution = thenInference.snd()
+                        .applySubstitution(elseInference.fst())
+                        .unify(elseInference.snd());
+                type = thenInference.snd().applySubstitution(thenElseSubstitution);
                 propagateSubstitution(thenElseSubstitution);
-                return new Utils.Pair<>(conditionInference.fst
-                        .compose(thenInference.fst)
-                        .compose(elseInference.fst)
+                return new Utils.Tuple<>(conditionInference.fst()
+                        .compose(thenInference.fst())
+                        .compose(elseInference.fst())
                         .compose(conditionSubstitution)
                         .compose(thenElseSubstitution),
                         type);
             } catch (TypeException e) {
                 InferenceEngine.reportError(inputPosition, e.getMessage());
                 type = Type.Error.INSTANCE;
-                return new Utils.Pair<>(conditionInference.fst
-                        .compose(thenInference.fst)
-                        .compose(elseInference.fst),
+                return new Utils.Tuple<>(conditionInference.fst()
+                        .compose(thenInference.fst())
+                        .compose(elseInference.fst()),
                         type);
             }
         }
 
+        /**
+         * Propagate a substitution within the if.
+         *
+         * @param substitution substitution to propagate
+         */
         @Override
         protected void propagateSubstitution(Substitution substitution) {
             type = type.applySubstitution(substitution);
