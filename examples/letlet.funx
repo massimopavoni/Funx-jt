@@ -1,0 +1,24 @@
+main = f
+
+f : Bool
+f = let
+  againEquals : a -> a -> Bool
+  againEquals = let
+    x = equalsEquals
+
+    in x
+
+  g : Int -> Int
+  g x = 15 + l x
+    with
+      l y = if againEquals y y then 0 else 1 fi
+    out
+
+  in 1 + (let
+    test : Bool
+    test = False
+
+    nonTest : Bool
+    nonTest = True
+
+    in if test && nonTest then g 2 else g 1 fi) == 16
