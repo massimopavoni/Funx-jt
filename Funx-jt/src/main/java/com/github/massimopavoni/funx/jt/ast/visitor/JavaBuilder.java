@@ -29,15 +29,10 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      */
     private final Formatter formatter;
     /**
-     * Map of monomorphic top level declarations,
-     * to initialize them in a static block.
+     * Queue of maps of monomorphic declarations,
+     * to initialize them in a static block for top level or their own {@code _eval} method for a let.
      */
-    private final Map<String, Expression> monomorphicTopLevelDeclarations = new LinkedHashMap<>();
-    /**
-     * Queue of maps of monomorphic let declarations,
-     * to initialize them in their own {@code _eval} method.
-     */
-    private final Deque<Map<String, Expression>> monomorphicLetDeclarationsQueue = new ArrayDeque<>();
+    private final Deque<Map<String, Expression>> monomorphicDeclarationsQueue = new ArrayDeque<>();
     /**
      * List of scopes, used like a stack but cycled through for lookups.
      * Each map entry has the variable name as key and a tuple of the scheme and the scope as value,
@@ -160,11 +155,12 @@ public final class JavaBuilder extends ASTVisitor<Void> {
         // visit main and top level declarations
         if (module.let.expression.type() != Type.Boring.INSTANCE)
             visitMain(module.let.expression);
+        monomorphicDeclarationsQueue.push(new LinkedHashMap<>());
         visit(module.let.localDeclarations);
         // initialize monomorphic top level declarations in a static block
-        if (!monomorphicTopLevelDeclarations.isEmpty()) {
+        if (!monomorphicDeclarationsQueue.getFirst().isEmpty()) {
             builder.append("static {\n");
-            monomorphicTopLevelDeclarations.forEach((id, expression) -> {
+            monomorphicDeclarationsQueue.getFirst().forEach((id, expression) -> {
                 builder.append(id).append(" = ");
                 visit(expression);
                 appendSemiColon();
@@ -173,6 +169,7 @@ public final class JavaBuilder extends ASTVisitor<Void> {
             appendCloseBrace();
         }
         appendCloseBrace();
+        monomorphicDeclarationsQueue.pop();
         scopes.removeFirst();
         return null;
     }
@@ -223,8 +220,7 @@ public final class JavaBuilder extends ASTVisitor<Void> {
             // defer initialization of monomorphic declarations
             builder.append(scheme).append(" ").append(declaration.id);
             appendSemiColon();
-            (currentLevel == 0 ? monomorphicTopLevelDeclarations : monomorphicLetDeclarationsQueue.getFirst())
-                    .put(declaration.id, declaration.expression);
+            monomorphicDeclarationsQueue.getFirst().put(declaration.id, declaration.expression);
         } else {
             // initialize polymorphic declarations immediately (as methods with generics)
             builder.append(scheme)
@@ -323,7 +319,7 @@ public final class JavaBuilder extends ASTVisitor<Void> {
         }
         // use a new anonymous class for the let expression and push a new monomorphic let declarations map
         builder.append("(new ").append(JavaPrelude.Let.class.getSimpleName()).append("<>() {\n");
-        monomorphicLetDeclarationsQueue.push(new LinkedHashMap<>());
+        monomorphicDeclarationsQueue.push(new LinkedHashMap<>());
         visit(let.localDeclarations);
         builder.append("""
                         @Override
@@ -332,14 +328,14 @@ public final class JavaBuilder extends ASTVisitor<Void> {
                 .append("\n_eval() {\n");
         // if there are any monomorphic declarations, initialize them in the _eval method,
         // then pop the map either way
-        if (!monomorphicLetDeclarationsQueue.getFirst().isEmpty())
-            monomorphicLetDeclarationsQueue.getFirst().forEach((id, expression) -> {
+        if (!monomorphicDeclarationsQueue.getFirst().isEmpty())
+            monomorphicDeclarationsQueue.getFirst().forEach((id, expression) -> {
                 builder.append(id).append(" = ");
                 visit(expression);
                 appendSemiColon();
                 appendNewline();
             });
-        monomorphicLetDeclarationsQueue.pop();
+        monomorphicDeclarationsQueue.pop();
         builder.append("return ");
         visit(let.expression);
         appendSemiColon();
