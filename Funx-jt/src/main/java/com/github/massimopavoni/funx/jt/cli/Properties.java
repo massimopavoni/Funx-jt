@@ -16,6 +16,10 @@ public final class Properties {
      * Project description.
      */
     public static final String DESCRIPTION = "A Funx to Java source transpiler.";
+    /**
+     * Prelude library jar filename.
+     */
+    public static final String PRELUDEJAR = "Funx-prelude-0.1.0.jar";
     
     /**
      * Static class constructor, private to prevent instantiation.

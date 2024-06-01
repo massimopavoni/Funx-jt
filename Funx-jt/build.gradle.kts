@@ -4,6 +4,7 @@ import java.time.LocalDate
 group = "com.github.massimopavoni.funx.jt"
 version = "0.1.0"
 description = "A Funx to Java source transpiler."
+val preludeName = "Funx-prelude"
 
 // Gradle plugins
 plugins {
@@ -114,6 +115,10 @@ tasks.register("projectProps") {
                  * Project description.
                  */
                 public static final String DESCRIPTION = "$description";
+                /**
+                 * Prelude library jar filename.
+                 */
+                public static final String PRELUDEJAR = "$preludeName-${project.version}.jar";
                 
                 /**
                  * Static class constructor, private to prevent instantiation.
@@ -144,7 +149,7 @@ tasks.register<Jar>("jarPrelude") {
         include("**/lib/*Prelude*")
         exclude("**/jt/**")
     }
-    archiveBaseName = "Funx-prelude"
+    archiveBaseName = preludeName
     archiveVersion = project.version.toString()
 }
 
