@@ -19,7 +19,7 @@ public abstract sealed class ASTVisitor<T>
      * Constructor for the AST visitor.
      */
     protected ASTVisitor() {
-        // Empty constructor
+        // empty constructor
     }
 
     /**

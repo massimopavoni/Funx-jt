@@ -8,7 +8,7 @@ import java.util.Set;
  * @param <T> The type of the class implementing the interface.
  */
 sealed interface Types<T extends Types<T>>
-        permits Type, Scheme, Substitution, Environment {
+        permits Type, Scheme, Substitution, Context {
     /**
      * Get the set of free variables.
      *

@@ -35,11 +35,11 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDeclaration(FunxParser.DeclarationContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link FunxParser#declarationType}.
+	 * Visit a parse tree produced by {@link FunxParser#declarationScheme}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitDeclarationType(FunxParser.DeclarationTypeContext ctx);
+	T visitDeclarationScheme(FunxParser.DeclarationSchemeContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link FunxParser#with}.
 	 * @param ctx the parse tree

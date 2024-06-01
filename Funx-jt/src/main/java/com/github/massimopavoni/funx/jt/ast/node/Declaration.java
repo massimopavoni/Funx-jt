@@ -52,22 +52,29 @@ public final class Declaration extends ASTNode {
     }
 
     /**
-     * Checks and expected scheme against the actual scheme.
+     * Check an expected scheme against the actual scheme.
      *
      * @param expectedScheme expected scheme
-     * @param env            current environment
+     * @param ctx            current context
      */
-    public void checkScheme(Scheme expectedScheme, Environment env) {
+    public void checkScheme(Scheme expectedScheme, Context ctx) {
+        // if there's a user defined type
         if (typeId != null) {
+            // check if ids match
             if (!typeId.equals(id))
                 InferenceEngine.reportError(inputPosition,
                         String.format("type identifier '%s' does not match declaration identifier '%s'",
                                 typeId, id));
             try {
+                // try to unify the expected type with the actual type
+                // (this order of unification means that if the actual scheme corresponds
+                // to any kind of instantiation of the expected scheme, the unification will succeed
+                // and the scheme of the declaration will obviously be a restriction of the expected scheme)
                 Substitution unification = expectedScheme.type.unify(scheme.type);
                 Type expectedType = expectedScheme.type.applySubstitution(unification);
                 if (expectedType.equals(scheme.type)) {
-                    scheme = expectedType.generalize(env);
+                    // generalize and propagate
+                    scheme = expectedType.generalize(ctx);
                     expression.propagateSubstitution(unification);
                 } else
                     InferenceEngine.reportError(inputPosition,
@@ -81,7 +88,7 @@ public final class Declaration extends ASTNode {
     }
 
     /**
-     * Accepts a visitor to traverse the AST.
+     * Accept a visitor to traverse the AST.
      *
      * @param visitor visitor to accept
      * @param <T>     return type of the visitor

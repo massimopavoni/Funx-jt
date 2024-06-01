@@ -11,7 +11,7 @@ import static com.github.massimopavoni.funx.lib.FunxPrelude.*;
 
 public class FunxPrelude {
   private FunxPrelude() {
-    // Private constructor to prevent instantiation
+    // private constructor to prevent instantiation
   }
 
   public static Function<Boolean, Boolean> not;

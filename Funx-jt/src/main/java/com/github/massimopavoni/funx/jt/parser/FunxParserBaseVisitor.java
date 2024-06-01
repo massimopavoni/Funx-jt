@@ -46,7 +46,7 @@ public class FunxParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitDeclarationType(FunxParser.DeclarationTypeContext ctx) { return visitChildren(ctx); }
+	@Override public T visitDeclarationScheme(FunxParser.DeclarationSchemeContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *

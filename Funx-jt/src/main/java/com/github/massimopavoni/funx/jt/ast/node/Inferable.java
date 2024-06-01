@@ -1,7 +1,7 @@
 package com.github.massimopavoni.funx.jt.ast.node;
 
 import com.github.massimopavoni.funx.jt.ast.Utils;
-import com.github.massimopavoni.funx.jt.ast.typesystem.Environment;
+import com.github.massimopavoni.funx.jt.ast.typesystem.Context;
 import com.github.massimopavoni.funx.jt.ast.typesystem.Substitution;
 import com.github.massimopavoni.funx.jt.ast.typesystem.Type;
 
@@ -14,8 +14,8 @@ public sealed interface Inferable
      * Inference method for the specific node,
      * allowing for proper type checking within the type system.
      *
-     * @param env current environment
+     * @param ctx current context
      * @return tuple of potential substitution and inferred type
      */
-    Utils.Tuple<Substitution, Type> infer(Environment env);
+    Utils.Tuple<Substitution, Type> infer(Context ctx);
 }

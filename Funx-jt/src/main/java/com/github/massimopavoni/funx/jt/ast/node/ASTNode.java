@@ -26,7 +26,7 @@ public abstract sealed class ASTNode
     }
 
     /**
-     * Accepts a visitor to traverse the AST.
+     * Accept a visitor to traverse the AST.
      *
      * @param visitor visitor to accept
      * @param <T>     return type of the visitor
@@ -67,7 +67,7 @@ public abstract sealed class ASTNode
         }
 
         /**
-         * Accepts a visitor to traverse the AST.
+         * Accept a visitor to traverse the AST.
          *
          * @param visitor visitor to accept
          * @param <T>     return type of the visitor
@@ -102,7 +102,7 @@ public abstract sealed class ASTNode
         }
 
         /**
-         * Accepts a visitor to traverse the AST.
+         * Accept a visitor to traverse the AST.
          *
          * @param visitor visitor to accept
          * @param <T>     return type of the visitor

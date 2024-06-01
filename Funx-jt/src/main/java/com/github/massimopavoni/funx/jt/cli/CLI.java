@@ -100,7 +100,7 @@ public class CLI implements Callable<Integer> {
      * Default constructor.
      */
     public CLI() {
-        // Empty constructor
+        // empty constructor
     }
 
     /**
@@ -124,6 +124,7 @@ public class CLI implements Callable<Integer> {
      */
     @Override
     public Integer call() throws Exception {
+        // figure out the working directory
         Path filePath = input.toPath().toAbsolutePath();
         Path workingDir = Path.of(System.getProperty("user.dir"));
         if (outputDir != null) {
@@ -131,31 +132,36 @@ public class CLI implements Callable<Integer> {
                 throw new CLIException("Output path must be a directory");
             workingDir = outputDir.toPath();
         }
+        // figure out the file name
         String fileName = input.getName().split("\\.")[0];
         fileName = Character.toUpperCase(fileName.charAt(0)) + fileName.substring(1);
-        ParseTree tree = getParseTree(filePath.toString());
-        ASTNode astRoot = getAST(fileName, tree);
-        if (!(astRoot instanceof ASTNode.Module module)) // This should never fail
+        // parse input
+        ParseTree rawParseTree = getParseTree(filePath.toString());
+        // build AST
+        ASTNode astRoot = getAST(fileName, rawParseTree);
+        if (!(astRoot instanceof ASTNode.Module module)) // this should never fail
             throw new IllegalASTStateException("root node does not identify a module");
         if (!fileName.equals(module.name))
             throw new IllegalASTStateException("file name does not match module name");
-        workingDir = workingDir.resolve(Path.of(
-                module.packageName.toLowerCase()
-                        .replace('.', File.separatorChar)));
+        // perform type inference
         InferenceEngine.inferModuleTypes(module);
         if (InferenceEngine.getErrorsCount() > 0)
             throw new InferenceException("Type inference errors found");
+        // resolve actual working directory from module package name
+        workingDir = workingDir.resolve(Path.of(
+                module.packageName.toLowerCase()
+                        .replace('.', File.separatorChar)));
         if (java)
             transpile(module, workingDir);
         if (parseTree)
-            outputParseTree(tree, workingDir.resolve(String.format("%s_parse_tree.png", module.name)));
+            outputParseTree(rawParseTree, workingDir.resolve(String.format("%s_parse_tree.png", module.name)));
         if (ast)
-            outputAST(astRoot, workingDir.resolve(String.format("%s_ast.dot", module.name)));
+            outputAST(module, workingDir.resolve(String.format("%s_ast.dot", module.name)));
         return 0;
     }
 
     /**
-     * Pass the input file content to the ANTLR generated parser.
+     * Get the raw parse tree using the ANTLR generated parser.
      *
      * @param inputPath input file path
      * @return parse tree
@@ -167,6 +173,7 @@ public class CLI implements Callable<Integer> {
                     new CommonTokenStream(
                             new FunxLexer(
                                     CharStreams.fromFileName(inputPath))));
+            // crash if the grammar is ANTLR ambiguous (not actually LL(k), because it can have direct left recursion)
             parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
             parser.addErrorListener(new DiagnosticErrorListener());
             ParseTree tree = parser.module();
@@ -181,12 +188,12 @@ public class CLI implements Callable<Integer> {
     /**
      * Build the abstract syntax tree by visiting the parse tree.
      *
-     * @param fileName input file name
-     * @param tree     parse tree
+     * @param fileName  input file name
+     * @param parseTree parse tree
      * @return abstract syntax tree root node
      */
-    private ASTNode getAST(String fileName, ParseTree tree) {
-        return new ASTBuilder(fileName).visit(tree);
+    private ASTNode getAST(String fileName, ParseTree parseTree) {
+        return new ASTBuilder(fileName).visit(parseTree);
     }
 
     /**
@@ -219,6 +226,8 @@ public class CLI implements Callable<Integer> {
      * @throws CLIException if an error occurs
      */
     private void outputParseTree(ParseTree tree, Path outputPath) throws CLIException {
+        // unfortunately ANTLR does not provide a way to directly get an image,
+        // so we draw the tree on a custom viewer and then save the image, thanks to awt
         TreeViewer viewer = new TreeViewer(Arrays.asList(FunxParser.ruleNames), tree);
         BufferedImage image = new BufferedImage(viewer.getPreferredSize().width,
                 viewer.getPreferredSize().height,
@@ -228,22 +237,22 @@ public class CLI implements Callable<Integer> {
         graphics.fillRect(0, 0, image.getWidth(), image.getHeight());
         graphics.setPaint(Color.BLACK);
         viewer.paint(graphics);
+        // very bad shenanigans because of ImageIO internal workings
+        // randomly printing the stack trace even if the exception is caught
         PrintStream originalErr = System.err;
         try (PrintStream err = new PrintStream(new OutputStream() {
             @Override
             public void write(int b) {
-                // Do nothing
+                // do nothing
             }
         })) {
-            // Very bad shenanigans because of ImageIO internal workings
-            // randomly printing the stack trace even if the exception is caught
-            // Redirect the error stream
+            // redirect the error stream
             System.setErr(err);
             ImageIO.write(image, "png", outputPath.toFile());
         } catch (IOException e) {
             throw new CLIException("Error writing parse tree image", e);
         } finally {
-            // Reset the error stream
+            // reset the error stream
             System.setErr(originalErr);
         }
     }
@@ -251,16 +260,18 @@ public class CLI implements Callable<Integer> {
     /**
      * Output a DOT and a PNG file for abstract syntax tree visualization.
      *
-     * @param astRoot    abstract syntax tree root node
+     * @param module     abstract syntax tree root node
      * @param outputPath output file path
      * @throws CLIException if an error occurs
      */
-    private void outputAST(ASTNode astRoot, Path outputPath) throws CLIException {
+    private void outputAST(ASTNode.Module module, Path outputPath) throws CLIException {
+        // use fancy types for inference annotations
         InferenceEngine.setFancyTypes(astInferenceAnnotations);
         GraphvizBuilder graphvizBuilder = new GraphvizBuilder(new StringBuilder(), astInferenceAnnotations);
-        graphvizBuilder.visit(astRoot);
+        graphvizBuilder.visit(module);
         InferenceEngine.setFancyTypes(false);
         try {
+            // write the dot file but also try and convert it to a png
             Files.write(outputPath, graphvizBuilder.getBuiltGraphviz().getBytes());
             ProcessBuilder pb = new ProcessBuilder("dot", "-Tpng", outputPath.toString(), "-o",
                     outputPath.toString().replace(".dot", ".png"));

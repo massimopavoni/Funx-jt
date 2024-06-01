@@ -50,7 +50,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
     }
 
     /**
-     * Returns a unique identifier for an AST node.
+     * Return a unique identifier for an AST node.
      *
      * @return unique identifier using the internal counter
      */
@@ -72,6 +72,7 @@ public final class GraphvizBuilder extends ASTVisitor<String> {
         String nodeId = getNodeId();
         builder.append(nodeId).append(" [label=<").append(label);
         if (inferenceAnnotations && scheme != null)
+            // if we have inference annotations, we print them in italic and with a nicer arrow
             builder.append(" : ")
                     .append("<I>")
                     .append(scheme.replace("->", "&#8594;"))

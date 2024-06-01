@@ -16,12 +16,12 @@ main
 // ----------------------------------------------------------------
 // Declaration
 declaration
-    : (declarationType NEWLINE)?
+    : (declarationScheme NEWLINE)?
         id = VARID lambdaParams? Equals statement
         with?
     ;
 
-declarationType: id = VARID Colon typeElems;
+declarationScheme: id = VARID Colon typeElems;
 
 with: NEWLINE WITH localDeclarations OUT;
 

@@ -19,17 +19,17 @@ public abstract sealed class Type implements Types<Type> {
      * preventing instantiation of generalization class from outside.
      */
     protected Type() {
-        // Do nothing
+        // do nothing
     }
 
     /**
      * Generalize a monomorphic type to get a polymorphic type ({@link Scheme}).
      *
-     * @param env environment to generalize in
+     * @param ctx context to generalize in
      * @return potentially polymorphic type scheme
      */
-    public Scheme generalize(Environment env) {
-        return new Scheme(Sets.difference(freeVariables(), env.freeVariables()), this);
+    public Scheme generalize(Context ctx) {
+        return new Scheme(Sets.difference(freeVariables(), ctx.freeVariables()), this);
     }
 
     /**
@@ -80,7 +80,7 @@ public abstract sealed class Type implements Types<Type> {
          * Singleton class constructor, private to prevent instantiation from outside.
          */
         private Error() {
-            // Do nothing
+            // do nothing
         }
 
         /**
@@ -162,7 +162,7 @@ public abstract sealed class Type implements Types<Type> {
          * Singleton class constructor, private to prevent instantiation from outside.
          */
         private Boring() {
-            // Do nothing
+            // do nothing
         }
 
         /**
@@ -399,12 +399,14 @@ public abstract sealed class Type implements Types<Type> {
          * @param arguments application arguments
          */
         public FunctionApplication(TypeFunction function, List<Type> arguments) {
+            if (arguments.size() != function.arity)
+                throw new InferenceException("function application arity mismatch");
             this.function = function;
             this.arguments = arguments;
         }
 
         /**
-         * Static method with varargs specifically for currying arrow types.
+         * Static method for currying arrow types using variadic arguments.
          *
          * @param args type varargs
          * @return curried arrow function application
@@ -430,7 +432,10 @@ public abstract sealed class Type implements Types<Type> {
             return switch (other) {
                 case Error ignored -> Substitution.EMPTY;
                 case Boring ignored -> Substitution.EMPTY;
+                // type variable case binds this function application to the type variable
                 case Variable variable -> variable.bind(this);
+                // function application case unifies the arguments' types
+                // after checking that the function is the same and the arguments have the same size
                 case FunctionApplication fun -> {
                     if (function != fun.function || arguments.size() != fun.arguments.size())
                         throw new TypeException(this, fun);
@@ -506,6 +511,8 @@ public abstract sealed class Type implements Types<Type> {
         public String toString() {
             if (function == TypeFunction.ARROW) {
                 Type input = arguments.getFirst();
+                // since curried arrow types are right-associative,
+                // we only print parentheses around the input type if it is another arrow type
                 return String.format("%s %s %s",
                         input instanceof FunctionApplication fa && fa.function == TypeFunction.ARROW
                                 ? "(" + input + ")"

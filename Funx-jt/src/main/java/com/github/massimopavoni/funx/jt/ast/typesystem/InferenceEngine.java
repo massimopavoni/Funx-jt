@@ -85,12 +85,13 @@ public final class InferenceEngine {
      * @param module module node
      */
     public static void inferModuleTypes(ASTNode.Module module) {
-        Environment env = new Environment();
+        Context ctx = new Context();
+        // bind Prelude functions, excluding non Java native ones if we're compiling FunxPrelude
         Arrays.stream(PreludeFunction.values())
                 .filter(module.name.equals("FunxPrelude")
                         ? fun -> fun.nativeJava
                         : fun -> true)
-                .forEach(fun -> env.bind(fun.id, fun.scheme));
-        module.let.infer(env);
+                .forEach(fun -> ctx.bind(fun.id, fun.scheme));
+        module.let.infer(ctx);
     }
 }

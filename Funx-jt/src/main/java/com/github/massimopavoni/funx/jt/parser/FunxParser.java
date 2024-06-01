@@ -28,15 +28,15 @@ public class FunxParser extends Parser {
 		CloseBracket=52, OpenBrace=53, CloseBrace=54;
 	public static final int
 		RULE_module = 0, RULE_declarations = 1, RULE_main = 2, RULE_declaration = 3, 
-		RULE_declarationType = 4, RULE_with = 5, RULE_localDeclarations = 6, RULE_typeElems = 7, 
-		RULE_statement = 8, RULE_expression = 9, RULE_primary = 10, RULE_lambda = 11, 
-		RULE_lambdaParams = 12, RULE_let = 13, RULE_ifS = 14, RULE_constant = 15, 
-		RULE_numConstant = 16;
+		RULE_declarationScheme = 4, RULE_with = 5, RULE_localDeclarations = 6, 
+		RULE_typeElems = 7, RULE_statement = 8, RULE_expression = 9, RULE_primary = 10, 
+		RULE_lambda = 11, RULE_lambdaParams = 12, RULE_let = 13, RULE_ifS = 14, 
+		RULE_constant = 15, RULE_numConstant = 16;
 	private static String[] makeRuleNames() {
 		return new String[] {
-			"module", "declarations", "main", "declaration", "declarationType", "with", 
-			"localDeclarations", "typeElems", "statement", "expression", "primary", 
-			"lambda", "lambdaParams", "let", "ifS", "constant", "numConstant"
+			"module", "declarations", "main", "declaration", "declarationScheme", 
+			"with", "localDeclarations", "typeElems", "statement", "expression", 
+			"primary", "lambda", "lambdaParams", "let", "ifS", "constant", "numConstant"
 		};
 	}
 	public static final String[] ruleNames = makeRuleNames();
@@ -376,8 +376,8 @@ public class FunxParser extends Parser {
 			return getRuleContext(StatementContext.class,0);
 		}
 		public TerminalNode VARID() { return getToken(FunxParser.VARID, 0); }
-		public DeclarationTypeContext declarationType() {
-			return getRuleContext(DeclarationTypeContext.class,0);
+		public DeclarationSchemeContext declarationScheme() {
+			return getRuleContext(DeclarationSchemeContext.class,0);
 		}
 		public TerminalNode NEWLINE() { return getToken(FunxParser.NEWLINE, 0); }
 		public LambdaParamsContext lambdaParams() {
@@ -410,7 +410,7 @@ public class FunxParser extends Parser {
 			case 1:
 				{
 				setState(77);
-				declarationType();
+				declarationScheme();
 				setState(78);
 				match(NEWLINE);
 				}
@@ -456,32 +456,32 @@ public class FunxParser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class DeclarationTypeContext extends ParserRuleContext {
+	public static class DeclarationSchemeContext extends ParserRuleContext {
 		public Token id;
 		public TerminalNode Colon() { return getToken(FunxParser.Colon, 0); }
 		public TypeElemsContext typeElems() {
 			return getRuleContext(TypeElemsContext.class,0);
 		}
 		public TerminalNode VARID() { return getToken(FunxParser.VARID, 0); }
-		public DeclarationTypeContext(ParserRuleContext parent, int invokingState) {
+		public DeclarationSchemeContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_declarationType; }
+		@Override public int getRuleIndex() { return RULE_declarationScheme; }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitDeclarationType(this);
+			if ( visitor instanceof FunxParserVisitor ) return ((FunxParserVisitor<? extends T>)visitor).visitDeclarationScheme(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	public final DeclarationTypeContext declarationType() throws RecognitionException {
-		DeclarationTypeContext _localctx = new DeclarationTypeContext(_ctx, getState());
-		enterRule(_localctx, 8, RULE_declarationType);
+	public final DeclarationSchemeContext declarationScheme() throws RecognitionException {
+		DeclarationSchemeContext _localctx = new DeclarationSchemeContext(_ctx, getState());
+		enterRule(_localctx, 8, RULE_declarationScheme);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(91);
-			((DeclarationTypeContext)_localctx).id = match(VARID);
+			((DeclarationSchemeContext)_localctx).id = match(VARID);
 			setState(92);
 			match(Colon);
 			setState(93);

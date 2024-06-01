@@ -3,7 +3,10 @@ main = f
 f : Bool
 f = let
   againEquals : a -> a -> Bool
-  againEquals = equalsEquals
+  againEquals = let
+    x = equalsEquals
+
+    in x
 
   g : Int -> Int
   g x = 15 + l x
@@ -11,11 +14,11 @@ f = let
       l y = if againEquals y y then 0 else 1 fi
     out
 
-in 1 + (let
-  test : Bool
-  test = False
+  in 1 + (let
+    test : Bool
+    test = False
 
-  nonTest : Bool
-  nonTest = True
+    nonTest : Bool
+    nonTest = True
 
-in if test && nonTest then g 2 else g 1 fi) == 16
+    in if test && nonTest then g 2 else g 1 fi) == 16

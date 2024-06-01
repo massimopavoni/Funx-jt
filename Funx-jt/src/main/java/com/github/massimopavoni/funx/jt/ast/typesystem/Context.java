@@ -8,34 +8,34 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Type system environment class.
+ * Type system context class.
  */
-public final class Environment implements Types<Environment> {
+public final class Context implements Types<Context> {
     /**
-     * Variable schemes map.
+     * Mappings between variable names and corresponding schemes.
      */
-    private final Map<String, Scheme> variableSchemes;
+    private final Map<String, Scheme> environment;
     /**
      * Current lambda parameters.
      */
     private final Set<String> lambdaParams;
 
     /**
-     * Constructor for the environment.
+     * Constructor for the context.
      */
-    public Environment() {
-        variableSchemes = new HashMap<>();
+    public Context() {
+        environment = new HashMap<>();
         lambdaParams = new HashSet<>();
     }
 
     /**
-     * Constructor for the environment from another environment.
+     * Constructor for the context from another context.
      *
-     * @param env other environment
+     * @param ctx other context
      */
-    public Environment(Environment env) {
-        variableSchemes = new HashMap<>(env.variableSchemes);
-        lambdaParams = new HashSet<>(env.lambdaParams);
+    public Context(Context ctx) {
+        environment = new HashMap<>(ctx.environment);
+        lambdaParams = new HashSet<>(ctx.lambdaParams);
     }
 
     /**
@@ -45,7 +45,7 @@ public final class Environment implements Types<Environment> {
      * @return variable scheme
      */
     public Scheme bindingOf(String variable) {
-        return variableSchemes.get(variable);
+        return environment.get(variable);
     }
 
     /**
@@ -55,7 +55,7 @@ public final class Environment implements Types<Environment> {
      * @param scheme   scheme to bind
      */
     public void bind(String variable, Scheme scheme) {
-        variableSchemes.put(variable, scheme);
+        environment.put(variable, scheme);
     }
 
     /**
@@ -84,7 +84,7 @@ public final class Environment implements Types<Environment> {
      */
     @Override
     public Set<Long> freeVariables() {
-        return variableSchemes.values().stream()
+        return environment.values().stream()
                 .flatMap(s -> s.freeVariables().stream())
                 .collect(ImmutableSet.toImmutableSet());
     }
@@ -96,9 +96,9 @@ public final class Environment implements Types<Environment> {
      * @return object with applied substitution
      */
     @Override
-    public Environment applySubstitution(Substitution substitution) {
-        Environment newEnv = new Environment(this);
-        newEnv.variableSchemes.replaceAll((v, s) -> s.applySubstitution(substitution));
-        return newEnv;
+    public Context applySubstitution(Substitution substitution) {
+        Context newCtx = new Context(this);
+        newCtx.environment.replaceAll((v, s) -> s.applySubstitution(substitution));
+        return newCtx;
     }
 }

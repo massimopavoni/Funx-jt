@@ -51,9 +51,9 @@ public final class Scheme implements Types<Scheme> {
      */
     public final Type type;
     /**
-     * Ordered set of bound variables.
+     * Sorted set of bound variables.
      */
-    public final Set<Long> orderedVariables;
+    public final Set<Long> sortedVariables;
     /**
      * Set view of free variables.
      */
@@ -67,7 +67,7 @@ public final class Scheme implements Types<Scheme> {
      */
     public Scheme(Set<Long> variables, Type type) {
         this.variables = variables;
-        orderedVariables = variables.stream()
+        sortedVariables = variables.stream()
                 .sorted()
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         this.type = type;
@@ -139,7 +139,7 @@ public final class Scheme implements Types<Scheme> {
     @Override
     public String toString() {
         return String.format("%s%s",
-                variables.isEmpty() ? "" : "forall " + orderedVariables.stream()
+                variables.isEmpty() ? "" : "forall " + sortedVariables.stream()
                         .map(InferenceEngine.fancyTypes() ? Variable::toFancyString : Variable::toString)
                         .collect(Collectors.joining(" ")) + ". ",
                 type);

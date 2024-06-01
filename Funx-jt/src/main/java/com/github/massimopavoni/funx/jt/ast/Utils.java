@@ -34,7 +34,7 @@ public final class Utils {
     }
 
     /**
-     * Returns the string representation of a lexer token.
+     * Return the string representation of a lexer token.
      * Put here instead of the lexer to avoid using java code snippets in ANTLR '.g4' grammar files.
      *
      * @param token lexer token
