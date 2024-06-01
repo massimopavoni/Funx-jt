@@ -5,7 +5,7 @@ package com.github.massimopavoni.funx.jt.ast.visitor;
  */
 public class IllegalASTStateException extends IllegalStateException {
     /**
-     * Constructor for an IllegalASTStateException.
+     * Constructor for the illegal AST state exception.
      *
      * @param message exception message
      */

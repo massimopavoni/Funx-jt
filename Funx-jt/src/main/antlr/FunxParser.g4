@@ -16,12 +16,12 @@ main
 // ----------------------------------------------------------------
 // Declaration
 declaration
-    : declarationType NEWLINE
+    : (declarationScheme NEWLINE)?
         id = VARID lambdaParams? Equals statement
         with?
     ;
 
-declarationType: id = VARID Colon typeElems;
+declarationScheme: id = VARID Colon typeElems;
 
 with: NEWLINE WITH localDeclarations OUT;
 
@@ -31,6 +31,7 @@ localDeclarations: NEWLINE declarations NEWLINE;
 // Type
 typeElems
     : OpenParen typeElems CloseParen # parenType
+    | VARID # typeVar
     | TYPE # namedType
     | <assoc = right> typeElems Arrow typeElems # arrowType
     ;
@@ -49,13 +50,17 @@ statement
 expression
     : primary # primExpression
     | expression expression # appExpression
-    | uop = Not expression # notExpression
-    | expression bop = (Divide | Modulo | Multiply) expression # divModMultExpression
-    | expression bop = (Add | Subtract) expression # addSubExpression
-    | expression bop = (GreaterThan | GreaterThanEquals | LessThan | LessThanEquals) expression # compExpression
-    | expression bop = (EqualsEquals | NotEquals) expression # eqExpression
-    | expression bop = And expression # andExpression
-    | expression bop = Or expression # orExpression
+    | <assoc = right> expression bop = Dot expression # composeExpression // infixr 9
+    | expression bop = (Divide | Modulo | Multiply) expression # divModMultExpression // infixl 7
+    | expression bop = (Add | Subtract) expression # addSubExpression // infixl 6
+    | expression
+        bop = (GreaterThan | GreaterThanEquals | LessThan | LessThanEquals)
+        expression # compExpression // infix 4
+    | expression bop = (EqualsEquals | NotEquals) expression # eqExpression // infix 4
+    | uop = Not expression # notExpression // prefix 4
+    | <assoc = right> expression bop = And expression # andExpression // infixr 3
+    | <assoc = right> expression bop = Or expression # orExpression // infixr 2
+    | <assoc = right> expression bop = Dollar expression # rightAppExpression // infixr 0
     ;
 
 primary

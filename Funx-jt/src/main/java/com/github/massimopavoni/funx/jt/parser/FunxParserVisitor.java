@@ -35,11 +35,11 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDeclaration(FunxParser.DeclarationContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link FunxParser#declarationType}.
+	 * Visit a parse tree produced by {@link FunxParser#declarationScheme}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitDeclarationType(FunxParser.DeclarationTypeContext ctx);
+	T visitDeclarationScheme(FunxParser.DeclarationSchemeContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link FunxParser#with}.
 	 * @param ctx the parse tree
@@ -66,6 +66,13 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitArrowType(FunxParser.ArrowTypeContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code typeVar}
+	 * labeled alternative in {@link FunxParser#typeElems}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTypeVar(FunxParser.TypeVarContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code parenType}
 	 * labeled alternative in {@link FunxParser#typeElems}.
@@ -129,6 +136,20 @@ public interface FunxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitAndExpression(FunxParser.AndExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code composeExpression}
+	 * labeled alternative in {@link FunxParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitComposeExpression(FunxParser.ComposeExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code rightAppExpression}
+	 * labeled alternative in {@link FunxParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRightAppExpression(FunxParser.RightAppExpressionContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code compExpression}
 	 * labeled alternative in {@link FunxParser#expression}.

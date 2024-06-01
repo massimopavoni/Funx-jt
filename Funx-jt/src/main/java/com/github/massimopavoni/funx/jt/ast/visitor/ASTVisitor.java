@@ -1,10 +1,8 @@
 package com.github.massimopavoni.funx.jt.ast.visitor;
 
-import com.github.massimopavoni.funx.jt.ast.InputPosition;
 import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.node.Declaration;
 import com.github.massimopavoni.funx.jt.ast.node.Expression;
-import com.github.massimopavoni.funx.jt.ast.node.Type;
 import com.github.massimopavoni.funx.jt.parser.ASTBuilder;
 
 import java.util.List;
@@ -15,36 +13,13 @@ import java.util.List;
  * @param <T> The return type of the visit operation. Use {@link Void} for
  *            operations with no return type.
  */
-public abstract class ASTVisitor<T> {
-    /**
-     * Error reporter for the AST visitor.
-     */
-    private final ASTErrorReporter errorReporter = new ASTErrorReporter();
-
+public abstract sealed class ASTVisitor<T>
+        permits JavaBuilder, GraphvizBuilder {
     /**
      * Constructor for the AST visitor.
      */
     protected ASTVisitor() {
-        // Empty constructor
-    }
-
-    /**
-     * Retrieve the number of errors found.
-     *
-     * @return number of errors
-     */
-    public int getErrorsCount() {
-        return errorReporter.getErrorsCount();
-    }
-
-    /**
-     * Report an error using the AST reporter instance.
-     *
-     * @param position error position
-     * @param message  error message
-     */
-    void reportError(InputPosition position, String message) {
-        errorReporter.reportError(String.format("%s %s", position, message));
+        // empty constructor
     }
 
     /**
@@ -63,10 +38,11 @@ public abstract class ASTVisitor<T> {
      * @param nodes list of AST nodes
      * @return visitor result
      */
-    public T visit(List<ASTNode> nodes) {
-        return nodes.stream()
-                .map(node -> node.accept(this))
-                .reduce(defaultResult(), this::aggregateResult);
+    public T visit(List<? extends ASTNode> nodes) {
+        T result = defaultResult();
+        for (ASTNode node : nodes)
+            result = aggregateResult(result, visit(node));
+        return result;
     }
 
     /**
@@ -106,12 +82,12 @@ public abstract class ASTVisitor<T> {
     public abstract T visitDeclarations(ASTNode.Declarations declarations);
 
     /**
-     * Visit the main {@link Declaration} AST node.
+     * Visit the main {@link Expression} AST node.
      *
-     * @param main declaration node
+     * @param main expression node
      * @return visitor result
      */
-    public abstract T visitMain(Declaration main);
+    public abstract T visitMain(Expression main);
 
     /**
      * Visit a {@link Declaration} AST node.
@@ -120,30 +96,6 @@ public abstract class ASTVisitor<T> {
      * @return visitor result
      */
     public abstract T visitDeclaration(Declaration declaration);
-
-    /**
-     * Visit a {@link Type.NamedType} AST node.
-     *
-     * @param type type node
-     * @return visitor result
-     */
-    public abstract T visitNamedType(Type.NamedType type);
-
-    /**
-     * Visit a {@link Type.VariableType} AST node.
-     *
-     * @param type type node
-     * @return visitor result
-     */
-    public abstract T visitVariableType(Type.VariableType type);
-
-    /**
-     * Visit a {@link Type.ArrowType} AST node.
-     *
-     * @param type type node
-     * @return visitor result
-     */
-    public abstract T visitArrowType(Type.ArrowType type);
 
     /**
      * Visit a {@link Expression.Lambda} AST node.

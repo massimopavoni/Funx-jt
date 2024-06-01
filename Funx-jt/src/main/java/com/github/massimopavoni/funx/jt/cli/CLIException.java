@@ -5,7 +5,7 @@ package com.github.massimopavoni.funx.jt.cli;
  */
 public class CLIException extends Exception {
     /**
-     * Constructor for a CLIException.
+     * Constructor for the CLI exception.
      *
      * @param message exception message
      */
@@ -14,7 +14,7 @@ public class CLIException extends Exception {
     }
 
     /**
-     * Constructor for a CLIException with a cause.
+     * Constructor for the CLI exception with a cause.
      *
      * @param message exception message
      * @param cause   exception cause

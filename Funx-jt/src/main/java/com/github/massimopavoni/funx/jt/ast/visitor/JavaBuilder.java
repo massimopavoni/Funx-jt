@@ -1,17 +1,20 @@
 package com.github.massimopavoni.funx.jt.ast.visitor;
 
+import com.github.massimopavoni.funx.jt.ast.PreludeFunction;
+import com.github.massimopavoni.funx.jt.ast.Utils;
 import com.github.massimopavoni.funx.jt.ast.node.ASTNode;
 import com.github.massimopavoni.funx.jt.ast.node.Declaration;
 import com.github.massimopavoni.funx.jt.ast.node.Expression;
-import com.github.massimopavoni.funx.jt.ast.node.Type;
+import com.github.massimopavoni.funx.jt.ast.typesystem.*;
 import com.github.massimopavoni.funx.lib.FunxPrelude;
 import com.github.massimopavoni.funx.lib.JavaPrelude;
+import com.google.common.collect.ImmutableMap;
 import com.google.googlejavaformat.java.Formatter;
 import com.google.googlejavaformat.java.FormatterException;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Java code builder for the AST tree.
@@ -26,17 +29,30 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      */
     private final Formatter formatter;
     /**
-     * List of currently in scope lambda parameters.
+     * Map of monomorphic top level declarations,
+     * to initialize them in a static block.
      */
-    private final List<String> lambdaParamList = new ArrayList<>();
+    private final Map<String, Expression> monomorphicTopLevelDeclarations = new LinkedHashMap<>();
     /**
-     * Flag to indicate if the current declarations are at top level.
+     * Queue of maps of monomorphic let declarations,
+     * to initialize them in their own {@code _eval} method.
      */
-    private boolean currentlyTopLevel = true;
+    private final Deque<Map<String, Expression>> monomorphicLetDeclarationsQueue = new ArrayDeque<>();
     /**
-     * Current declaration type, used for let expressions.
+     * List of scopes, used like a stack but cycled through for lookups.
+     * Each map entry has the variable name as key and a tuple of the scheme and the scope as value,
+     * where the scope is either a Prelude class, the module class, {@code this} for lets or {@code null} for lambdas.
      */
-    private Type currentDeclarationType = null;
+    private final List<Map<String, Utils.Tuple<Scheme, String>>> scopes = new ArrayList<>();
+    /**
+     * Current scope level indicator (0 is top level).
+     */
+    private short currentLevel = 0;
+    /**
+     * Flag to indicate if a cast is needed for a lambda or let expression,
+     * whenever using one in an application ("in the wild").
+     */
+    private boolean wildCast = false;
 
     /**
      * Constructor for the Java builder.
@@ -46,6 +62,30 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     public JavaBuilder(StringBuilder builder) {
         this.builder = builder;
         formatter = new Formatter();
+    }
+
+    /**
+     * Add a list of declarations to the current scope.
+     *
+     * @param declarations list of declarations
+     * @param scope        scope name
+     */
+    private void addToScope(List<Declaration> declarations, String scope) {
+        scopes.addFirst(declarations.stream()
+                .collect(ImmutableMap.toImmutableMap(
+                        decl -> decl.id,
+                        decl -> new Utils.Tuple<>(decl.scheme(), scope))));
+    }
+
+    /**
+     * Add a single variable to the current scope.
+     *
+     * @param id     variable identifier
+     * @param scheme variable scheme
+     * @param scope  scope name
+     */
+    private void addToScope(String id, Scheme scheme, String scope) {
+        scopes.addFirst(Collections.singletonMap(id, new Utils.Tuple<>(scheme, scope)));
     }
 
     /**
@@ -96,30 +136,44 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      */
     @Override
     public Void visitModule(ASTNode.Module module) {
-        builder.append(String.format("""
-                        %1$s
-                        import %2$s;
-                        
-                        import static %3$s.*;
-                        import static %4$s.*;
-                        
-                        public class %5$s {
-                        private %5$s() {
-                        // Private constructor to prevent instantiation
-                        }
-                        
-                        """,
-                module.packageName.isEmpty() ?
-                        "" :
-                        String.format("package %s;%n", module.packageName.toLowerCase()),
-                Function.class.getName(),
-                JavaPrelude.class.getName(),
-                FunxPrelude.class.getName(),
-                module.name));
-        if (module.main != null)
-            visit(module.main);
-        visit(module.declarations);
+        // add Prelude functions to the scope
+        scopes.addFirst(Arrays.stream(PreludeFunction.values())
+                .collect(ImmutableMap.toImmutableMap(
+                        pf -> pf.id,
+                        pf -> new Utils.Tuple<>(pf.scheme, pf.nativeJava
+                                ? JavaPrelude.class.getSimpleName()
+                                : FunxPrelude.class.getSimpleName()))));
+        // add module functions to the scope
+        addToScope(module.let.localDeclarations.declarationList, module.name);
+        // append package, imports, class declaration and constructor
+        builder.append(module.packageName.isEmpty()
+                        ? ""
+                        : String.format("package %s;%n", module.packageName.toLowerCase()))
+                .append("\n\nimport ").append(Function.class.getName())
+                .append(";\n\nimport ").append(JavaPrelude.class.getName())
+                .append(";\n\nimport ").append(FunxPrelude.class.getName())
+                .append(";\n\nimport static ").append(JavaPrelude.class.getName())
+                .append(".*;\nimport static ").append(FunxPrelude.class.getName())
+                .append(".*;\n\npublic class ").append(module.name).append(" {\n")
+                .append("private ").append(module.name)
+                .append("() {\n// private constructor to prevent instantiation\n}\n\n");
+        // visit main and top level declarations
+        if (module.let.expression.type() != Type.Boring.INSTANCE)
+            visitMain(module.let.expression);
+        visit(module.let.localDeclarations);
+        // initialize monomorphic top level declarations in a static block
+        if (!monomorphicTopLevelDeclarations.isEmpty()) {
+            builder.append("static {\n");
+            monomorphicTopLevelDeclarations.forEach((id, expression) -> {
+                builder.append(id).append(" = ");
+                visit(expression);
+                appendSemiColon();
+                appendNewline();
+            });
+            appendCloseBrace();
+        }
         appendCloseBrace();
+        scopes.removeFirst();
         return null;
     }
 
@@ -135,20 +189,21 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     }
 
     /**
-     * Visit the main {@link Declaration} AST node.
+     * Visit the main {@link Expression} AST node.
      *
-     * @param main declaration node
+     * @param main expression node
      * @return visitor result
      */
     @Override
-    public Void visitMain(Declaration main) {
+    public Void visitMain(Expression main) {
         builder.append("""
                 public static void main(String[] args) {
                 System.out.println(""");
-        visit(main.expression);
+        visit(main);
         appendCloseParen();
         appendSemiColon();
         appendCloseBrace();
+        appendNewline();
         return null;
     }
 
@@ -160,56 +215,69 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      */
     @Override
     public Void visitDeclaration(Declaration declaration) {
-        builder.append(currentlyTopLevel ? "public static " : "private ");
-        visit(declaration.type);
-        builder.append(String.format("""
-                 %s() {
-                return\s""", declaration.id));
-        currentDeclarationType = (Type) declaration.type;
-        visit(declaration.expression);
-        appendSemiColon();
-        appendCloseBrace();
+        // top level declarations should be static and public,
+        // while let local declarations should be private to the anonymous class
+        builder.append(currentLevel == 0 ? "public static " : "private ");
+        String scheme = schemeStringOf(declaration.scheme());
+        if (declaration.scheme().variables.isEmpty()) {
+            // defer initialization of monomorphic declarations
+            builder.append(scheme).append(" ").append(declaration.id);
+            appendSemiColon();
+            (currentLevel == 0 ? monomorphicTopLevelDeclarations : monomorphicLetDeclarationsQueue.getFirst())
+                    .put(declaration.id, declaration.expression);
+        } else {
+            // initialize polymorphic declarations immediately (as methods with generics)
+            builder.append(scheme)
+                    .append(" ").append(declaration.id).append("() {\nreturn ");
+            visit(declaration.expression);
+            appendSemiColon();
+            appendCloseBrace();
+        }
         appendNewline();
         return null;
     }
 
     /**
-     * Visit a {@link Type.NamedType} AST node.
+     * Get the string representation of a scheme.
      *
-     * @param type type node
-     * @return visitor result
+     * @param scheme scheme
+     * @return string representation
      */
-    @Override
-    public Void visitNamedType(Type.NamedType type) {
-        builder.append(type.type.typeClass.getSimpleName());
-        return null;
+    private String schemeStringOf(Scheme scheme) {
+        String schemeString = "";
+        if (!scheme.variables.isEmpty())
+            // polymorphic types have generic type parameters
+            // (and we use sorted variables to ensure consistent order of generics
+            // when simulating polymorphic types instantiation using Java generics)
+            schemeString += "<" + scheme.sortedVariables.stream()
+                    .map(Type.Variable::toString)
+                    .collect(Collectors.joining(", ")) + "> ";
+        return schemeString + typeStringOf(scheme.type);
     }
 
     /**
-     * Visit a {@link Type.VariableType} AST node.
+     * Get the string representation of a type.
      *
-     * @param type type node
-     * @return visitor result
+     * @param type type
+     * @return string representation
      */
-    @Override
-    public Void visitVariableType(Type.VariableType type) {
-        throw new IllegalASTStateException("type variable not yet supported");
-    }
-
-    /**
-     * Visit a {@link Type.ArrowType} AST node.
-     *
-     * @param type type node
-     * @return visitor result
-     */
-    @Override
-    public Void visitArrowType(Type.ArrowType type) {
-        builder.append("Function<");
-        visit(type.input);
-        builder.append(", ");
-        visit(type.output);
-        builder.append(">");
-        return null;
+    private String typeStringOf(Type type) {
+        return switch (type) {
+            case Type.Variable variable -> variable.toString();
+            case Type.FunctionApplication fun -> {
+                String functionName = fun.function.typeClass.getSimpleName();
+                if (fun.function.arity > 0)
+                    // function types with arity > 0 have generic type parameters
+                    yield String.format("%s<%s>",
+                            functionName,
+                            fun.arguments.stream()
+                                    .map(this::typeStringOf)
+                                    .collect(Collectors.joining(", ")));
+                else
+                    yield functionName;
+            }
+            default -> throw new InferenceException("Unsupported type for declaration found");
+        };
     }
 
     /**
@@ -220,12 +288,20 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      */
     @Override
     public Void visitLambda(Expression.Lambda lambda) {
-        lambdaParamList.add(lambda.paramId);
+        // add lambda parameter to the scope
+        addToScope(lambda.paramId, new Scheme(Collections.emptySet(),
+                ((Type.FunctionApplication) lambda.type()).arguments.getFirst()), null);
+        // always use parentheses because lambdas might be used in applications and other weird places
         builder.append("(");
-        builder.append(String.format("%s -> ", lambda.paramId));
+        if (wildCast) {
+            // wild cast is needed for lambdas in applications
+            builder.append("(").append(typeStringOf(lambda.type())).append(") ");
+            wildCast = false;
+        }
+        builder.append(lambda.paramId).append(" -> ");
         visit(lambda.expression);
         appendCloseParen();
-        lambdaParamList.clear();
+        scopes.removeFirst();
         return null;
     }
 
@@ -237,21 +313,41 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      */
     @Override
     public Void visitLet(Expression.Let let) {
-        currentlyTopLevel = !currentlyTopLevel;
-        builder.append(String.format("(new %s<>() {%n", JavaPrelude.Let.class.getSimpleName()));
+        currentLevel++;
+        // add let local declarations to the scope
+        addToScope(let.localDeclarations.declarationList, "this");
+        if (wildCast) {
+            // wild cast is needed for lets in applications
+            builder.append("(").append(typeStringOf(let.type())).append(") ");
+            wildCast = false;
+        }
+        // use a new anonymous class for the let expression and push a new monomorphic let declarations map
+        builder.append("(new ").append(JavaPrelude.Let.class.getSimpleName()).append("<>() {\n");
+        monomorphicLetDeclarationsQueue.push(new LinkedHashMap<>());
         visit(let.localDeclarations);
         builder.append("""
-                @Override
-                public\s""");
-        visit(currentDeclarationType);
-        builder.append("""
-                 _eval() {
-                return\s""");
+                        @Override
+                        public\s""")
+                .append(typeStringOf(let.expression.type()))
+                .append("\n_eval() {\n");
+        // if there are any monomorphic declarations, initialize them in the _eval method,
+        // then pop the map either way
+        if (!monomorphicLetDeclarationsQueue.getFirst().isEmpty())
+            monomorphicLetDeclarationsQueue.getFirst().forEach((id, expression) -> {
+                builder.append(id).append(" = ");
+                visit(expression);
+                appendSemiColon();
+                appendNewline();
+            });
+        monomorphicLetDeclarationsQueue.pop();
+        builder.append("return ");
         visit(let.expression);
         appendSemiColon();
         appendCloseBrace();
         builder.append("})._eval()");
-        currentlyTopLevel = !currentlyTopLevel;
+        // restore previous scope state and level
+        scopes.removeFirst();
+        currentLevel--;
         return null;
     }
 
@@ -281,9 +377,18 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      */
     @Override
     public Void visitApplication(Expression.Application application) {
-        visit(application.left);
+        // left and right expressions necessitate a wild cast if they are lambda or let expressions
+        if (application.left instanceof Expression.Lambda || application.left instanceof Expression.Let) {
+            wildCast = true;
+            visit(application.left);
+        } else
+            visit(application.left);
         builder.append(".apply(");
-        visit(application.right);
+        if (application.right instanceof Expression.Lambda || application.right instanceof Expression.Let) {
+            wildCast = true;
+            visit(application.right);
+        } else
+            visit(application.right);
         builder.append(")");
         return null;
     }
@@ -297,6 +402,9 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     @Override
     public Void visitConstant(Expression.Constant constant) {
         builder.append(constant.value);
+        // Java expecting an L suffix for long literals because it's a L language
+        if (constant.type().equals(Type.FunctionApplication.INTEGER_TYPE))
+            builder.append("L");
         return null;
     }
 
@@ -308,9 +416,41 @@ public final class JavaBuilder extends ASTVisitor<Void> {
      */
     @Override
     public Void visitVariable(Expression.Variable variable) {
-        builder.append(variable.id);
-        if (!lambdaParamList.contains(variable.id))
-            builder.append("()");
+        // firstly, find the variable in the scopes
+        int i;
+        Utils.Tuple<Scheme, String> variableScheme = null;
+        for (i = 0; i < scopes.size(); i++)
+            if ((variableScheme = scopes.get(i).get(variable.id)) != null)
+                break;
+        // cannot have a null tuple, since type inference would have failed before this
+        if (Objects.requireNonNull(variableScheme).fst().variables.isEmpty())
+            // lambda param or monomorphic declaration
+            builder.append(variable.id);
+        else if (variableScheme.snd().equals("this") && i > 0)
+            // polymorphic declaration from an intermediate let scope needs the worst: an unchecked cast
+            builder.append(JavaPrelude.class.getSimpleName()).append(".<")
+                    .append(typeStringOf(variable.type())).append(">_instantiationCast(")
+                    .append(variable.id)
+                    .append("())");
+        else {
+            // polymorphic declaration from Prelude, top level or same let scope can properly use generics
+            builder.append(variableScheme.snd()).append(".<");
+            try {
+                // to do so we need to instantiate the scheme and find the substitution
+                Utils.Tuple<Substitution, Type> instantiation = variableScheme.fst().instantiate();
+                Substitution subst = instantiation.fst().applySubstitution(instantiation.snd().unify(variable.type()));
+                // to then apply to the sorted variables
+                builder.append(variableScheme.fst().sortedVariables.stream()
+                                .map(ov -> subst.variables().contains(ov)
+                                        ? typeStringOf(subst.substituteOf(ov))
+                                        : Type.Variable.toString(ov))
+                                .collect(Collectors.joining(", ")))
+                        .append(">").append(variable.id).append("()");
+            } catch (TypeException e) {
+                // should never happen
+                throw new InferenceException(e.getMessage());
+            }
+        }
         return null;
     }
 }

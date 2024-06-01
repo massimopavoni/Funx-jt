@@ -2,17 +2,14 @@ package com.github.massimopavoni.funx.jt.ast.node;
 
 import com.github.massimopavoni.funx.jt.ast.InputPosition;
 import com.github.massimopavoni.funx.jt.ast.visitor.ASTVisitor;
-import com.github.massimopavoni.funx.jt.ast.visitor.IllegalASTStateException;
-import com.github.massimopavoni.funx.jt.parser.FunxLexer;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Base class for every node in the AST.
  */
-public abstract class ASTNode {
+public abstract sealed class ASTNode
+        permits ASTNode.Module, ASTNode.Declarations, Declaration, Expression {
     /**
      * Position of the AST node in the input source code.
      */
@@ -29,18 +26,7 @@ public abstract class ASTNode {
     }
 
     /**
-     * Returns the string representation of a lexer token.
-     * Put here instead of the lexer to avoid using java code snippets in ANTLR '.g4' grammar files.
-     *
-     * @param token lexer token
-     * @return string representation of the token
-     */
-    public static String fromLexerToken(int token) {
-        return FunxLexer.VOCABULARY.getLiteralName(token).replace("'", "");
-    }
-
-    /**
-     * Accepts a visitor to traverse the AST.
+     * Accept a visitor to traverse the AST.
      *
      * @param visitor visitor to accept
      * @param <T>     return type of the visitor
@@ -61,13 +47,9 @@ public abstract class ASTNode {
          */
         public final String packageName;
         /**
-         * Main declaration if present.
+         * Let body of the module.
          */
-        public final ASTNode main;
-        /**
-         * Declarations in the module.
-         */
-        public final ASTNode declarations;
+        public final Expression.Let let;
 
         /**
          * Constructor for the module node.
@@ -75,20 +57,17 @@ public abstract class ASTNode {
          * @param inputPosition input source code node position
          * @param name          module name
          * @param packageName   package name
-         * @param main          main declaration
-         * @param declarations  declarations in the module
+         * @param let           let body of the module
          */
-        public Module(InputPosition inputPosition, String name, String packageName,
-                      ASTNode main, ASTNode declarations) {
+        public Module(InputPosition inputPosition, String name, String packageName, ASTNode let) {
             super(inputPosition);
             this.name = name;
             this.packageName = packageName;
-            this.main = main;
-            this.declarations = declarations;
+            this.let = (Expression.Let) let;
         }
 
         /**
-         * Accepts a visitor to traverse the AST.
+         * Accept a visitor to traverse the AST.
          *
          * @param visitor visitor to accept
          * @param <T>     return type of the visitor
@@ -107,11 +86,7 @@ public abstract class ASTNode {
         /**
          * List of declarations.
          */
-        public final List<ASTNode> declarationList;
-        /**
-         * Map of declaration identifiers and corresponding type.
-         */
-        public final Map<String, Type> declarationTypeMap;
+        public final List<Declaration> declarationList;
 
         /**
          * Constructor for the Declarations node.
@@ -121,34 +96,13 @@ public abstract class ASTNode {
          */
         public Declarations(InputPosition inputPosition, List<ASTNode> declarationList) {
             super(inputPosition);
-            this.declarationList = declarationList;
-            Map<String, List<Declaration>> groupedDeclarations = declarationList.stream()
-                    .map(d -> (Declaration) d)
-                    .collect(Collectors.groupingBy(d -> d.id));
-            groupedDeclarations.forEach((id, declarations) -> {
-                String message = null;
-                if (id.equals(fromLexerToken(FunxLexer.MAIN)))
-                    message = String.format("%s declaration not at the beginning of the module",
-                            fromLexerToken(FunxLexer.MAIN));
-                if (declarations.size() > 1)
-                    message = String.format("multiple declarations for identifier \"%s\"", id);
-                if (message != null)
-                    throw new IllegalASTStateException(String.format("%s at lines %s",
-                            message,
-                            String.join(", ",
-                                    declarations.stream()
-                                            .map(d -> String.format("%d:%d",
-                                                    d.inputPosition.line(), d.inputPosition.column()))
-                                            .toList())));
-            });
-            this.declarationTypeMap = groupedDeclarations.entrySet().stream()
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            e -> (Type) e.getValue().getFirst().type));
+            this.declarationList = declarationList.stream()
+                    .map(Declaration.class::cast)
+                    .toList();
         }
 
         /**
-         * Accepts a visitor to traverse the AST.
+         * Accept a visitor to traverse the AST.
          *
          * @param visitor visitor to accept
          * @param <T>     return type of the visitor

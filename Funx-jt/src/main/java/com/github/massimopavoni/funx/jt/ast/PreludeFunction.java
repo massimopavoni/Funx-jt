@@ -1,108 +1,137 @@
 package com.github.massimopavoni.funx.jt.ast;
 
-import com.github.massimopavoni.funx.jt.ast.node.Type;
+import com.github.massimopavoni.funx.jt.ast.typesystem.Scheme;
 
-import static com.github.massimopavoni.funx.jt.ast.node.Type.ArrowType.ARITHMETIC_FUNCTION_TYPE;
-import static com.github.massimopavoni.funx.jt.ast.node.Type.ArrowType.COMPARISON_FUNCTION_TYPE;
+import java.util.Set;
+
+import static com.github.massimopavoni.funx.jt.ast.typesystem.Scheme.*;
+import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.FunctionApplication.arrowOf;
+import static com.github.massimopavoni.funx.jt.ast.typesystem.Type.Variable.*;
 
 /**
- * Enum for symbols and corresponding Prelude functions.
+ * Enum for Prelude functions.
  */
 public enum PreludeFunction {
     /**
      * Boolean not.
      */
-    NOT("!!", "not",
-            new Type.ArrowType(new Type.NamedType(TypeEnum.BOOLEAN),
-                    new Type.NamedType(TypeEnum.BOOLEAN))),
+    NOT("!!", "not", BOOLEAN_UNARY, false),
     /**
      * Arithmetic division.
      */
-    DIVIDE("/", "divide", ARITHMETIC_FUNCTION_TYPE),
+    DIVIDE("/", "divide", ARITHMETIC_BINARY, true),
     /**
      * Arithmetic modulo.
      */
-    MODULO("%", "modulo", ARITHMETIC_FUNCTION_TYPE),
+    MODULO("%", "modulo", ARITHMETIC_BINARY, true),
     /**
      * Arithmetic multiplication.
      */
-    MULTIPLY("*", "multiply", ARITHMETIC_FUNCTION_TYPE),
+    MULTIPLY("*", "multiply", ARITHMETIC_BINARY, true),
     /**
      * Arithmetic addition.
      */
-    ADD("+", "add", ARITHMETIC_FUNCTION_TYPE),
+    ADD("+", "add", ARITHMETIC_BINARY, true),
     /**
      * Arithmetic subtraction.
      */
-    SUBTRACT("-", "subtract", ARITHMETIC_FUNCTION_TYPE),
+    SUBTRACT("-", "subtract", ARITHMETIC_BINARY, true),
     /**
      * Greater than comparison.
      */
-    GREATER_THAN(">", "greaterThan", COMPARISON_FUNCTION_TYPE),
+    GREATER_THAN(">", "greaterThan", COMPARISON_BINARY, true),
     /**
      * Greater than or equal comparison.
      */
-    GREATER_THAN_EQUALS(">=", "greaterThanEquals", COMPARISON_FUNCTION_TYPE),
+    GREATER_THAN_EQUALS(">=", "greaterThanEquals", COMPARISON_BINARY, true),
     /**
      * Less than comparison.
      */
-    LESS_THAN("<", "lessThan", COMPARISON_FUNCTION_TYPE),
+    LESS_THAN("<", "lessThan", COMPARISON_BINARY, true),
     /**
      * Less than or equal comparison.
      */
-    LESS_THAN_EQUALS("<=", "lessThanEquals", COMPARISON_FUNCTION_TYPE),
+    LESS_THAN_EQUALS("<=", "lessThanEquals", COMPARISON_BINARY, true),
     /**
      * Equal comparison.
      */
-    EQUALS_EQUALS("==", "equalsEquals", COMPARISON_FUNCTION_TYPE),
+    EQUALS_EQUALS("==", "equalsEquals", EQUALITY_BINARY, true),
     /**
      * Not equal comparison.
      */
-    NOT_EQUALS("!=", "notEquals", COMPARISON_FUNCTION_TYPE);
+    NOT_EQUALS("!=", "notEquals", EQUALITY_BINARY, true),
+    /**
+     * Strict logical and.
+     */
+    AND("&&", "and", BOOLEAN_BINARY, false),
+    /**
+     * Strict logical or.
+     */
+    OR("||", "or", BOOLEAN_BINARY, false),
+    /**
+     * Identity function.
+     */
+    ID("id", "id",
+            new Scheme(Set.of(0L),
+                    arrowOf(ZERO, ZERO)), false),
+    /**
+     * Right associative function application.
+     */
+    APPLY("$", "apply",
+            new Scheme(Set.of(0L, 1L),
+                    arrowOf(arrowOf(ZERO, ONE), ZERO, ONE)), false),
+    /**
+     * Function composition.
+     */
+    COMPOSE(".", "compose",
+            new Scheme(Set.of(0L, 1L, 2L),
+                    arrowOf(arrowOf(ZERO, ONE), arrowOf(TWO, ZERO), TWO, ONE)), false),
+    /**
+     * Function arguments flip.
+     */
+    FLIP("flip", "flip",
+            new Scheme(Set.of(0L, 1L, 2L),
+                    arrowOf(arrowOf(ZERO, ONE, TWO), ONE, ZERO, TWO)), false);
 
     /**
      * Prelude function symbol.
      */
-    public final String functionSymbol;
+    public final String symbol;
     /**
-     * Prelude function name.
+     * Prelude function identifier.
      */
-    public final String functionName;
+    public final String id;
     /**
-     * Prelude function type.
+     * Prelude function scheme.
      */
-    public final Type.ArrowType functionType;
+    public final Scheme scheme;
+    /**
+     * Prelude function flag for native Java implementations.
+     */
+    public final boolean nativeJava;
 
     /**
      * Constructor for the Prelude function enum.
      *
-     * @param functionSymbol function symbol
-     * @param functionName   function name
-     * @param functionType   function type
+     * @param symbol     function symbol
+     * @param id         function identifier
+     * @param scheme     function scheme
+     * @param nativeJava native Java implementation flag
      */
-    PreludeFunction(String functionSymbol, String functionName, Type.ArrowType functionType) {
-        this.functionSymbol = functionSymbol;
-        this.functionName = functionName;
-        this.functionType = functionType;
-    }
-
-    /**
-     * Get the Prelude function enum from the function name.
-     *
-     * @param functionName function name
-     * @return Prelude function enum
-     */
-    public static PreludeFunction fromFunctionName(String functionName) {
-        return Utils.enumFromField(PreludeFunction.class, f -> f.functionName.equals(functionName));
+    PreludeFunction(String symbol, String id, Scheme scheme, boolean nativeJava) {
+        this.symbol = symbol;
+        this.id = id;
+        this.scheme = scheme;
+        this.nativeJava = nativeJava;
     }
 
     /**
      * Get the Prelude function enum from the function symbol.
      *
-     * @param functionSymbol function symbol
+     * @param symbol function symbol
      * @return Prelude function enum
      */
-    public static PreludeFunction fromFunctionSymbol(String functionSymbol) {
-        return Utils.enumFromField(PreludeFunction.class, f -> f.functionSymbol.equals(functionSymbol));
+    public static PreludeFunction fromSymbol(String symbol) {
+        return Utils.enumFromField(PreludeFunction.class, f -> f.symbol.equals(symbol));
     }
 }

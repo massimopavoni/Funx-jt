@@ -10,7 +10,7 @@ public class Recursion {
 
     // But it's clear that with the method approach (as opposed to nested class-based),
     // mutual recursion is not possible
-    // Furthermore, this example starts making it clear that polymorphic functions with type constraints
+    // Furthermore, this example starts making it clear that polymorphic functions with typesystem constraints
     // for using specific other functions or primitive operations (e.g. numbers operators) are going to be
     // a bit of a problem, and some typing shenanigans might happen during AST translation
     public static Function<Long, Long> factorial() {

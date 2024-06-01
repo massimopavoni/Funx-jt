@@ -7,7 +7,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
  */
 public class IllegalParserStateException extends IllegalStateException {
     /**
-     * Constructor for an IllegalParserStateException.
+     * Constructor for the illegal parser state exception.
      *
      * @param message exception message
      */
@@ -16,13 +16,13 @@ public class IllegalParserStateException extends IllegalStateException {
     }
 
     /**
-     * Constructor for an IllegalParserStateException with a parser context.
+     * Constructor for the illegal parser state exception using a parser context.
      *
      * @param ctx      parser context
      * @param expected expected input
      */
     public IllegalParserStateException(ParserRuleContext ctx, String expected) {
-        super(String.format("line %d:%d mismatched input '%s' expecting %s%n",
+        super(String.format("line %d:%d mismatched input '%s' expecting %s",
                 ctx.start.getLine(), ctx.start.getCharPositionInLine(), ctx.start.getText(), expected));
     }
 }

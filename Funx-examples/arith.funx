@@ -1,2 +1,0 @@
-f : Int -> Int -> Int
-f a b c = 1 + a * b - (2 + c) % a
