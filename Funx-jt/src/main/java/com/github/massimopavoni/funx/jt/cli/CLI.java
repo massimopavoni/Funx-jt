@@ -122,7 +122,7 @@ public class CLI {
          * Fancy inference types flag.
          */
         @CommandLine.Option(
-                names = {"-F", "--fancy-types"},
+                names = {"-F", "--no-fancy-types"},
                 description = "Don't use fancy types for inference annotations",
                 defaultValue = "true")
         private boolean fancyTypes;
