@@ -29,7 +29,7 @@ public abstract sealed class Type implements Types<Type> {
      * @return potentially polymorphic type scheme
      */
     public Scheme generalize(Context ctx) {
-        return new Scheme(Sets.difference(freeVariables(), ctx.freeVariables()), this);
+        return new Scheme(Sets.intersection(freeVariables(), ctx.freeVariables()), this);
     }
 
     /**
