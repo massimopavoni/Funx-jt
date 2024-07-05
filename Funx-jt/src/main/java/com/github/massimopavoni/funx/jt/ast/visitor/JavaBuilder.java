@@ -374,17 +374,13 @@ public final class JavaBuilder extends ASTVisitor<Void> {
     @Override
     public Void visitApplication(Expression.Application application) {
         // left and right expressions necessitate a wild cast if they are lambda or let expressions
-        if (application.left instanceof Expression.Lambda || application.left instanceof Expression.Let) {
+        if (application.left instanceof Expression.Lambda || application.left instanceof Expression.Let)
             wildCast = true;
-            visit(application.left);
-        } else
-            visit(application.left);
+        visit(application.left);
         builder.append(".apply(");
-        if (application.right instanceof Expression.Lambda || application.right instanceof Expression.Let) {
+        if (application.right instanceof Expression.Lambda || application.right instanceof Expression.Let)
             wildCast = true;
-            visit(application.right);
-        } else
-            visit(application.right);
+        visit(application.right);
         builder.append(")");
         return null;
     }
