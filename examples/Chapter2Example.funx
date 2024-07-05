@@ -1,0 +1,19 @@
+main = factorial 20
+
+factorial : Int -> Int
+factorial n = if n == 0 then 1 else n * factorial (n - 1) fi
+
+even : Int -> Bool
+even = let
+    even1 : Int -> Bool
+    even1 n = if n == 0 then True else odd (n - 1) fi
+
+    odd : Int -> Bool
+    odd n = if n == 0 then False else even1 (n - 1) fi
+  in even1
+
+gcd : Int -> Int -> Int
+gcd a b = if b == 0 then a else gcd b (a % b) fi
+
+xor : Bool -> Bool -> Bool
+xor a b = (a || b) && !!(a && b)

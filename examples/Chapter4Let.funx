@@ -1,0 +1,5 @@
+hundredsSum : Int -> Int -> Int
+hundredsSum = let
+    on : (a -> a -> b) -> (c -> a) -> c -> c -> b
+    on op f x y = op (f x) (f y)
+  in on add (multiply 100)

@@ -1,0 +1,5 @@
+sumToN : Int -> Int
+sumToN = let
+    ap : (a -> b -> c) -> (a -> b) -> a -> c
+    ap op f x = op x (f x)
+  in (flip divide 2) . ap multiply (add 1)

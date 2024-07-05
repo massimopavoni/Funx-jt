@@ -1,0 +1,11 @@
+main = fun1 + fun2 + letFun
+
+fun1 = 1
+
+fun2 = 2
+
+letFun = a + b
+  with
+    a = 3
+    b = 4
+  out
