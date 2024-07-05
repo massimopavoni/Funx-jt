@@ -422,7 +422,7 @@ public final class JavaBuilder extends ASTVisitor<Void> {
         if (Objects.requireNonNull(variableScheme).fst().variables.isEmpty())
             // lambda param or monomorphic declaration
             builder.append(variable.id);
-        else if (variableScheme.snd().equals("this") && i > currentLevel)
+        else if (variableScheme.snd().equals("this") && i > 0 && i < currentLevel)
             // polymorphic declaration from an intermediate let scope needs the worst: an unchecked cast
             builder.append(JavaPrelude.class.getSimpleName()).append(".<")
                     .append(typeStringOf(variable.type())).append(">_instantiationCast(")
