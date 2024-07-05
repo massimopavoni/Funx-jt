@@ -2,7 +2,7 @@ import java.time.LocalDate
 
 // Project details
 group = "com.github.massimopavoni.funx.jt"
-version = "0.1.0"
+version = "0.1.1"
 description = "A Funx to Java source transpiler."
 val preludeName = "Funx-prelude"
 
