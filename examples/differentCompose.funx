@@ -1,3 +1,0 @@
-main = f 3
-
-f = equalsEquals True . flip equalsEquals 5 . add 2

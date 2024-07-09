@@ -55,9 +55,8 @@ public final class Declaration extends ASTNode {
      * Check an expected scheme against the actual scheme.
      *
      * @param expectedScheme expected scheme
-     * @param ctx            current context
      */
-    public void checkScheme(Scheme expectedScheme, Context ctx) {
+    public void checkScheme(Scheme expectedScheme) {
         // if there's a user defined type
         if (typeId != null) {
             // check if ids match
@@ -72,11 +71,10 @@ public final class Declaration extends ASTNode {
                 // and the scheme of the declaration will obviously be a restriction of the expected scheme)
                 Substitution unification = expectedScheme.type.unify(scheme.type);
                 Type expectedType = expectedScheme.type.applySubstitution(unification);
-                if (expectedType.equals(scheme.type)) {
-                    // generalize and propagate
-                    scheme = expectedType.generalize(ctx);
+                if (expectedType.equals(scheme.type))
+                    // propagate the substitution
                     expression.propagateSubstitution(unification);
-                } else
+                else
                     InferenceEngine.reportError(inputPosition,
                             String.format("could not match expected type '%s' with actual type '%s'",
                                     expectedScheme, scheme));

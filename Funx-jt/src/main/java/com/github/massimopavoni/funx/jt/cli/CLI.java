@@ -119,6 +119,14 @@ public class CLI {
                 defaultValue = "true")
         private boolean astInferenceAnnotations;
         /**
+         * Fancy inference types flag.
+         */
+        @CommandLine.Option(
+                names = {"-F", "--no-fancy-types"},
+                description = "Don't use fancy types for inference annotations",
+                defaultValue = "true")
+        private boolean fancyTypes;
+        /**
          * Remove .dot file after AST visualization flag.
          */
         @CommandLine.Option(
@@ -284,7 +292,7 @@ public class CLI {
          */
         private void outputAST(ASTNode.Module module, Path outputPath) throws CLIException {
             // use fancy types for inference annotations
-            InferenceEngine.setFancyTypes(astInferenceAnnotations);
+            InferenceEngine.setFancyTypes(astInferenceAnnotations && fancyTypes);
             GraphvizBuilder graphvizBuilder = new GraphvizBuilder(new StringBuilder(), astInferenceAnnotations);
             graphvizBuilder.visit(module);
             InferenceEngine.setFancyTypes(false);

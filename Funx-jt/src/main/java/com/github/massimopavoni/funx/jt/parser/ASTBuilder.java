@@ -481,6 +481,13 @@ public class ASTBuilder extends FunxParserBaseVisitor<ASTNode> {
                 visit(ctx.expression(1)));
     }
 
+    /**
+     * Visit a parse tree produced by the {@code rightAppExpression}
+     * labeled alternative in {@link FunxParser#expression()}.
+     *
+     * @param ctx the parse tree
+     * @return visitor result
+     */
     @Override
     public ASTNode visitRightAppExpression(FunxParser.RightAppExpressionContext ctx) {
         return new Expression.Application(

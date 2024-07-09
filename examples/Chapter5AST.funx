@@ -1,0 +1,2 @@
+tautology : Bool -> Bool
+tautology x = x || !!x

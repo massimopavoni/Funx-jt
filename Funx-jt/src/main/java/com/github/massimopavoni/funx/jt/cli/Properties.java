@@ -11,7 +11,7 @@ public final class Properties {
     /**
      * Project version info.
      */
-    public static final String VERSION = "Funx-jt v0.1.0\nCopyright (C) 2024  Massimo Pavoni\nLicensed under GNU GPLv3";
+    public static final String VERSION = "Funx-jt v0.1.1\nCopyright (C) 2024  Massimo Pavoni\nLicensed under GNU GPLv3";
     /**
      * Project description.
      */
@@ -19,7 +19,7 @@ public final class Properties {
     /**
      * Prelude library jar filename.
      */
-    public static final String PRELUDEJAR = "Funx-prelude-0.1.0.jar";
+    public static final String PRELUDEJAR = "Funx-prelude-0.1.1.jar";
     
     /**
      * Static class constructor, private to prevent instantiation.

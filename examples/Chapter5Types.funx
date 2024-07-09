@@ -1,0 +1,9 @@
+main = countdown 1825
+
+countdown : Int -> Int
+countdown = until (equalsEquals 0) (flip subtract 1) 
+
+until p f = until1
+  with
+    until1 x = if p x then x else until1 (f x) fi
+  out

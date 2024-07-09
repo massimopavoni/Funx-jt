@@ -1,0 +1,5 @@
+reverseApply = flip (let
+    apply1 f x = f x
+  in apply1)
+
+anonymousIds = (\x -> x) (\x -> x)

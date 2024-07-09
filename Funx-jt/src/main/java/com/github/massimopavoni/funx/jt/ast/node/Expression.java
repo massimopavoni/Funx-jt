@@ -147,9 +147,10 @@ public abstract sealed class Expression extends ASTNode implements Inferable {
                 InferenceEngine.reportError(inputPosition,
                         String.format("unbound variable '%s'", id));
                 type = Type.Error.INSTANCE;
-            } else
+            } else {
                 // and instantiate the potentially polymorphic type (scheme) into a monomorphic one
                 type = binding.instantiate().snd();
+            }
             return new Utils.Tuple<>(Substitution.EMPTY, type);
         }
 
@@ -389,7 +390,8 @@ public abstract sealed class Expression extends ASTNode implements Inferable {
             for (Declaration decl : localDeclarations.declarationList) {
                 Utils.Tuple<Substitution, Type> declInference = decl.expression.infer(newCtx);
                 try {
-                    // unifying types of known bindings, gradually composing substitutions and updating context
+                    // unifying types of known bindings,
+                    // gradually composing substitutions and updating context
                     subst = subst.compose(declInference.fst())
                             .compose(newCtx.bindingOf(decl.id).type
                                     .applySubstitution(subst)
@@ -404,8 +406,8 @@ public abstract sealed class Expression extends ASTNode implements Inferable {
             // finally generalize all types and check against actual user-defined schemes
             for (Declaration decl : localDeclarations.declarationList) {
                 decl.expression.propagateSubstitution(subst);
-                Scheme expectedScheme = decl.expression.type.generalize(ctx);
-                decl.checkScheme(expectedScheme, ctx);
+                Scheme expectedScheme = decl.expression.type.generalize(newCtx);
+                decl.checkScheme(expectedScheme);
                 newCtx.bind(decl.id, decl.scheme());
             }
             // now it's possible to infer the expression type
@@ -495,15 +497,15 @@ public abstract sealed class Expression extends ASTNode implements Inferable {
                         .applySubstitution(elseInference.fst())
                         .unify(elseInference.snd());
                 // use the then branch as the if expression type
-                type = thenInference.snd().applySubstitution(thenElseSubstitution);
-                propagateSubstitution(thenElseSubstitution);
+                type = thenInference.snd();
                 // compose all substitutions
-                return new Utils.Tuple<>(conditionInference.fst()
+                Substitution subst = conditionInference.fst()
                         .compose(thenInference.fst())
                         .compose(elseInference.fst())
                         .compose(conditionSubstitution)
-                        .compose(thenElseSubstitution),
-                        type);
+                        .compose(thenElseSubstitution);
+                propagateSubstitution(subst);
+                return new Utils.Tuple<>(subst, type);
             } catch (TypeException e) {
                 InferenceEngine.reportError(inputPosition, e.getMessage());
                 type = Type.Error.INSTANCE;

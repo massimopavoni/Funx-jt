@@ -1,0 +1,5 @@
+multipleIds x = let
+    id1 = id
+  in let
+      id2 = id1
+    in id2 x

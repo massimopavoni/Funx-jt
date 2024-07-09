@@ -1,0 +1,5 @@
+power : Int -> Int -> Int
+power b e = if e == 0 then 1 else b * power b (e - 1) fi
+
+xor : Bool -> Bool -> Bool
+xor a b = (a || b) && !!(a && b)

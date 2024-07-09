@@ -1,0 +1,3 @@
+main = test False
+
+test = (\x -> x) id
